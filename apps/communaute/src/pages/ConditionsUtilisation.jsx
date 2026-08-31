@@ -6,7 +6,7 @@ export default function ConditionsUtilisation() {
       <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 text-sm leading-relaxed text-zinc-300 sm:px-6">
         <h1 className="text-2xl font-extrabold text-zinc-50">Conditions d'utilisation</h1>
         <p className="mt-1 text-xs text-zinc-500">
-          Réseau communautaire, canaux et communautés — Hypercube / HOS, Haïti
+          Hypercube Realms — Réseau communautaire, canaux et communautés (Hypercube / HOS, Haïti)
         </p>
         <p className="mt-1 text-xs font-semibold text-amber-400">
           Version de travail — à faire valider juridiquement avant mise en ligne.

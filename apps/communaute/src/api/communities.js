@@ -65,6 +65,19 @@ export async function listEligibleContent() {
   return { series, works: Array.from(worksById.values()) }
 }
 
+export async function uploadCommunityCover({ ownerId, file }) {
+  const path = `${ownerId}/${Date.now()}-${file.name}`
+  const { error: uploadError } = await supabase.storage.from('community-covers').upload(path, file)
+  if (uploadError) throw uploadError
+  const { data } = supabase.storage.from('community-covers').getPublicUrl(path)
+  return data.publicUrl
+}
+
+export async function updateCommunityCover(communityId, coverUrl) {
+  const { error } = await supabase.from('communities').update({ cover_url: coverUrl }).eq('id', communityId)
+  if (error) throw error
+}
+
 export async function createCommunity({ creatorId, name, description, relatedSeriesId, relatedWorkId }) {
   const { data, error } = await supabase
     .from('communities')

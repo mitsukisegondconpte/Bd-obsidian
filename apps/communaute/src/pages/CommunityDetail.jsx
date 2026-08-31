@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, Flag, LogIn, LogOut, Send, Users, X } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Camera, Flag, LogIn, LogOut, Send, Users, X } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import PostItem from '../components/ui/PostItem'
+import { bannerPlaceholder } from '../utils/placeholders'
 import { useAuth } from '../context/AuthContext'
 import {
   countCommunityMembers,
@@ -14,6 +15,8 @@ import {
   listCommunityMembers,
   listCommunityPosts,
   reportCommunity,
+  updateCommunityCover,
+  uploadCommunityCover,
 } from '../api/communities'
 import { recordStreakActivity } from '../api/streaks'
 
@@ -32,9 +35,12 @@ export default function CommunityDetail() {
   const [reportOpen, setReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState('')
   const [reportSent, setReportSent] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [sending, setSending] = useState(false)
 
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
+  const coverInputRef = useRef(null)
 
   useEffect(() => {
     getCommunity(communityId).then(setCommunity)
@@ -64,6 +70,20 @@ export default function CommunityDetail() {
     }
   }
 
+  async function handleCoverChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    try {
+      const url = await uploadCommunityCover({ ownerId: user.id, file })
+      await updateCommunityCover(communityId, url)
+      setCommunity((c) => ({ ...c, cover_url: url }))
+    } finally {
+      setUploadingCover(false)
+      e.target.value = ''
+    }
+  }
+
   function handleInputChange(value) {
     setNewPost(value)
     const match = value.slice(0, inputRef.current?.selectionStart ?? value.length).match(/@([a-zA-Z0-9_]*)$/)
@@ -79,20 +99,33 @@ export default function CommunityDetail() {
     inputRef.current?.focus()
   }
 
+  // Rejoindre est automatique dès le premier message : on ne bloque plus
+  // l'envoi derrière un bouton "Rejoindre" séparé et peu visible.
   async function handlePost(e) {
     e.preventDefault()
-    if (!newPost.trim()) return
-    const created = await createCommunityPost({
-      communityId,
-      authorId: user.id,
-      body: newPost.trim(),
-      replyToId: replyTarget?.id,
-    })
-    setPosts((p) => [...p, created])
-    setNewPost('')
-    setReplyTarget(null)
-    setMentionQuery(null)
-    recordStreakActivity('community').catch(() => {})
+    if (!newPost.trim() || sending) return
+    setSending(true)
+    try {
+      if (!isMember) {
+        await joinCommunity(user.id, communityId)
+        setIsMember(true)
+        setMemberCount((n) => n + 1)
+        listCommunityMembers(communityId).then(setMembers)
+      }
+      const created = await createCommunityPost({
+        communityId,
+        authorId: user.id,
+        body: newPost.trim(),
+        replyToId: replyTarget?.id,
+      })
+      setPosts((p) => [...p, created])
+      setNewPost('')
+      setReplyTarget(null)
+      setMentionQuery(null)
+      recordStreakActivity('community').catch(() => {})
+    } finally {
+      setSending(false)
+    }
   }
 
   async function handleReport() {
@@ -112,13 +145,36 @@ export default function CommunityDetail() {
     )
   }
 
+  const isCreator = user?.id === community.creator_id
+  const cover = community.cover_url || bannerPlaceholder({ seed: community.id })
+
   return (
     <Layout>
-      <div className="mx-auto max-w-2xl px-4 pt-4 sm:px-6">
-        <Link to="/communautes" className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-400">
-          <ArrowLeft size={16} /> Communautés
+      <div className="relative">
+        <div className="relative h-32 w-full overflow-hidden sm:h-40">
+          <img src={cover} alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-surface-0/20 to-black/10" />
+        </div>
+        <Link to="/communautes" aria-label="Retour" className="absolute left-3 top-3 rounded-full bg-black/40 p-1.5 text-white">
+          <ArrowLeft size={20} />
         </Link>
+        {isCreator && (
+          <>
+            <button
+              type="button"
+              onClick={() => coverInputRef.current?.click()}
+              disabled={uploadingCover}
+              aria-label="Changer la couverture"
+              className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/70 disabled:opacity-60"
+            >
+              <Camera size={13} /> {uploadingCover ? 'Envoi...' : 'Couverture'}
+            </button>
+            <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} className="hidden" />
+          </>
+        )}
+      </div>
 
+      <div className="mx-auto max-w-2xl px-4 pt-3 sm:px-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="flex items-center gap-1.5 text-lg font-extrabold text-zinc-50">
@@ -147,7 +203,7 @@ export default function CommunityDetail() {
 
         {community.is_validated && (
           <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-sky-500/10 px-3 py-2 text-xs text-sky-300">
-            <BadgeCheck size={14} /> Communauté certifiée par Hypercube Obsidian.
+            <BadgeCheck size={14} /> Communauté certifiée par Hypercube Realms.
           </p>
         )}
 
@@ -158,15 +214,20 @@ export default function CommunityDetail() {
               post={p}
               author={p.author}
               isOwn={p.author_id === user?.id}
-              onReply={isMember ? setReplyTarget : undefined}
+              onReply={setReplyTarget}
             />
           ))}
-          {posts.length === 0 && <p className="py-6 text-center text-sm text-zinc-500">Aucun message pour l'instant.</p>}
+          {posts.length === 0 && <p className="py-6 text-center text-sm text-zinc-500">Aucun message pour l'instant. Sois le premier à écrire !</p>}
           <div ref={scrollRef} />
         </div>
 
-        {isMember && (
+        {user ? (
           <form onSubmit={handlePost} className="sticky bottom-16 z-10 mt-2 rounded-xl border border-white/10 bg-surface-1 p-2.5 shadow-xl sm:bottom-2">
+            {!isMember && (
+              <p className="mb-2 px-1 text-xs text-zinc-500">
+                Ton premier message t'inscrit automatiquement dans cette communauté.
+              </p>
+            )}
             {replyTarget && (
               <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border-l-2 border-accent bg-surface-2 px-2.5 py-1.5 text-xs">
                 <div className="min-w-0">
@@ -212,7 +273,7 @@ export default function CommunityDetail() {
               />
               <button
                 type="submit"
-                disabled={!newPost.trim()}
+                disabled={!newPost.trim() || sending}
                 aria-label="Envoyer"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-ink disabled:opacity-40"
               >
@@ -220,6 +281,13 @@ export default function CommunityDetail() {
               </button>
             </div>
           </form>
+        ) : (
+          <p className="mt-3 text-center text-sm text-zinc-500">
+            <Link to="/connexion" className="font-semibold text-accent">
+              Connecte-toi
+            </Link>{' '}
+            pour écrire dans cette communauté.
+          </p>
         )}
 
         {user && (

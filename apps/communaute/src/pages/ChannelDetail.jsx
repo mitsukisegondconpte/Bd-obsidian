@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Bell, Check, Copy, Flag, Radio, Send, Share2, X } from 'lucide-react'
+import { ArrowLeft, Bell, Camera, Check, Copy, Flag, Radio, Send, Share2, X } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import PostItem from '../components/ui/PostItem'
-import { avatarPlaceholder } from '../utils/placeholders'
+import { avatarPlaceholder, bannerPlaceholder } from '../utils/placeholders'
 import { useAuth } from '../context/AuthContext'
 import {
   countChannelPostLikes,
@@ -18,6 +18,8 @@ import {
   subscribeToChannel,
   unlikeChannelPost,
   unsubscribeFromChannel,
+  updateChannelCover,
+  uploadChannelCover,
   uploadChannelMedia,
 } from '../api/channels'
 import { createCommunityPost, listMyCommunities } from '../api/communities'
@@ -42,6 +44,8 @@ export default function ChannelDetail() {
   const [reportOpen, setReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState('')
   const [reportSent, setReportSent] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const coverInputRef = useRef(null)
 
   useEffect(() => {
     getChannel(channelId).then(setChannel)
@@ -128,6 +132,20 @@ export default function ChannelDetail() {
     }
   }
 
+  async function handleCoverChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    try {
+      const url = await uploadChannelCover({ ownerId: user.id, file })
+      await updateChannelCover(channelId, url)
+      setChannel((c) => ({ ...c, cover_url: url }))
+    } finally {
+      setUploadingCover(false)
+      e.target.value = ''
+    }
+  }
+
   async function handleReport() {
     if (!reportReason.trim()) return
     await reportChannel({ channelId, reporterId: user.id, reason: reportReason.trim() })
@@ -159,14 +177,35 @@ export default function ChannelDetail() {
 
   const isOwner = user?.id === channel.owner_id
   const avatar = channel.owner?.avatar_url || avatarPlaceholder({ seed: channel.owner_id, name: channel.owner?.display_name })
+  const cover = channel.cover_url || bannerPlaceholder({ seed: channel.id })
 
   return (
     <Layout>
-      <div className="mx-auto max-w-2xl px-4 pt-4 sm:px-6">
-        <Link to="/canaux" className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-400">
-          <ArrowLeft size={16} /> Canaux
+      <div className="relative">
+        <div className="relative h-28 w-full overflow-hidden sm:h-36">
+          <img src={cover} alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-surface-0/20 to-black/10" />
+        </div>
+        <Link to="/canaux" aria-label="Retour" className="absolute left-3 top-3 rounded-full bg-black/40 p-1.5 text-white">
+          <ArrowLeft size={20} />
         </Link>
+        {isOwner && (
+          <>
+            <button
+              type="button"
+              onClick={() => coverInputRef.current?.click()}
+              disabled={uploadingCover}
+              aria-label="Changer la couverture"
+              className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/70 disabled:opacity-60"
+            >
+              <Camera size={13} /> {uploadingCover ? 'Envoi...' : 'Couverture'}
+            </button>
+            <input ref={coverInputRef} type="file" accept="image/*" onChange={handleCoverChange} className="hidden" />
+          </>
+        )}
+      </div>
 
+      <div className="mx-auto max-w-2xl px-4 pt-3 sm:px-6">
         <div className="flex items-center gap-3">
           <img src={avatar} alt="" className="h-14 w-14 rounded-full object-cover" />
           <div className="min-w-0 flex-1">

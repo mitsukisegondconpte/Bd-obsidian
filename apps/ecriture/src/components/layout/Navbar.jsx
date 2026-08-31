@@ -30,7 +30,8 @@ export default function Navbar() {
     <header className="sticky top-0 z-30 border-b border-white/5 bg-surface-0/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
         <Link to="/" className="flex shrink-0 items-center gap-2 px-1 py-1">
-          <img src={hypercubeLogo} alt="Hypercube Obsidian" className="h-7 w-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.15)]" />
+          <img src={hypercubeLogo} alt="Hypercube World" className="h-7 w-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.15)]" />
+          <span className="hidden text-sm font-extrabold tracking-tight text-zinc-100 sm:inline">Hypercube World</span>
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">

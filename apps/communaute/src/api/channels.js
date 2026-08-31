@@ -55,6 +55,19 @@ export async function createChannelPost({ channelId, body, mediaUrl }) {
   return data
 }
 
+export async function uploadChannelCover({ ownerId, file }) {
+  const path = `${ownerId}/${Date.now()}-${file.name}`
+  const { error: uploadError } = await supabase.storage.from('community-covers').upload(path, file)
+  if (uploadError) throw uploadError
+  const { data } = supabase.storage.from('community-covers').getPublicUrl(path)
+  return data.publicUrl
+}
+
+export async function updateChannelCover(channelId, coverUrl) {
+  const { error } = await supabase.from('channels').update({ cover_url: coverUrl }).eq('id', channelId)
+  if (error) throw error
+}
+
 export async function uploadChannelMedia({ ownerId, file }) {
   const path = `${ownerId}/${Date.now()}-${file.name}`
   const { error: uploadError } = await supabase.storage.from('channel-media').upload(path, file)
