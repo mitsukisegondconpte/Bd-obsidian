@@ -73,14 +73,3 @@ export async function getCrossPlatformWorks(userId) {
   if (communitiesRes.error) throw communitiesRes.error
   return { series: seriesRes.data, works: worksRes.data, communities: communitiesRes.data }
 }
-
-// Pour le sélecteur "lier à mon oeuvre" lors de la création d'une communauté.
-export async function listMyPublishedContent(userId) {
-  const [seriesRes, worksRes] = await Promise.all([
-    supabase.from('series').select('id, title').eq('author_id', userId),
-    supabase.from('works').select('id, title').eq('author_id', userId),
-  ])
-  if (seriesRes.error) throw seriesRes.error
-  if (worksRes.error) throw worksRes.error
-  return { series: seriesRes.data, works: worksRes.data }
-}

@@ -43,6 +43,28 @@ export async function listCommunityMembers(communityId) {
   return data.map((row) => row.user)
 }
 
+// Contenu pouvant être lié à un nouveau canal/communauté : œuvres/séries
+// actuellement au Top 10 hebdomadaire, ou œuvres mises en avant par
+// HOS/Bohio Mag — cf. le trigger check_content_link_eligible côté base,
+// qui est la véritable source de vérité (ceci n'est qu'un sélecteur).
+export async function listEligibleContent() {
+  const [topSeries, topWorks, featuredWorks] = await Promise.all([
+    supabase.rpc('top_series_weekly', { p_limit: 10 }),
+    supabase.rpc('top_works_weekly', { p_limit: 10 }),
+    supabase.from('works').select('id, title').eq('is_featured', true),
+  ])
+  if (topSeries.error) throw topSeries.error
+  if (topWorks.error) throw topWorks.error
+  if (featuredWorks.error) throw featuredWorks.error
+
+  const series = (topSeries.data ?? []).map((s) => ({ id: s.series_id, title: s.title }))
+  const worksById = new Map()
+  for (const w of topWorks.data ?? []) worksById.set(w.work_id, { id: w.work_id, title: w.title })
+  for (const w of featuredWorks.data ?? []) worksById.set(w.id, { id: w.id, title: w.title })
+
+  return { series, works: Array.from(worksById.values()) }
+}
+
 export async function createCommunity({ creatorId, name, description, relatedSeriesId, relatedWorkId }) {
   const { data, error } = await supabase
     .from('communities')

@@ -29,8 +29,18 @@ export async function listChannelPosts(channelId) {
   return data
 }
 
-export async function createChannel({ ownerId, name, description }) {
-  const { data, error } = await supabase.from('channels').insert({ owner_id: ownerId, name, description }).select().single()
+export async function createChannel({ ownerId, name, description, relatedSeriesId, relatedWorkId }) {
+  const { data, error } = await supabase
+    .from('channels')
+    .insert({
+      owner_id: ownerId,
+      name,
+      description,
+      related_series_id: relatedSeriesId ?? null,
+      related_work_id: relatedWorkId ?? null,
+    })
+    .select()
+    .single()
   if (error) throw error
   return data
 }

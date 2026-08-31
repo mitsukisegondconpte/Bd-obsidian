@@ -23,6 +23,7 @@ import {
   getDashboardStats,
   listWorkReports,
   resolveWorkReport,
+  setWorkFeatured,
 } from '../api/admin'
 
 const TABS = [
@@ -146,6 +147,11 @@ function WorksTab() {
     alert('Offre envoyée.')
   }
 
+  async function toggleFeatured(w) {
+    await setWorkFeatured(w.id, !w.is_featured)
+    reload()
+  }
+
   return (
     <div className="space-y-2">
       {works?.map((w) => (
@@ -157,6 +163,12 @@ function WorksTab() {
             <p className="text-xs text-zinc-500">@{w.author?.username}</p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            <FlagToggle
+              active={w.is_featured}
+              onClick={() => toggleFeatured(w)}
+              label="HOS/Bohio Mag"
+              activeClass="bg-hypercube-500/30 text-hypercube-400"
+            />
             <button
               type="button"
               onClick={() => handleOfferMigration(w)}

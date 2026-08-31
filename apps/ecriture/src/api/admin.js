@@ -36,6 +36,13 @@ export async function deleteWorkAdmin(workId) {
   if (error) throw error
 }
 
+// "Mise en avant HOS/Bohio Mag" : rend l'œuvre éligible aux canaux/communautés
+// du site 3 même hors Top 10 hebdomadaire (cf. check_content_link_eligible).
+export async function setWorkFeatured(workId, isFeatured) {
+  const { error } = await supabase.from('works').update({ is_featured: isFeatured }).eq('id', workId)
+  if (error) throw error
+}
+
 // Catalogue d'images en vente : réservé aux admins côté RLS (policy insert
 // vérifie is_platform_admin quand owner_id est vide).
 export async function listCatalogImagesAdmin() {
