@@ -10,7 +10,7 @@ déploiements séparés, comment ils partagent la même base, etc.).
 |-----|--------|-----|-------------|
 | `apps/lecture` | Déployé, branché sur Supabase | https://bd-obsidian-lecture.vercel.app | BD / webtoons : publication, lecture en scroll vertical, chapitres payants |
 | `apps/ecriture` | Déployé, branché sur Supabase | https://bd-obsidian-ecriture.vercel.app | Écriture façon Wattpad : romans/light novels, images de couverture, service d'édition |
-| `apps/communaute` | Branché sur Supabase, pas encore déployé | — | Réseau social : canaux, communautés de fans |
+| `apps/communaute` | Déployé, branché sur Supabase | https://bd-obsidian-communaute.vercel.app | Réseau social : canaux, communautés de fans |
 
 Chaque app affiche un sélecteur "Plateformes Hypercube" (icône grille dans
 la navbar) qui pointe vers les 2 autres — les redirections inter-plateformes
@@ -125,9 +125,19 @@ externe côté Supabase/Google que je ne peux pas faire à ta place :
 
 1. Google Cloud Console → créer un OAuth Client ID (type "Web application"),
    avec comme URI de redirection autorisée
-   `https://<ref-projet>.supabase.co/auth/v1/callback`.
+   `https://pcbjqxogwbjqcskwygpf.supabase.co/auth/v1/callback` (une seule
+   URL ici — Google ne redirige jamais que vers Supabase, jamais directement
+   vers une des 3 apps).
 2. Supabase Dashboard → Authentication → Providers → Google → coller le
    Client ID et le Client Secret, puis activer le provider.
+3. Supabase Dashboard → Authentication → URL Configuration → Redirect URLs
+   → ajouter les **3** origines (chaque app appelle `signInWithOAuth` avec
+   `redirectTo: window.location.origin`, donc Supabase doit connaître les
+   3, pas juste 1 ou 2) :
+   - `https://bd-obsidian-lecture.vercel.app/**`
+   - `https://bd-obsidian-ecriture.vercel.app/**`
+   - `https://bd-obsidian-communaute.vercel.app/**`
+   - (en local, ajouter aussi `http://localhost:5173/**`, `:5174`, `:5175`)
 
 Tant que ce n'est pas fait, cliquer sur le bouton Google renverra une
 erreur "provider is not enabled" — c'est normal, ça ne dépend pas du code.
