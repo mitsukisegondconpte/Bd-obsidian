@@ -61,7 +61,7 @@ fonctionne sur les autres.
 
 ## Stack commune
 
-- React 19 + React Router, Tailwind CSS v4 (`@tailwindcss/vite`), lucide-react
+- React 19 + React Router (routes en `React.lazy`/`Suspense`), Tailwind CSS v4 (`@tailwindcss/vite`), lucide-react
 - Mobile-first, un accent de couleur différent par plateforme (violet /
   ambre / corail) pour les distinguer visuellement tout en restant famille Hypercube
 - Supabase (PostgreSQL + Auth + Storage) — voir `database/` et
@@ -120,13 +120,16 @@ Branché sur Supabase, même auth que les 2 autres.
 - `/creer-communaute` — Ouvert à tous, avec option "lier à mon œuvre"
 - `/profil/:username` — Profil unifié : agrège séries (plateforme 1) et
   œuvres (plateforme 2) du même compte, avec liens directs vers les 2 autres apps
+- `/admin/signalements` — Réservé à `is_platform_admin` : liste des
+  communautés signalées, bouton pour marquer résolu
 
 Fonctionnalités ajoutées au-delà du brief client : un utilisateur devient
 auteur automatiquement (et débloque la création de canal) dès qu'il publie
 une série ou une œuvre ailleurs ; une communauté créée par l'auteur pour sa
 propre œuvre est certifiée automatiquement ; accepter un repêchage
 (plateforme 2) poste une annonce sur le canal de l'auteur (plateforme 3) ;
-bandeau d'accueil qui se referme tout seul après 10s.
+bandeau d'accueil qui se referme tout seul après 10s ; panneau admin pour
+traiter les signalements de communautés.
 
 ## Auth Google (OAuth)
 
