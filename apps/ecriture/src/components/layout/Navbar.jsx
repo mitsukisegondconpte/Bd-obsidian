@@ -3,6 +3,7 @@ import { LogOut, PenLine, Search } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.png'
 import { useAuth } from '../../context/AuthContext'
 import PlatformSwitcher from './PlatformSwitcher'
+import NotificationBell from '../ui/NotificationBell'
 
 const links = [
   { to: '/', label: 'Accueil' },
@@ -58,6 +59,7 @@ export default function Navbar() {
               >
                 <PenLine size={15} /> Écrire
               </Link>
+              <NotificationBell />
               <button
                 type="button"
                 onClick={() => signOut().then(() => navigate('/'))}

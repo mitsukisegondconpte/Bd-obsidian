@@ -23,6 +23,14 @@ dupliqués dans les 3 apps) affichée pendant la vérification de session au
 démarrage. Connexion Google OAuth disponible en plus d'email/mot de passe
 sur les 3 apps (voir section "Auth Google" plus bas).
 
+**Notifications inter-plateformes** : une cloche dans la navbar (visible
+connecté) des 3 apps, alimentée par une seule table `notifications` avec
+Realtime activé. Un nouvel abonné sur une série (plateforme 1) ou une
+œuvre (plateforme 2), un nouveau chapitre publié, ou un repêchage accepté
+génèrent une notification que l'utilisateur voit apparaître en direct —
+même s'il est en train d'utiliser une autre des 3 plateformes au moment où
+ça se produit. Voir `supabase/migrations/20260831054500_cross_platform_notifications.sql`.
+
 ## Lancer un projet
 
 ```bash
