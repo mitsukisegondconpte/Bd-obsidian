@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShieldAlert, Trash2, Upload, Send, Search, ImagePlus } from 'lucide-react'
+import { ShieldAlert, Trash2, Upload, Send, Search, ImagePlus, Check } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -21,6 +21,8 @@ import {
   createWorkMigrationOffer,
   listAllWorkMigrations,
   getDashboardStats,
+  listWorkReports,
+  resolveWorkReport,
 } from '../api/admin'
 
 const TABS = [
@@ -31,6 +33,7 @@ const TABS = [
   { id: 'imageRequests', label: 'Demandes images' },
   { id: 'editionRequests', label: "Demandes d'édition" },
   { id: 'migrations', label: 'Repêchages' },
+  { id: 'reports', label: 'Signalements' },
 ]
 
 function FlagToggle({ active, onClick, label, activeClass }) {
@@ -59,6 +62,7 @@ function DashboardTab() {
     { label: 'Chapitres', value: stats.totalChapters },
     { label: 'Demandes images en attente', value: stats.pendingImageRequests },
     { label: "Demandes d'édition en attente", value: stats.pendingEditionRequests },
+    { label: 'Signalements en attente', value: stats.unresolvedReports },
   ]
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -451,6 +455,54 @@ function MigrationsTab() {
   )
 }
 
+function ReportsTab() {
+  const [reports, setReports] = useState(null)
+  function reload() {
+    listWorkReports().then(setReports)
+  }
+  useEffect(() => {
+    reload()
+  }, [])
+
+  async function handleResolve(id) {
+    await resolveWorkReport(id)
+    setReports((prev) => prev.filter((r) => r.id !== id))
+  }
+
+  return (
+    <div className="space-y-3">
+      {reports?.length === 0 && (
+        <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-zinc-500">
+          Aucun signalement en attente.
+        </p>
+      )}
+      {reports?.map((r) => (
+        <div key={r.id} className="rounded-lg border border-white/5 bg-surface-1 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <Link to={`/oeuvre/${r.work?.id}`} className="font-semibold text-zinc-100 hover:text-accent">
+                {r.work?.title ?? 'Œuvre supprimée'}
+              </Link>
+              <p className="mt-1 text-sm text-zinc-400">{r.reason}</p>
+              <p className="mt-1 text-xs text-zinc-600">
+                Signalé par @{r.reporter?.username} · {new Date(r.created_at).toLocaleDateString('fr-FR')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleResolve(r.id)}
+              aria-label="Marquer comme résolu"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-accent hover:text-accent-ink"
+            >
+              <Check size={14} /> Résolu
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function Admin() {
   const { user, profile } = useAuth()
   const [tab, setTab] = useState('dashboard')
@@ -504,6 +556,7 @@ export default function Admin() {
           {tab === 'imageRequests' && <ImageRequestsTab currentUserId={user.id} />}
           {tab === 'editionRequests' && <EditionRequestsTab currentUserId={user.id} />}
           {tab === 'migrations' && <MigrationsTab />}
+          {tab === 'reports' && <ReportsTab />}
         </div>
       </div>
     </Layout>

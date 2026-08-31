@@ -168,19 +168,37 @@ export async function listAllWorkMigrations() {
   return data
 }
 
+export async function listWorkReports({ includeResolved = false } = {}) {
+  let query = supabase
+    .from('work_reports')
+    .select('*, work:works(id, title), reporter:profiles(username, display_name)')
+    .order('created_at', { ascending: false })
+  if (!includeResolved) query = query.is('resolved_at', null)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function resolveWorkReport(reportId) {
+  const { error } = await supabase.from('work_reports').update({ resolved_at: new Date().toISOString() }).eq('id', reportId)
+  if (error) throw error
+}
+
 export async function getDashboardStats() {
-  const [profiles, works, chapters, imageRequests, editionRequests] = await Promise.all([
+  const [profiles, works, chapters, imageRequests, editionRequests, unresolvedReports] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('works').select('id', { count: 'exact', head: true }),
     supabase.from('work_chapters').select('id', { count: 'exact', head: true }),
     supabase.from('image_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('edition_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('work_reports').select('id', { count: 'exact', head: true }).is('resolved_at', null),
   ])
   if (profiles.error) throw profiles.error
   if (works.error) throw works.error
   if (chapters.error) throw chapters.error
   if (imageRequests.error) throw imageRequests.error
   if (editionRequests.error) throw editionRequests.error
+  if (unresolvedReports.error) throw unresolvedReports.error
 
   return {
     totalProfiles: profiles.count ?? 0,
@@ -188,5 +206,6 @@ export async function getDashboardStats() {
     totalChapters: chapters.count ?? 0,
     pendingImageRequests: imageRequests.count ?? 0,
     pendingEditionRequests: editionRequests.count ?? 0,
+    unresolvedReports: unresolvedReports.count ?? 0,
   }
 }

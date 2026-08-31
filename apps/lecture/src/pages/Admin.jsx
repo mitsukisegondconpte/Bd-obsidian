@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShieldAlert, Trash2, Plus, Search } from 'lucide-react'
+import { ShieldAlert, Trash2, Plus, Search, Check } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import Badge from '../components/ui/Badge'
 import { useAuth } from '../context/AuthContext'
@@ -13,6 +13,8 @@ import {
   createGenre,
   deleteGenre,
   getDashboardStats,
+  listSeriesReports,
+  resolveSeriesReport,
 } from '../api/admin'
 
 const TABS = [
@@ -20,6 +22,7 @@ const TABS = [
   { id: 'users', label: 'Utilisateurs' },
   { id: 'series', label: 'Séries' },
   { id: 'genres', label: 'Genres' },
+  { id: 'reports', label: 'Signalements' },
 ]
 
 function FlagToggle({ active, onClick, label, activeClass }) {
@@ -48,6 +51,7 @@ function DashboardTab() {
     { label: 'Chapitres', value: stats.totalChapters },
     { label: 'Vues cumulées', value: stats.totalViews.toLocaleString('fr-FR') },
     { label: 'Revenus', value: `${(stats.totalRevenueCents / 100).toLocaleString('fr-FR')} HTG` },
+    { label: 'Signalements en attente', value: stats.unresolvedReports },
   ]
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -245,6 +249,54 @@ function GenresTab() {
   )
 }
 
+function ReportsTab() {
+  const [reports, setReports] = useState(null)
+  function reload() {
+    listSeriesReports().then(setReports)
+  }
+  useEffect(() => {
+    reload()
+  }, [])
+
+  async function handleResolve(id) {
+    await resolveSeriesReport(id)
+    setReports((prev) => prev.filter((r) => r.id !== id))
+  }
+
+  return (
+    <div className="space-y-3">
+      {reports?.length === 0 && (
+        <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-zinc-500">
+          Aucun signalement en attente.
+        </p>
+      )}
+      {reports?.map((r) => (
+        <div key={r.id} className="rounded-lg border border-white/5 bg-surface-1 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <Link to={`/serie/${r.series?.slug}`} className="font-semibold text-zinc-100 hover:text-accent">
+                {r.series?.title ?? 'Série supprimée'}
+              </Link>
+              <p className="mt-1 text-sm text-zinc-400">{r.reason}</p>
+              <p className="mt-1 text-xs text-zinc-600">
+                Signalé par @{r.reporter?.username} · {new Date(r.created_at).toLocaleDateString('fr-FR')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleResolve(r.id)}
+              aria-label="Marquer comme résolu"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-accent hover:text-accent-ink"
+            >
+              <Check size={14} /> Résolu
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function Admin() {
   const { user, profile } = useAuth()
   const [tab, setTab] = useState('dashboard')
@@ -295,6 +347,7 @@ export default function Admin() {
           {tab === 'users' && <UsersTab currentUserId={user.id} />}
           {tab === 'series' && <SeriesTab />}
           {tab === 'genres' && <GenresTab />}
+          {tab === 'reports' && <ReportsTab />}
         </div>
       </div>
     </Layout>

@@ -111,6 +111,11 @@ export async function respondToWorkMigration(migrationId, accept) {
   if (error) throw error
 }
 
+export async function reportWork({ workId, reporterId, reason }) {
+  const { error } = await supabase.from('work_reports').insert({ work_id: workId, reporter_id: reporterId, reason })
+  if (error) throw error
+}
+
 export async function getReadingProgress(userId, workId) {
   const { data, error } = await supabase
     .from('reading_progress')

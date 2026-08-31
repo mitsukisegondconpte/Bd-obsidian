@@ -96,6 +96,11 @@ export async function unfollowSeries(userId, seriesId) {
   if (error) throw error
 }
 
+export async function reportSeries({ seriesId, reporterId, reason }) {
+  const { error } = await supabase.from('series_reports').insert({ series_id: seriesId, reporter_id: reporterId, reason })
+  if (error) throw error
+}
+
 function slugify(title) {
   return title
     .toLowerCase()

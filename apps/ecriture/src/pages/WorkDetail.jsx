@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Bookmark, Lock } from 'lucide-react'
+import { ArrowLeft, BookOpen, Bookmark, Flag, Lock } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import Badge from '../components/ui/Badge'
 import FollowButton from '../components/ui/FollowButton'
 import { bookCoverPlaceholder } from '../utils/placeholders'
-import { getReadingProgress, getWork, listWorkChapters } from '../api/works'
+import { getReadingProgress, getWork, listWorkChapters, reportWork } from '../api/works'
 import { addWorkToList, listMyReadingLists, removeWorkFromList } from '../api/readingLists'
 import { useAuth } from '../context/AuthContext'
 
@@ -18,6 +18,9 @@ export default function WorkDetail() {
   const [error, setError] = useState('')
   const [lists, setLists] = useState(null)
   const [showListMenu, setShowListMenu] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportSent, setReportSent] = useState(false)
 
   useEffect(() => {
     getWork(workId)
@@ -50,6 +53,12 @@ export default function WorkDetail() {
           : l
       )
     )
+  }
+
+  async function handleReport() {
+    if (!reportReason.trim()) return
+    await reportWork({ workId: work.id, reporterId: user.id, reason: reportReason.trim() })
+    setReportSent(true)
   }
 
   if (error) {
@@ -206,6 +215,39 @@ export default function WorkDetail() {
             </p>
           )}
         </div>
+
+        {user && !isOwner && (
+          <div className="border-t border-white/5 pb-6 pt-3">
+            {reportSent ? (
+              <p className="text-xs text-emerald-400">Signalement envoyé, merci.</p>
+            ) : reportOpen ? (
+              <div className="space-y-2">
+                <textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Pourquoi signaler cette œuvre ?"
+                  rows={2}
+                  className="w-full rounded-lg border border-white/10 bg-surface-2 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleReport}
+                  className="rounded-full bg-red-500/20 px-3 py-1.5 text-xs font-bold text-red-400"
+                >
+                  Envoyer le signalement
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setReportOpen(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-400"
+              >
+                <Flag size={13} /> Signaler cette œuvre
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </Layout>
   )

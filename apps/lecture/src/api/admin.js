@@ -42,17 +42,38 @@ export async function deleteGenre(name) {
   if (error) throw error
 }
 
+export async function listSeriesReports({ includeResolved = false } = {}) {
+  let query = supabase
+    .from('series_reports')
+    .select('*, series:series(id, slug, title), reporter:profiles(username, display_name)')
+    .order('created_at', { ascending: false })
+  if (!includeResolved) query = query.is('resolved_at', null)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function resolveSeriesReport(reportId) {
+  const { error } = await supabase
+    .from('series_reports')
+    .update({ resolved_at: new Date().toISOString() })
+    .eq('id', reportId)
+  if (error) throw error
+}
+
 export async function getDashboardStats() {
-  const [profiles, series, chapters, purchases] = await Promise.all([
+  const [profiles, series, chapters, purchases, unresolvedReports] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('series').select('id, views', { count: 'exact' }),
     supabase.from('chapters').select('id', { count: 'exact', head: true }),
     supabase.from('chapter_purchases').select('amount_cents').eq('status', 'completed'),
+    supabase.from('series_reports').select('id', { count: 'exact', head: true }).is('resolved_at', null),
   ])
   if (profiles.error) throw profiles.error
   if (series.error) throw series.error
   if (chapters.error) throw chapters.error
   if (purchases.error) throw purchases.error
+  if (unresolvedReports.error) throw unresolvedReports.error
 
   const totalViews = (series.data ?? []).reduce((sum, s) => sum + (s.views ?? 0), 0)
   const totalRevenueCents = (purchases.data ?? []).reduce((sum, p) => sum + (p.amount_cents ?? 0), 0)
@@ -63,5 +84,6 @@ export async function getDashboardStats() {
     totalChapters: chapters.count ?? 0,
     totalViews,
     totalRevenueCents,
+    unresolvedReports: unresolvedReports.count ?? 0,
   }
 }

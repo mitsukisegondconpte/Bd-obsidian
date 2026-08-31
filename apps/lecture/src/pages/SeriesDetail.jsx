@@ -1,23 +1,28 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Eye, Star, Users } from 'lucide-react'
+import { ArrowLeft, BookOpen, Eye, Flag, Star, Users } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import Badge from '../components/ui/Badge'
 import FollowButton from '../components/ui/FollowButton'
 import ChapterListItem from '../components/ui/ChapterListItem'
 import { avatarPlaceholder, bannerPlaceholder, coverPlaceholder } from '../utils/placeholders'
-import { countSeriesSubscribers, getSeriesBySlug, incrementSeriesViews, listSeriesChapters } from '../api/series'
+import { countSeriesSubscribers, getSeriesBySlug, incrementSeriesViews, listSeriesChapters, reportSeries } from '../api/series'
+import { useAuth } from '../context/AuthContext'
 
 const STATUS_LABEL = { ongoing: 'En cours', paused: 'En pause', completed: 'Terminé' }
 
 export default function SeriesDetail() {
   const { slug } = useParams()
+  const { user } = useAuth()
   const [seriesItem, setSeriesItem] = useState(null)
   const [chapters, setChapters] = useState(null)
   const [subscribers, setSubscribers] = useState(0)
   const [sortDesc, setSortDesc] = useState(true)
   const [tab, setTab] = useState('chapters')
   const [error, setError] = useState('')
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportSent, setReportSent] = useState(false)
 
   useEffect(() => {
     getSeriesBySlug(slug)
@@ -44,6 +49,12 @@ export default function SeriesDetail() {
         <p className="p-6 text-zinc-500">Chargement...</p>
       </Layout>
     )
+  }
+
+  async function handleReport() {
+    if (!reportReason.trim()) return
+    await reportSeries({ seriesId: seriesItem.id, reporterId: user.id, reason: reportReason.trim() })
+    setReportSent(true)
   }
 
   const author = seriesItem.author
@@ -170,6 +181,39 @@ export default function SeriesDetail() {
                 <p className="text-sm font-bold text-zinc-100">{author.display_name}</p>
               </div>
             </Link>
+
+            {user && user.id !== author.id && (
+              <div className="mt-5 border-t border-white/5 pt-3">
+                {reportSent ? (
+                  <p className="text-xs text-emerald-400">Signalement envoyé, merci.</p>
+                ) : reportOpen ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                      placeholder="Pourquoi signaler cette série ?"
+                      rows={2}
+                      className="w-full rounded-lg border border-white/10 bg-surface-2 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleReport}
+                      className="rounded-full bg-red-500/20 px-3 py-1.5 text-xs font-bold text-red-400"
+                    >
+                      Envoyer le signalement
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setReportOpen(true)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-400"
+                  >
+                    <Flag size={13} /> Signaler cette série
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
