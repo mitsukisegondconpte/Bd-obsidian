@@ -11,6 +11,9 @@ import EditionServices from './pages/EditionServices'
 import AuthorProfile from './pages/AuthorProfile'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
+import NotFound from './pages/NotFound'
 import LoadingScreen from './components/ui/LoadingScreen'
 import { useAuth } from './context/AuthContext'
 
@@ -42,6 +45,9 @@ export default function App() {
         <Route path="/profil/:username" element={<AuthorProfile />} />
         <Route path="/connexion" element={<Login />} />
         <Route path="/inscription" element={<Signup />} />
+        <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+        <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   )
