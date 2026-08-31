@@ -48,6 +48,16 @@ part 2 faux positifs documentés dans leurs migrations respectives —
 `increment_series_views` et `decrement_edition_credit` sont
 volontairement publiques et déjà auto-protégées).
 
+**Performance base de données** : les 54 policies RLS appelant
+`auth.uid()` directement ont été réécrites en `(select auth.uid())`
+(Postgres l'évalue une fois par requête au lieu d'une fois par ligne —
+correction recommandée par Supabase, voir
+`20260831083000_optimize_rls_auth_uid_calls.sql`), les 2 policies UPDATE
+redondantes sur `communities` fusionnées en une, et un index ajouté sur
+les 25 colonnes de clé étrangère qui n'en avaient pas. Toutes vérifiées
+avec des comptes jetables avant/après — comportement RLS identique,
+juste plus rapide.
+
 **Reste à faire manuellement (réglage Dashboard, pas de tool SQL pour ça)** :
 Authentication → Policies → activer "Leaked password protection"
 (vérifie les mots de passe contre HaveIBeenPwned).
