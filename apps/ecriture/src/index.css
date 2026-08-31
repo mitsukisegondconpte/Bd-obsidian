@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Merriweather', Georgia, 'Times New Roman', serif;
+
+  /* Plateforme écriture : accent ambre/doré (encre & papier), distinct du
+     violet de la plateforme lecture — même famille Hypercube, produit différent. */
+  --color-accent: #e0a63a;
+  --color-accent-dark: #c78a1f;
+  --color-accent-ink: #140f08;
+
+  --color-hypercube-400: #9d96d9;
+  --color-hypercube-500: #5b5b96;
+  --color-hypercube-600: #47476f;
+
+  --color-surface-0: #0f0d0b;
+  --color-surface-1: #171310;
+  --color-surface-2: #211c17;
+  --color-surface-3: #2c251e;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-surface-0 text-zinc-100 antialiased;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #140f08;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 999px;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .prose-reader {
+    font-family: var(--font-serif);
+    line-height: 1.9;
+    letter-spacing: 0.01em;
+  }
+}

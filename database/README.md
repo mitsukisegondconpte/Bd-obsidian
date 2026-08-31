@@ -18,6 +18,21 @@
 - Variables d'environnement front-end : voir `.env.example` à la racine —
   **les 3 plateformes utilisent exactement les mêmes valeurs**, c'est ce qui
   fait qu'un compte est partagé entre elles.
+- Migrations additionnelles appliquées pour la plateforme 2 : tags libres et
+  brouillon/publié sur les chapitres, `reading_progress` (reprise de
+  lecture), `reading_lists` (collections perso), une fonction sécurisée
+  `decrement_edition_credit` (empêche un utilisateur de remonter son propre
+  crédit d'édition), et un bucket de stockage `work-covers` (upload de
+  couverture depuis l'appareil, public en lecture, écriture limitée à son
+  propre dossier).
+- **Limite de test connue** : cet environnement ne peut pas atteindre
+  `*.supabase.co` en HTTP direct (même restriction réseau que pour les CDN
+  d'images plus haut) — donc je n'ai pas pu screenshot l'app avec de vraies
+  requêtes réseau. J'ai contourné en interceptant les appels côté navigateur
+  (Playwright `page.route`) avec des réponses simulées pour vérifier le
+  rendu, et validé la logique serveur (triggers, RLS, RPC) directement via
+  le SQL exécuté sur le vrai projet. Le vrai test réseau ne pourra se faire
+  que depuis ton navigateur, une fois déployé.
 
 ## Le principe
 
@@ -117,11 +132,11 @@ seule base Supabase derrière les 3.** Rien à dupliquer côté code partagé
 ou déploiement puisque chaque projet d'hébergement est cloisonné à son
 dossier.
 
-Prochaine étape concrète : dès que tu m'auras donné les specs des
-plateformes 2 et 3, je restructure ce repo (`apps/lecture` reçoit le code
-actuel, `apps/ecriture` et `apps/communaute` sont créés), et je peux mettre
-en place les 3 projets Vercel directement depuis cette session si tu veux
-utiliser Vercel comme hébergeur.
+**Statut** : `apps/lecture` (plateforme 1) et `apps/ecriture` (plateforme 2,
+Wattpad-like) existent déjà dans le repo. Il reste `apps/communaute`
+(plateforme 3) à construire dès que tu m'en donnes les specs. Je peux
+mettre en place les 3 projets Vercel directement depuis cette session si tu
+veux utiliser Vercel comme hébergeur — dis-le-moi.
 
 ## Contenu du schéma (`schema.sql`)
 
@@ -168,14 +183,22 @@ erDiagram
 ```mermaid
 erDiagram
     USERS ||--o{ WORKS : ecrit
-    WORKS ||--o{ WORK_CHAPTERS : contient
+    WORKS ||--o{ WORK_CHAPTERS : "contient (brouillon ou publie)"
     WORKS }o--|| PLATFORM_IMAGES : "couverture"
     USERS ||--o{ IMAGE_REQUESTS : demande
     WORKS ||--o{ EDITION_REQUESTS : "demande edition"
     USERS ||--o{ EDITION_REQUESTS : "edite (editeur)"
     USERS ||--|| EDITION_CREDITS : "credits gratuits"
     WORKS ||--o| WORK_MIGRATIONS : "repechage vers plateforme 1"
+    USERS ||--o{ READING_PROGRESS : "reprend ou il en etait"
+    USERS ||--o{ READING_LISTS : "cree des collections"
+    READING_LISTS ||--o{ READING_LIST_ITEMS : contient
 ```
+
+Fonctionnalités ajoutées par rapport au doc client (proposées et
+implémentées) : `works.tags` (tags libres, découverte façon Wattpad),
+`work_chapters.is_draft` (un chapitre non publié n'est visible que par son
+auteur), `reading_progress` et `reading_lists` ci-dessus.
 
 ### 4. Plateforme 3 — Réseau social
 
