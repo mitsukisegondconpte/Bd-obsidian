@@ -1,13 +1,13 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, PenLine, Search } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.jpg'
 import { useAuth } from '../../context/AuthContext'
 import PlatformSwitcher from './PlatformSwitcher'
 
 const links = [
   { to: '/', label: 'Accueil' },
-  { to: '/explorer', label: 'Explorer' },
-  { to: '/edition', label: 'Édition' },
+  { to: '/canaux', label: 'Canaux' },
+  { to: '/communautes', label: 'Communautés' },
 ]
 
 export default function Navbar() {
@@ -38,26 +38,11 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
-          <div className="relative hidden sm:block">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-            <input
-              type="search"
-              placeholder="Chercher une oeuvre, un auteur..."
-              className="w-56 rounded-full border border-white/10 bg-surface-2 py-1.5 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
-            />
-          </div>
-
+        <div className="ml-auto flex items-center gap-1.5">
           <PlatformSwitcher />
 
           {user ? (
             <>
-              <Link
-                to="/mes-oeuvres"
-                className="hidden items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-sm font-bold text-accent-ink hover:bg-accent-dark sm:flex"
-              >
-                <PenLine size={15} /> Écrire
-              </Link>
               <button
                 type="button"
                 onClick={() => signOut().then(() => navigate('/'))}

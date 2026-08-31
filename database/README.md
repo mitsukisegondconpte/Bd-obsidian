@@ -132,11 +132,12 @@ seule base Supabase derrière les 3.** Rien à dupliquer côté code partagé
 ou déploiement puisque chaque projet d'hébergement est cloisonné à son
 dossier.
 
-**Statut** : `apps/lecture` (plateforme 1) et `apps/ecriture` (plateforme 2,
-Wattpad-like) existent déjà dans le repo. Il reste `apps/communaute`
-(plateforme 3) à construire dès que tu m'en donnes les specs. Je peux
-mettre en place les 3 projets Vercel directement depuis cette session si tu
-veux utiliser Vercel comme hébergeur — dis-le-moi.
+**Statut** : les 3 apps existent (`apps/lecture`, `apps/ecriture`,
+`apps/communaute`). `apps/lecture` et `apps/ecriture` sont déployées sur
+Vercel (voir liens dans le README racine). `apps/communaute` reste à
+déployer. Chaque app affiche un menu "Plateformes Hypercube" (icône grille
+dans la navbar) qui pointe vers les URLs des 2 autres — les redirections
+inter-plateformes du doc client sont donc réelles, pas juste documentées.
 
 ## Contenu du schéma (`schema.sql`)
 
@@ -204,15 +205,39 @@ auteur), `reading_progress` et `reading_lists` ci-dessus.
 
 ```mermaid
 erDiagram
-    USERS ||--o{ CHANNELS : possede
+    USERS ||--o{ CHANNELS : "possede (auteurs uniquement)"
     CHANNELS ||--o{ CHANNEL_POSTS : publie
-    USERS ||--o{ COMMUNITIES : cree
+    USERS ||--o{ COMMUNITIES : "cree (tout le monde)"
     COMMUNITIES ||--o{ COMMUNITY_MEMBERS : compte
     COMMUNITIES ||--o{ COMMUNITY_POSTS : contient
     COMMUNITIES ||--o{ COMMUNITY_REPORTS : recoit
     COMMUNITIES }o--o| SERIES : "liee a (optionnel)"
     COMMUNITIES }o--o| WORKS : "liee a (optionnel)"
 ```
+
+Règle du client explicitement appliquée : **les auteurs créent des canaux,
+les lecteurs créent des communautés/groupes** — une policy RLS bloque la
+création d'un canal si `profiles.is_author` est faux.
+
+**Vraie synchronisation entre les 3 plateformes** (pas juste "même base", du
+comportement automatique) :
+- Publier une série (plateforme 1) ou une œuvre (plateforme 2) passe
+  automatiquement `is_author = true` sur le profil (trigger) — c'est ce qui
+  débloque la création de canal sur la plateforme 3, immédiatement, sans
+  action manuelle.
+- Une communauté créée par l'auteur d'une œuvre pour cette œuvre est
+  **certifiée automatiquement** (trigger) — un des critères de validation du
+  doc client, traduit en règle de données plutôt qu'en modération manuelle.
+- Accepter une proposition de repêchage (plateforme 2) poste automatiquement
+  une annonce sur le canal de l'auteur (plateforme 3), si il en a un.
+- La page de profil de la plateforme 3 affiche les séries (plateforme 1) et
+  les œuvres (plateforme 2) d'un même compte, avec des liens directs vers
+  les 2 autres apps — un seul profil, un contenu agrégé des 3 produits.
+
+Testé directement en SQL sur le projet : un profil non-auteur qui publie une
+œuvre devient auteur, une communauté "officielle" est validée à la création
+alors qu'une communauté "non officielle" sur la même œuvre ne l'est pas, et
+l'acceptation d'un repêchage crée bien le post sur le canal.
 
 ### Points du doc client traduits en règles de données
 

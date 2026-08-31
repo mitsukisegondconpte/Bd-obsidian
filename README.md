@@ -6,11 +6,15 @@ déploiements séparés, comment ils partagent la même base, etc.).
 
 ## Applications
 
-| App | Statut | Description |
-|-----|--------|-------------|
-| `apps/lecture` | Front-end + données mockées | BD / webtoons : publication, lecture en scroll vertical, chapitres payants |
-| `apps/ecriture` | Branché sur Supabase (réel) | Écriture façon Wattpad : romans/light novels, images de couverture, service d'édition |
-| `apps/communaute` | À venir | Réseau social : canaux, communautés de fans |
+| App | Statut | URL | Description |
+|-----|--------|-----|-------------|
+| `apps/lecture` | Déployé | https://bd-obsidian-lecture.vercel.app | BD / webtoons : publication, lecture en scroll vertical, chapitres payants (données mockées) |
+| `apps/ecriture` | Déployé, branché sur Supabase | https://bd-obsidian-ecriture.vercel.app | Écriture façon Wattpad : romans/light novels, images de couverture, service d'édition |
+| `apps/communaute` | Branché sur Supabase, pas encore déployé | — | Réseau social : canaux, communautés de fans |
+
+Chaque app affiche un sélecteur "Plateformes Hypercube" (icône grille dans
+la navbar) qui pointe vers les 2 autres — les redirections inter-plateformes
+du doc client sont réelles.
 
 ## Lancer un projet
 
@@ -20,16 +24,18 @@ cp .env.example .env.local  # remplir avec les clés Supabase (déjà pré-rempl
 
 npm run dev:lecture         # http://localhost:5173
 npm run dev:ecriture        # http://localhost:5174
+npm run dev:communaute      # http://localhost:5175
 ```
 
-Les deux apps lisent le **même** `.env.local` à la racine (voir `envDir`
-dans chaque `vite.config.js`) — c'est ce qui garantit qu'un compte créé sur
-l'une fonctionne sur l'autre.
+Les 3 apps lisent le **même** `.env.local` à la racine (voir `envDir` dans
+chaque `vite.config.js`) — c'est ce qui garantit qu'un compte créé sur l'une
+fonctionne sur les autres.
 
 ## Stack commune
 
 - React 19 + React Router, Tailwind CSS v4 (`@tailwindcss/vite`), lucide-react
-- Mobile-first
+- Mobile-first, un accent de couleur différent par plateforme (violet /
+  ambre / corail) pour les distinguer visuellement tout en restant famille Hypercube
 - Supabase (PostgreSQL + Auth + Storage) — voir `database/` et
   `supabase/migrations/` pour le schéma
 
@@ -59,3 +65,21 @@ Branché pour de vrai sur Supabase (auth, base, storage) — voir
 Fonctionnalités ajoutées au-delà du brief client (proposées et
 implémentées) : tags libres, brouillon/publié par chapitre, reprise de
 lecture, listes de lecture.
+
+## `apps/communaute` — réseau social
+
+Branché sur Supabase, même auth que les 2 autres.
+
+- `/`, `/canaux`, `/communautes` — Découverte
+- `/canal/:channelId` — Canal (façon chaîne WhatsApp) : posts, abonnement
+- `/communaute/:communityId` — Communauté : posts, membres, rejoindre, signaler
+- `/creer-canal` — Réservé aux auteurs (vérifié côté base, pas juste côté UI)
+- `/creer-communaute` — Ouvert à tous, avec option "lier à mon œuvre"
+- `/profil/:username` — Profil unifié : agrège séries (plateforme 1) et
+  œuvres (plateforme 2) du même compte, avec liens directs vers les 2 autres apps
+
+Fonctionnalités ajoutées au-delà du brief client : un utilisateur devient
+auteur automatiquement (et débloque la création de canal) dès qu'il publie
+une série ou une œuvre ailleurs ; une communauté créée par l'auteur pour sa
+propre œuvre est certifiée automatiquement ; accepter un repêchage
+(plateforme 2) poste une annonce sur le canal de l'auteur (plateforme 3).

@@ -598,3 +598,6 @@ using (bucket_id = 'work-covers' and (storage.foldername(name))[1] = auth.uid():
 create policy "authors respond to own work migrations" on public.work_migrations for update using (
   exists (select 1 from public.works w where w.id = work_id and w.author_id = auth.uid())
 );
+
+-- Plateforme 3 (réseau social) + synchronisation cross-plateforme :
+-- voir supabase/migrations/20260831040724_platform3_social_sync.sql

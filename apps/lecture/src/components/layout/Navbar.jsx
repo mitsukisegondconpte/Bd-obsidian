@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.jpg'
 import { currentUser } from '../../data/mockData'
+import PlatformSwitcher from './PlatformSwitcher'
 
 const links = [
   { to: '/', label: 'Accueil' },
@@ -50,6 +51,7 @@ export default function Navbar() {
           >
             <Search size={19} />
           </button>
+          <PlatformSwitcher />
           <Link
             to="/profil/auth-1"
             className="h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-accent"

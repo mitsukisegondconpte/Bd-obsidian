@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Plateforme communauté : corail/rose énergique, distinct du violet
+     (lecture) et de l'ambre (écriture) — même famille Hypercube, produit différent. */
+  --color-accent: #f0576e;
+  --color-accent-dark: #d13851;
+  --color-accent-ink: #1a0509;
+
+  --color-hypercube-400: #9d96d9;
+  --color-hypercube-500: #5b5b96;
+  --color-hypercube-600: #47476f;
+
+  --color-surface-0: #0c0709;
+  --color-surface-1: #170f12;
+  --color-surface-2: #21171a;
+  --color-surface-3: #2c2024;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-surface-0 text-zinc-100 antialiased;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #1a0509;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 999px;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

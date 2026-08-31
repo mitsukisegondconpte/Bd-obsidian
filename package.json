@@ -7,7 +7,9 @@
   "scripts": {
     "dev:lecture": "npm run dev --workspace apps/lecture",
     "dev:ecriture": "npm run dev --workspace apps/ecriture",
+    "dev:communaute": "npm run dev --workspace apps/communaute",
     "build:lecture": "npm run build --workspace apps/lecture",
-    "build:ecriture": "npm run build --workspace apps/ecriture"
+    "build:ecriture": "npm run build --workspace apps/ecriture",
+    "build:communaute": "npm run build --workspace apps/communaute"
   }
 }
