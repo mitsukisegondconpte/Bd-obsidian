@@ -38,6 +38,44 @@ sur son propre profil) : nom affiché, bio, avatar (bucket Storage
 `/reinitialiser-mot-de-passe`, sur les 3 apps. Une page 404 de marque
 remplace le blanc qu'affichait toute route non gérée jusqu'ici.
 
+## Panels admin
+
+Chaque app a son propre `/admin` (icône bouclier dans la navbar,
+visible seulement si `profile.is_platform_admin` — même compte, donc le
+statut admin est valable partout à la fois). Choix délibéré plutôt
+qu'une 4ᵉ app séparée : l'admin agit directement là où vit le contenu
+qu'il modère, sans jongler entre déploiements, et ça évite un 4ᵉ projet
+Vercel à maintenir pour une surface qui n'a pas de public propre.
+
+Fondation commune aux 3 (`admin_set_profile_flags`, voir
+`supabase/migrations/20260831100000_admin_profile_management.sql`) :
+une fonction RPC security-definer est désormais le seul moyen d'accorder
+auteur/éditeur/admin ou de suspendre un compte — les colonnes privilégiées
+de `profiles` restent verrouillées côté client (cf. la faille corrigée
+plus haut), la fonction vérifie elle-même que l'appelant est admin.
+Un compte suspendu voit un écran dédié à la place de l'app.
+
+- **`apps/lecture`** — tableau de bord (utilisateurs/séries/chapitres/vues/
+  revenus), gestion des utilisateurs, modération des séries (suppression),
+  gestion des genres.
+- **`apps/ecriture`** — tableau de bord, utilisateurs, modération des
+  œuvres, **catalogue d'images en vente** (upload, prix, suppression —
+  avant cette session n'importe quel compte pouvait injecter une image
+  "catalogue" avec un prix arbitraire, corrigé au niveau RLS), demandes
+  d'images sur-mesure, demandes d'édition (auto-assignation), et
+  déclenchement de propositions de repêchage vers la plateforme lecture.
+- **`apps/communaute`** — tableau de bord, utilisateurs, modération des
+  communautés et des canaux (suppression), signalements (déjà existant,
+  intégré au hub).
+
+Modération de contenu (suppression) disponible pour un admin sur :
+séries, chapitres, œuvres, chapitres d'œuvre, canaux, communautés,
+commentaires, posts de communauté, posts de canal — voir
+`supabase/migrations/20260831101000_admin_content_moderation.sql`.
+Plusieurs de ces policies de suppression n'existaient tout simplement pas
+avant (même le propriétaire ne pouvait pas supprimer son propre post de
+communauté ou de canal, par exemple).
+
 ⚠️ **Sécurité** : `supabase/migrations/20260831062000_fix_profiles_privilege_escalation.sql`
 corrige une faille où n'importe quel utilisateur connecté pouvait
 s'auto-attribuer `is_platform_admin` (aucune colonne n'était protégée par
