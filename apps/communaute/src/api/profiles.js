@@ -6,6 +6,22 @@ export async function getProfileByUsername(username) {
   return data
 }
 
+export async function updateProfile({ userId, displayName, bio, avatarUrl }) {
+  const updates = { display_name: displayName, bio }
+  if (avatarUrl !== undefined) updates.avatar_url = avatarUrl
+  const { data, error } = await supabase.from('profiles').update(updates).eq('id', userId).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function uploadAvatar({ userId, file }) {
+  const path = `${userId}/${Date.now()}-${file.name}`
+  const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+  if (uploadError) throw uploadError
+  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+  return data.publicUrl
+}
+
 export async function countFollowers(userId) {
   const { count, error } = await supabase
     .from('follows')

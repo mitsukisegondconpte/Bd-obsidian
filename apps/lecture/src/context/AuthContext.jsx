@@ -34,6 +34,12 @@ export function AuthProvider({ children }) {
       .then(({ data }) => setProfile(data))
   }, [session?.user?.id])
 
+  async function refreshProfile() {
+    if (!session?.user) return
+    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+    setProfile(data)
+  }
+
   async function signUp({ email, password, username, displayName }) {
     return supabase.auth.signUp({
       email,
@@ -59,7 +65,17 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, profile, loading, signUp, signIn, signInWithGoogle, signOut }}
+      value={{
+        session,
+        user: session?.user ?? null,
+        profile,
+        loading,
+        signUp,
+        signIn,
+        signInWithGoogle,
+        signOut,
+        refreshProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>

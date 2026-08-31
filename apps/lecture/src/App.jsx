@@ -6,6 +6,7 @@ import Library from './pages/Library'
 import SeriesDetail from './pages/SeriesDetail'
 import ChapterReader from './pages/ChapterReader'
 import AuthorProfile from './pages/AuthorProfile'
+import EditProfile from './pages/EditProfile'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/abonnements" element={<Library />} />
         <Route path="/serie/:slug" element={<SeriesDetail />} />
         <Route path="/serie/:slug/chapitre/:chapterId" element={<ChapterReader />} />
+        <Route path="/profil/modifier" element={<EditProfile />} />
         <Route path="/profil/:username" element={<AuthorProfile />} />
         <Route path="/connexion" element={<Login />} />
         <Route path="/inscription" element={<Signup />} />

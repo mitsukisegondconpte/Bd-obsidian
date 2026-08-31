@@ -9,6 +9,7 @@ import AddChapter from './pages/AddChapter'
 import MyWorks from './pages/MyWorks'
 import EditionServices from './pages/EditionServices'
 import AuthorProfile from './pages/AuthorProfile'
+import EditProfile from './pages/EditProfile'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/creer" element={<CreateWork />} />
         <Route path="/mes-oeuvres" element={<MyWorks />} />
         <Route path="/edition" element={<EditionServices />} />
+        <Route path="/profil/modifier" element={<EditProfile />} />
         <Route path="/profil/:username" element={<AuthorProfile />} />
         <Route path="/connexion" element={<Login />} />
         <Route path="/inscription" element={<Signup />} />

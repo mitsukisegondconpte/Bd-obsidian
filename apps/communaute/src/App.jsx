@@ -8,6 +8,7 @@ import Communities from './pages/Communities'
 import CommunityDetail from './pages/CommunityDetail'
 import CreateCommunity from './pages/CreateCommunity'
 import AuthorProfile from './pages/AuthorProfile'
+import EditProfile from './pages/EditProfile'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/communautes" element={<Communities />} />
         <Route path="/communaute/:communityId" element={<CommunityDetail />} />
         <Route path="/creer-communaute" element={<CreateCommunity />} />
+        <Route path="/profil/modifier" element={<EditProfile />} />
         <Route path="/profil/:username" element={<AuthorProfile />} />
         <Route path="/connexion" element={<Login />} />
         <Route path="/inscription" element={<Signup />} />

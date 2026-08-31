@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { BadgeCheck, BookOpen, ExternalLink, Feather } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import FollowButton from '../components/ui/FollowButton'
+import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder } from '../utils/placeholders'
 import { countFollowers, getCrossPlatformWorks, getProfileByUsername } from '../api/profiles'
 import { listMyChannels } from '../api/channels'
@@ -12,6 +13,7 @@ const ECRITURE_URL = 'https://bd-obsidian-ecriture.vercel.app'
 
 export default function AuthorProfile() {
   const { username } = useParams()
+  const { user } = useAuth()
   const [profile, setProfile] = useState(null)
   const [cross, setCross] = useState({ series: [], works: [] })
   const [channels, setChannels] = useState([])
@@ -52,7 +54,16 @@ export default function AuthorProfile() {
       <div className="px-4 pt-8 sm:px-6">
         <div className="flex items-end justify-between">
           <img src={avatar} alt={profile.display_name} className="h-24 w-24 rounded-full object-cover sm:h-28 sm:w-28" />
-          <FollowButton authorId={profile.id} className="mb-2" />
+          {user?.id === profile.id ? (
+            <Link
+              to="/profil/modifier"
+              className="mb-2 rounded-full border border-white/10 bg-surface-2 px-4 py-1.5 text-sm font-bold text-zinc-200 hover:border-accent/40"
+            >
+              Modifier le profil
+            </Link>
+          ) : (
+            <FollowButton authorId={profile.id} className="mb-2" />
+          )}
         </div>
 
         <div className="mt-3 flex items-center gap-1.5">

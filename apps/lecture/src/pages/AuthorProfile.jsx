@@ -4,12 +4,14 @@ import { ArrowLeft, BadgeCheck } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import SeriesCard from '../components/ui/SeriesCard'
 import FollowButton from '../components/ui/FollowButton'
+import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder, bannerPlaceholder } from '../utils/placeholders'
 import { countFollowers, getProfileByUsername } from '../api/profiles'
 import { listSeriesByAuthor } from '../api/series'
 
 export default function AuthorProfile() {
   const { username } = useParams()
+  const { user } = useAuth()
   const [author, setAuthor] = useState(null)
   const [authorSeries, setAuthorSeries] = useState([])
   const [followers, setFollowers] = useState(0)
@@ -64,7 +66,16 @@ export default function AuthorProfile() {
             alt={author.display_name}
             className="h-24 w-24 rounded-full object-cover ring-4 ring-surface-0 sm:h-28 sm:w-28"
           />
-          <FollowButton targetType="author" targetId={author.id} className="mb-2" />
+          {user?.id === author.id ? (
+            <Link
+              to="/profil/modifier"
+              className="mb-2 rounded-full border border-white/10 bg-surface-2 px-4 py-1.5 text-sm font-bold text-zinc-200 hover:border-accent/40"
+            >
+              Modifier le profil
+            </Link>
+          ) : (
+            <FollowButton targetType="author" targetId={author.id} className="mb-2" />
+          )}
         </div>
 
         <div className="mt-3 flex items-center gap-1.5">
