@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import LoadingScreen from './components/ui/LoadingScreen'
+import SuspendedScreen from './components/ui/SuspendedScreen'
 import { useAuth } from './context/AuthContext'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -12,7 +13,7 @@ const CommunityDetail = lazy(() => import('./pages/CommunityDetail'))
 const CreateCommunity = lazy(() => import('./pages/CreateCommunity'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
 const EditProfile = lazy(() => import('./pages/EditProfile'))
-const AdminReports = lazy(() => import('./pages/AdminReports'))
+const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
@@ -28,9 +29,10 @@ function ScrollToTop() {
 }
 
 export default function App() {
-  const { loading } = useAuth()
+  const { loading, profile } = useAuth()
 
   if (loading) return <LoadingScreen />
+  if (profile?.is_suspended) return <SuspendedScreen />
 
   return (
     <>
@@ -45,7 +47,7 @@ export default function App() {
           <Route path="/communaute/:communityId" element={<CommunityDetail />} />
           <Route path="/creer-communaute" element={<CreateCommunity />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
-          <Route path="/admin/signalements" element={<AdminReports />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Signup />} />

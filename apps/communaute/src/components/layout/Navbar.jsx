@@ -46,8 +46,8 @@ export default function Navbar() {
             <>
               {profile?.is_platform_admin && (
                 <Link
-                  to="/admin/signalements"
-                  aria-label="Signalements"
+                  to="/admin"
+                  aria-label="Administration"
                   className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100"
                 >
                   <ShieldAlert size={17} />
