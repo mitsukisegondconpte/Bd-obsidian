@@ -22,11 +22,14 @@
 @layer base {
   html {
     color-scheme: dark;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-surface-0 text-zinc-100 antialiased;
     font-family: var(--font-sans);
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   ::selection {
