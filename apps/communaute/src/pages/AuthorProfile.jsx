@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { BadgeCheck, BookOpen, ExternalLink, Feather } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import FollowButton from '../components/ui/FollowButton'
+import StreaksAndBadges from '../components/ui/StreaksAndBadges'
 import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder } from '../utils/placeholders'
 import { countFollowers, getCrossPlatformWorks, getProfileByUsername } from '../api/profiles'
@@ -15,7 +16,7 @@ export default function AuthorProfile() {
   const { username } = useParams()
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
-  const [cross, setCross] = useState({ series: [], works: [] })
+  const [cross, setCross] = useState({ series: [], works: [], communities: [] })
   const [channels, setChannels] = useState([])
   const [followers, setFollowers] = useState(0)
   const [error, setError] = useState('')
@@ -85,6 +86,8 @@ export default function AuthorProfile() {
 
         {profile.bio && <p className="mt-4 max-w-xl text-sm leading-relaxed text-zinc-300">{profile.bio}</p>}
 
+        <StreaksAndBadges userId={profile.id} />
+
         {/* Vitrine cross-plateforme : même compte, même base, contenu des 2 autres apps affiché ici */}
         {(cross.series.length > 0 || cross.works.length > 0) && (
           <section className="mt-6">
@@ -119,6 +122,23 @@ export default function AuthorProfile() {
                   </span>
                   <ExternalLink size={13} className="text-zinc-600" />
                 </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {cross.communities.length > 0 && (
+          <section className="mt-6">
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-zinc-500">Communautés créées</h2>
+            <div className="space-y-2">
+              {cross.communities.map((c) => (
+                <Link
+                  key={c.id}
+                  to={`/communaute/${c.id}`}
+                  className="block rounded-lg border border-white/5 bg-surface-1 px-3.5 py-2.5 text-sm text-zinc-200 hover:border-accent/30"
+                >
+                  {c.name}
+                </Link>
               ))}
             </div>
           </section>

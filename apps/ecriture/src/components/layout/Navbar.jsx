@@ -1,21 +1,24 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, PenLine, Search, ShieldAlert } from 'lucide-react'
+import { LogOut, PenLine, Search, ShieldAlert, Trophy } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.png'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
 import PlatformSwitcher from './PlatformSwitcher'
 import NotificationBell from '../ui/NotificationBell'
-
-const links = [
-  { to: '/', label: 'Accueil' },
-  { to: '/explorer', label: 'Explorer' },
-  { to: '/edition', label: 'Édition' },
-]
+import LanguageToggle from '../ui/LanguageToggle'
 
 export default function Navbar() {
   const { user, profile, signOut } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+
+  const links = [
+    { to: '/', label: t('nav.home') },
+    { to: '/explorer', label: t('nav.explore') },
+    { to: '/edition', label: t('nav.edition') },
+  ]
 
   function handleSearchSubmit(e) {
     e.preventDefault()
@@ -54,19 +57,23 @@ export default function Navbar() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Chercher une oeuvre, un auteur..."
+              placeholder={t('search.placeholder')}
               className="w-56 rounded-full border border-white/10 bg-surface-2 py-1.5 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
             />
           </form>
           <button
             type="button"
             onClick={() => navigate('/explorer')}
-            aria-label="Rechercher"
+            aria-label={t('search.aria')}
             className="rounded-full p-2 text-zinc-300 hover:bg-surface-2 sm:hidden"
           >
             <Search size={19} />
           </button>
 
+          <Link to="/classement" aria-label={t('nav.classement')} className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100">
+            <Trophy size={17} />
+          </Link>
+          <LanguageToggle />
           <PlatformSwitcher />
 
           {user ? (
@@ -75,12 +82,12 @@ export default function Navbar() {
                 to="/mes-oeuvres"
                 className="hidden items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-sm font-bold text-accent-ink hover:bg-accent-dark sm:flex"
               >
-                <PenLine size={15} /> Écrire
+                <PenLine size={15} /> {t('nav.write')}
               </Link>
               {profile?.is_platform_admin && (
                 <Link
                   to="/admin"
-                  aria-label="Administration"
+                  aria-label={t('nav.admin')}
                   className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100"
                 >
                   <ShieldAlert size={17} />
@@ -90,7 +97,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => signOut().then(() => navigate('/'))}
-                aria-label="Déconnexion"
+                aria-label={t('auth.logout')}
                 className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100"
               >
                 <LogOut size={17} />
@@ -109,7 +116,7 @@ export default function Navbar() {
               to="/connexion"
               className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-accent-ink hover:bg-accent-dark"
             >
-              Se connecter
+              {t('auth.login')}
             </Link>
           )}
         </div>

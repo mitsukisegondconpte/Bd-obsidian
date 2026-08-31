@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import WorkCard from '../components/ui/WorkCard'
+import CrossPlatformResults from '../components/ui/CrossPlatformResults'
 import { listWorks } from '../api/works'
 
 const TYPES = [
@@ -78,6 +79,8 @@ export default function Explore() {
             </p>
           )}
         </div>
+
+        <CrossPlatformResults query={query} />
       </div>
     </Layout>
   )

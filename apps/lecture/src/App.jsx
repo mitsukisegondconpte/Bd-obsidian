@@ -12,6 +12,7 @@ const ChapterReader = lazy(() => import('./pages/ChapterReader'))
 const CreateSeries = lazy(() => import('./pages/CreateSeries'))
 const AddChapter = lazy(() => import('./pages/AddChapter'))
 const MySeries = lazy(() => import('./pages/MySeries'))
+const Classement = lazy(() => import('./pages/Classement'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
 const EditProfile = lazy(() => import('./pages/EditProfile'))
 const Login = lazy(() => import('./pages/Login'))
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/serie/:slug/ajouter-chapitre" element={<AddChapter />} />
           <Route path="/creer-serie" element={<CreateSeries />} />
           <Route path="/mes-series" element={<MySeries />} />
+          <Route path="/classement" element={<Classement />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
           <Route path="/connexion" element={<Login />} />

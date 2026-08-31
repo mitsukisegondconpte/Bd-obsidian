@@ -14,6 +14,7 @@ import {
   subscribeToChannel,
   unsubscribeFromChannel,
 } from '../api/channels'
+import { recordStreakActivity } from '../api/streaks'
 
 export default function ChannelDetail() {
   const { channelId } = useParams()
@@ -53,6 +54,7 @@ export default function ChannelDetail() {
     const created = await createChannelPost({ channelId, body: newPost.trim() })
     setPosts((p) => [created, ...p])
     setNewPost('')
+    recordStreakActivity('community').catch(() => {})
   }
 
   if (!channel) {

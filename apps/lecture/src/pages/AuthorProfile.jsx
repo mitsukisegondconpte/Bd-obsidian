@@ -1,19 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, ExternalLink, Feather, Hash, Users } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import SeriesCard from '../components/ui/SeriesCard'
 import FollowButton from '../components/ui/FollowButton'
+import StreaksAndBadges from '../components/ui/StreaksAndBadges'
 import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder, bannerPlaceholder } from '../utils/placeholders'
-import { countFollowers, getProfileByUsername } from '../api/profiles'
+import { countFollowers, getCrossPlatformContent, getProfileByUsername } from '../api/profiles'
 import { listSeriesByAuthor } from '../api/series'
+
+const ECRITURE_URL = 'https://bd-obsidian-ecriture.vercel.app'
+const COMMUNAUTE_URL = 'https://bd-obsidian-communaute.vercel.app'
 
 export default function AuthorProfile() {
   const { username } = useParams()
   const { user } = useAuth()
   const [author, setAuthor] = useState(null)
   const [authorSeries, setAuthorSeries] = useState([])
+  const [cross, setCross] = useState({ works: [], communities: [], channels: [] })
   const [followers, setFollowers] = useState(0)
   const [error, setError] = useState('')
 
@@ -22,6 +27,7 @@ export default function AuthorProfile() {
       .then((a) => {
         setAuthor(a)
         listSeriesByAuthor(a.id).then(setAuthorSeries)
+        getCrossPlatformContent(a.id).then(setCross)
         countFollowers(a.id).then(setFollowers)
       })
       .catch((e) => setError(e.message))
@@ -103,6 +109,8 @@ export default function AuthorProfile() {
 
         {author.bio && <p className="mt-4 max-w-xl text-sm leading-relaxed text-zinc-300">{author.bio}</p>}
 
+        <StreaksAndBadges userId={author.id} />
+
         <section className="mt-6 pb-6">
           <h2 className="mb-3 text-lg font-extrabold tracking-tight text-zinc-50">
             Œuvres de {author.display_name.split(' ')[0]}
@@ -114,6 +122,61 @@ export default function AuthorProfile() {
             {authorSeries.length === 0 && <p className="col-span-full text-sm text-zinc-500">Aucune œuvre publiée.</p>}
           </div>
         </section>
+
+        {(cross.works.length > 0 || cross.communities.length > 0 || cross.channels.length > 0) && (
+          <section className="pb-8">
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-zinc-500">
+              Sur les autres plateformes Hypercube
+            </h2>
+            <div className="space-y-1.5">
+              {cross.works.map((w) => (
+                <a
+                  key={`work-${w.id}`}
+                  href={`${ECRITURE_URL}/oeuvre/${w.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between rounded-lg border border-white/5 bg-surface-1 px-3.5 py-2.5 hover:border-accent/30"
+                >
+                  <span className="flex items-center gap-2 text-sm text-zinc-200">
+                    <Feather size={14} className="text-accent" /> {w.title}
+                    <span className="text-xs text-zinc-600">— {w.work_type === 'light_novel' ? 'Light novel' : 'Roman'}</span>
+                  </span>
+                  <ExternalLink size={13} className="text-zinc-600" />
+                </a>
+              ))}
+              {cross.communities.map((c) => (
+                <a
+                  key={`community-${c.id}`}
+                  href={`${COMMUNAUTE_URL}/communaute/${c.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between rounded-lg border border-white/5 bg-surface-1 px-3.5 py-2.5 hover:border-accent/30"
+                >
+                  <span className="flex items-center gap-2 text-sm text-zinc-200">
+                    <Users size={14} className="text-accent" /> {c.name}
+                    <span className="text-xs text-zinc-600">— Communauté</span>
+                  </span>
+                  <ExternalLink size={13} className="text-zinc-600" />
+                </a>
+              ))}
+              {cross.channels.map((c) => (
+                <a
+                  key={`channel-${c.id}`}
+                  href={`${COMMUNAUTE_URL}/canal/${c.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between rounded-lg border border-white/5 bg-surface-1 px-3.5 py-2.5 hover:border-accent/30"
+                >
+                  <span className="flex items-center gap-2 text-sm text-zinc-200">
+                    <Hash size={14} className="text-accent" /> {c.name}
+                    <span className="text-xs text-zinc-600">— Canal</span>
+                  </span>
+                  <ExternalLink size={13} className="text-zinc-600" />
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </Layout>
   )

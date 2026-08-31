@@ -61,15 +61,17 @@ export async function unfollowAuthor(followerId, authorId) {
 
 // Vitrine cross-plateforme : un même profil (même base Supabase) peut avoir
 // publié des séries BD (plateforme 1), des oeuvres écrites (plateforme 2),
-// et posséder des canaux ici — on les affiche ensemble sur une seule page.
+// et créé des communautés ici — on les affiche ensemble sur une seule page.
 export async function getCrossPlatformWorks(userId) {
-  const [seriesRes, worksRes] = await Promise.all([
+  const [seriesRes, worksRes, communitiesRes] = await Promise.all([
     supabase.from('series').select('id, title, slug, cover_url').eq('author_id', userId),
     supabase.from('works').select('id, title, work_type').eq('author_id', userId),
+    supabase.from('communities').select('id, name').eq('creator_id', userId),
   ])
   if (seriesRes.error) throw seriesRes.error
   if (worksRes.error) throw worksRes.error
-  return { series: seriesRes.data, works: worksRes.data }
+  if (communitiesRes.error) throw communitiesRes.error
+  return { series: seriesRes.data, works: worksRes.data, communities: communitiesRes.data }
 }
 
 // Pour le sélecteur "lier à mon oeuvre" lors de la création d'une communauté.

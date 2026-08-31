@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout'
 import CommentItem from '../components/ui/CommentItem'
 import { getWork, getWorkChapter, listWorkChapters, saveReadingProgress } from '../api/works'
 import { createComment, listComments } from '../api/comments'
+import { recordStreakActivity } from '../api/streaks'
 import { useAuth } from '../context/AuthContext'
 
 export default function ChapterReader() {
@@ -28,7 +29,10 @@ export default function ChapterReader() {
     window.scrollTo({ top: 0 })
     getWorkChapter(chapterId).then(setChapter)
     listComments(chapterId).then(setComments)
-    if (user) saveReadingProgress({ userId: user.id, workId, chapterId })
+    if (user) {
+      saveReadingProgress({ userId: user.id, workId, chapterId })
+      recordStreakActivity('reading').catch(() => {})
+    }
   }, [chapterId, workId, user])
 
   async function handleComment(e) {

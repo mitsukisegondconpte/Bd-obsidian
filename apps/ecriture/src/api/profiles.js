@@ -66,3 +66,18 @@ export async function unfollowAuthor(followerId, authorId) {
     .eq('target_id', authorId)
   if (error) throw error
 }
+
+// Vitrine cross-plateforme : le même profil (même base Supabase) peut aussi
+// avoir publié des séries BD, créé des communautés ou posséder des canaux
+// sur les 2 autres apps Hypercube — on les affiche ici aussi.
+export async function getCrossPlatformContent(userId) {
+  const [seriesRes, communitiesRes, channelsRes] = await Promise.all([
+    supabase.from('series').select('id, title, slug').eq('author_id', userId),
+    supabase.from('communities').select('id, name').eq('creator_id', userId),
+    supabase.from('channels').select('id, name').eq('owner_id', userId),
+  ])
+  if (seriesRes.error) throw seriesRes.error
+  if (communitiesRes.error) throw communitiesRes.error
+  if (channelsRes.error) throw channelsRes.error
+  return { series: seriesRes.data, communities: communitiesRes.data, channels: channelsRes.data }
+}

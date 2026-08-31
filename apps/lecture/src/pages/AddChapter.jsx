@@ -4,6 +4,7 @@ import { GripVertical, Lock, Trash2 } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { addSeriesChapter, getSeriesBySlug, listSeriesChapters, uploadChapterPage } from '../api/series'
+import { recordStreakActivity } from '../api/streaks'
 
 export default function AddChapter() {
   const { slug } = useParams()
@@ -116,6 +117,7 @@ export default function AddChapter() {
         priceCents: Number(priceCents) || 0,
         pageUrls,
       })
+      recordStreakActivity('writing').catch(() => {})
 
       navigate(`/serie/${slug}/chapitre/${chapter.id}`)
     } catch (err) {

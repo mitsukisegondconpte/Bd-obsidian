@@ -38,6 +38,36 @@ sur son propre profil) : nom affiché, bio, avatar (bucket Storage
 `/reinitialiser-mot-de-passe`, sur les 3 apps. Une page 404 de marque
 remplace le blanc qu'affichait toute route non gérée jusqu'ici.
 
+**Recherche unifiée** : le champ de recherche de chaque app interroge
+d'abord son propre contenu, puis affiche une section "Sur les autres
+plateformes Hypercube" (fonction Postgres `global_search`, une seule
+requête qui couvre séries, œuvres, communautés, canaux et auteurs à la
+fois) avec liens directs vers les 2 autres apps. `apps/communaute` avait
+un `/explorer` manquant — ajouté avec la même logique.
+
+**Séries de régularité + badges** : `record_streak_activity()` (RPC
+security definer, appelée par le client mais protégée contre
+l'auto-triche — un utilisateur ne peut pas écrire directement dans
+`user_streaks`) compte les jours consécutifs de lecture, de publication ou
+d'activité communautaire — le même compteur "lecture" ou "écriture"
+progresse qu'on soit sur `lecture` ou `ecriture`, puisque c'est le même
+compte. Des badges (`badges`/`user_badges`) se débloquent à 3/7/30 jours,
+plus un badge "Premier pas" à la première publication. Affichés sur le
+profil (les 3 apps).
+
+**Classement hebdomadaire** (`/classement`, icône trophée) : nouveaux
+abonnés des 7 derniers jours par série/œuvre/communauté/canal (fonctions
+`top_*_weekly`, réutilisent `follows`/`community_members` existants — pas
+de nouvelle table de séries temporelles), plus un classement "Top
+créateurs Hypercube" commun aux 3 apps (BD et écriture confondues, même
+compte).
+
+**Français / Kreyòl** : bascule FR/HT dans la navbar des 3 apps
+(`LanguageContext`, préférence mémorisée en local). Couvre le chrome
+partagé — navigation, recherche, connexion/inscription — le contenu publié
+par les utilisateurs (séries, œuvres, posts) reste dans la langue de son
+auteur, il n'est pas traduit automatiquement.
+
 ## Panels admin
 
 Chaque app a son propre `/admin` (icône bouclier dans la navbar,
@@ -136,8 +166,9 @@ l'auteur n'en fournit pas.
 - `/` — Accueil : hero, tendances, nouveautés, grille populaire, auteurs
 - `/serie/:slug` — Page série : couverture, résumé, chapitres, abonnement
 - `/serie/:slug/chapitre/:chapterId` — Lecture d'un chapitre en scroll vertical, achat de chapitre simulé
-- `/profil/:username` — Profil auteur
+- `/profil/:username` — Profil auteur (+ vitrine cross-plateforme : œuvres/communautés/canaux du même compte sur les 2 autres apps, badges, séries de régularité)
 - `/mes-series`, `/creer-serie`, `/serie/:slug/ajouter-chapitre` — Panel auteur : créer une série, y ajouter des chapitres (upload des planches, page par page, réordonnables)
+- `/classement` — Top séries et top créateurs Hypercube de la semaine
 - `/connexion`, `/inscription` — Authentification Supabase (email/mot de passe)
 
 Fonctionnalités ajoutées au-delà du brief client : "Tendance"/"Nouveau"
@@ -163,6 +194,8 @@ Branché pour de vrai sur Supabase (auth, base, storage) — voir
 - `/oeuvre/:workId/chapitre/:chapterId` — Lecture (police serif, reprise de lecture automatique)
 - `/creer`, `/oeuvre/:workId/nouveau-chapitre` — Créer une œuvre / un chapitre (brouillon ou publié)
 - `/mes-oeuvres` — Tableau de bord auteur (+ propositions de repêchage Hypercube/Bohio Mag)
+- `/profil/:username` — Vitrine cross-plateforme (séries/communautés/canaux), badges, séries de régularité
+- `/classement` — Top œuvres et top créateurs Hypercube de la semaine
 - `/edition` — Service d'édition (3 niveaux, crédits gratuits)
 - `/connexion`, `/inscription` — Authentification Supabase (email/mot de passe + Google OAuth)
 
@@ -175,13 +208,15 @@ tout seul après 10s (ou au clic sur fermer).
 
 Branché sur Supabase, même auth que les 2 autres.
 
-- `/`, `/canaux`, `/communautes` — Découverte
+- `/`, `/explorer`, `/canaux`, `/communautes` — Découverte
 - `/canal/:channelId` — Canal (façon chaîne WhatsApp) : posts, abonnement
 - `/communaute/:communityId` — Communauté : posts, membres, rejoindre, signaler
 - `/creer-canal` — Réservé aux auteurs (vérifié côté base, pas juste côté UI)
 - `/creer-communaute` — Ouvert à tous, avec option "lier à mon œuvre"
-- `/profil/:username` — Profil unifié : agrège séries (plateforme 1) et
-  œuvres (plateforme 2) du même compte, avec liens directs vers les 2 autres apps
+- `/profil/:username` — Profil unifié : agrège séries (plateforme 1),
+  œuvres (plateforme 2) et communautés créées ici, avec liens directs vers
+  les 2 autres apps, badges et séries de régularité
+- `/classement` — Top communautés, top canaux et top créateurs Hypercube de la semaine
 - `/admin/signalements` — Réservé à `is_platform_admin` : liste des
   communautés signalées, bouton pour marquer résolu
 

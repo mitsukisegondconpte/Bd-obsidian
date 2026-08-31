@@ -13,6 +13,7 @@ const AddChapter = lazy(() => import('./pages/AddChapter'))
 const MyWorks = lazy(() => import('./pages/MyWorks'))
 const EditionServices = lazy(() => import('./pages/EditionServices'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
+const Classement = lazy(() => import('./pages/Classement'))
 const EditProfile = lazy(() => import('./pages/EditProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/edition" element={<EditionServices />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
+          <Route path="/classement" element={<Classement />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Signup />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />

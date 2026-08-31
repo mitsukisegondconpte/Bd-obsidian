@@ -5,6 +5,7 @@ import SuspendedScreen from './components/ui/SuspendedScreen'
 import { useAuth } from './context/AuthContext'
 
 const Home = lazy(() => import('./pages/Home'))
+const Explore = lazy(() => import('./pages/Explore'))
 const Channels = lazy(() => import('./pages/Channels'))
 const ChannelDetail = lazy(() => import('./pages/ChannelDetail'))
 const CreateChannel = lazy(() => import('./pages/CreateChannel'))
@@ -12,6 +13,7 @@ const Communities = lazy(() => import('./pages/Communities'))
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'))
 const CreateCommunity = lazy(() => import('./pages/CreateCommunity'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
+const Classement = lazy(() => import('./pages/Classement'))
 const EditProfile = lazy(() => import('./pages/EditProfile'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
@@ -40,6 +42,7 @@ export default function App() {
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/explorer" element={<Explore />} />
           <Route path="/canaux" element={<Channels />} />
           <Route path="/canal/:channelId" element={<ChannelDetail />} />
           <Route path="/creer-canal" element={<CreateChannel />} />
@@ -49,6 +52,7 @@ export default function App() {
           <Route path="/profil/modifier" element={<EditProfile />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
+          <Route path="/classement" element={<Classement />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Signup />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />

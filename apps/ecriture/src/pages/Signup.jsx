@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
 import GoogleButton from '../components/ui/GoogleButton'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function Signup() {
   const { signUp, signInWithGoogle } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', username: '', displayName: '' })
   const [error, setError] = useState('')
@@ -44,16 +46,14 @@ export default function Signup() {
     return (
       <Layout>
         <div className="mx-auto max-w-sm px-4 pt-16 text-center">
-          <h1 className="text-xl font-extrabold text-zinc-50">Vérifie ta boîte mail</h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            On t'a envoyé un lien de confirmation. Une fois confirmé, connecte-toi.
-          </p>
+          <h1 className="text-xl font-extrabold text-zinc-50">{t('auth.checkEmailTitle')}</h1>
+          <p className="mt-2 text-sm text-zinc-400">{t('auth.checkEmailBody')}</p>
           <button
             type="button"
             onClick={() => navigate('/connexion')}
             className="mt-6 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-accent-ink hover:bg-accent-dark"
           >
-            Aller à la connexion
+            {t('auth.goToLogin')}
           </button>
         </div>
       </Layout>
@@ -63,10 +63,8 @@ export default function Signup() {
   return (
     <Layout>
       <div className="mx-auto max-w-sm px-4 pt-16">
-        <h1 className="text-2xl font-extrabold text-zinc-50">Créer un compte</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Gratuit. Ce compte fonctionnera aussi sur les autres plateformes Hypercube.
-        </p>
+        <h1 className="text-2xl font-extrabold text-zinc-50">{t('auth.signupTitle')}</h1>
+        <p className="mt-1 text-sm text-zinc-500">{t('auth.signupSubtitle')}</p>
 
         <div className="mt-6">
           <GoogleButton onClick={handleGoogle} loading={googleLoading} label="S'inscrire avec Google" />
@@ -74,21 +72,21 @@ export default function Signup() {
 
         <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wide text-zinc-600">
           <div className="h-px flex-1 bg-white/10" />
-          ou
+          {t('auth.or')}
           <div className="h-px flex-1 bg-white/10" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             required
-            placeholder="Nom affiché"
+            placeholder={t('auth.displayName')}
             value={form.displayName}
             onChange={update('displayName')}
             className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
           />
           <input
             required
-            placeholder="Nom d'utilisateur"
+            placeholder={t('auth.username')}
             value={form.username}
             onChange={update('username')}
             className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
@@ -96,7 +94,7 @@ export default function Signup() {
           <input
             type="email"
             required
-            placeholder="Email"
+            placeholder={t('auth.email')}
             value={form.email}
             onChange={update('email')}
             className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
@@ -105,7 +103,7 @@ export default function Signup() {
             type="password"
             required
             minLength={6}
-            placeholder="Mot de passe (6 caractères min.)"
+            placeholder={t('auth.passwordMin')}
             value={form.password}
             onChange={update('password')}
             className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
@@ -116,14 +114,14 @@ export default function Signup() {
             disabled={loading}
             className="w-full rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-accent-ink hover:bg-accent-dark disabled:opacity-60"
           >
-            {loading ? 'Création...' : 'Créer mon compte'}
+            {loading ? t('auth.creating') : t('auth.createAccount')}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-zinc-500">
-          Déjà un compte ?{' '}
+          {t('auth.alreadyAccount')}{' '}
           <Link to="/connexion" className="font-semibold text-accent">
-            Se connecter
+            {t('auth.login')}
           </Link>
         </p>
       </div>

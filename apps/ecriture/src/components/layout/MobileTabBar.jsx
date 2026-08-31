@@ -1,16 +1,18 @@
 import { NavLink } from 'react-router-dom'
 import { Home, Compass, PenLine, GraduationCap, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function MobileTabBar() {
   const { user, profile } = useAuth()
+  const { lang } = useLanguage()
 
   const tabs = [
-    { to: '/', label: 'Accueil', icon: Home, end: true },
-    { to: '/explorer', label: 'Explorer', icon: Compass },
-    { to: '/mes-oeuvres', label: 'Écrire', icon: PenLine },
-    { to: '/edition', label: 'Édition', icon: GraduationCap },
-    { to: user ? `/profil/${profile?.username ?? ''}` : '/connexion', label: 'Profil', icon: User },
+    { to: '/', label: lang === 'ht' ? 'Akèy' : 'Accueil', icon: Home, end: true },
+    { to: '/explorer', label: lang === 'ht' ? 'Chèche' : 'Explorer', icon: Compass },
+    { to: '/mes-oeuvres', label: lang === 'ht' ? 'Ekri' : 'Écrire', icon: PenLine },
+    { to: '/edition', label: lang === 'ht' ? 'Edisyon' : 'Édition', icon: GraduationCap },
+    { to: user ? `/profil/${profile?.username ?? ''}` : '/connexion', label: lang === 'ht' ? 'Pwofil' : 'Profil', icon: User },
   ]
 
   return (

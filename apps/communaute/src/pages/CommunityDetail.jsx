@@ -14,6 +14,7 @@ import {
   listCommunityPosts,
   reportCommunity,
 } from '../api/communities'
+import { recordStreakActivity } from '../api/streaks'
 
 export default function CommunityDetail() {
   const { communityId } = useParams()
@@ -56,6 +57,7 @@ export default function CommunityDetail() {
     const created = await createCommunityPost({ communityId, authorId: user.id, body: newPost.trim() })
     setPosts((p) => [created, ...p])
     setNewPost('')
+    recordStreakActivity('community').catch(() => {})
   }
 
   async function handleReport() {

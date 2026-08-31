@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { addWorkChapter, getWork, listWorkChapters } from '../api/works'
+import { recordStreakActivity } from '../api/streaks'
 
 export default function AddChapter() {
   const { workId } = useParams()
@@ -34,6 +35,7 @@ export default function AddChapter() {
     setSubmitting(true)
     try {
       const chapter = await addWorkChapter({ workId, number: nextNumber, title: title.trim(), content, isDraft })
+      if (!isDraft) recordStreakActivity('writing').catch(() => {})
       navigate(isDraft ? `/oeuvre/${workId}` : `/oeuvre/${workId}/chapitre/${chapter.id}`)
     } catch (err) {
       setError(err.message)

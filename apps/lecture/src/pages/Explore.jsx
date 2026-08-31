@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import SeriesCard from '../components/ui/SeriesCard'
+import CrossPlatformResults from '../components/ui/CrossPlatformResults'
 import { listSeries } from '../api/series'
 import { listGenres } from '../api/genres'
 
@@ -78,6 +79,8 @@ export default function Explore() {
             </p>
           )}
         </div>
+
+        <CrossPlatformResults query={query} />
       </div>
     </Layout>
   )

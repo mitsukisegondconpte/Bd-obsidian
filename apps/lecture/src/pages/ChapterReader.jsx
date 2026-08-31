@@ -17,6 +17,7 @@ import { getChapter, getSeriesBySlug, listChapterPages, listSeriesChapters } fro
 import { createComment, listComments } from '../api/comments'
 import { countChapterLikes, hasLikedChapter, likeChapter, unlikeChapter } from '../api/likes'
 import { hasPurchasedChapter, purchaseChapter } from '../api/purchases'
+import { recordStreakActivity } from '../api/streaks'
 
 export default function ChapterReader() {
   const { slug, chapterId } = useParams()
@@ -61,6 +62,7 @@ export default function ChapterReader() {
     if (!user || !chapter) return
     if (!chapter.is_free) hasPurchasedChapter(user.id, chapter.id).then(setPurchased)
     hasLikedChapter(user.id, chapter.id).then(setLiked)
+    recordStreakActivity('reading').catch(() => {})
   }, [user, chapter])
 
   useEffect(() => {
