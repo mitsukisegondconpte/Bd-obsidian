@@ -3,6 +3,7 @@ import Layout from '../components/layout/Layout'
 import SectionHeader from '../components/ui/SectionHeader'
 import WorkCard from '../components/ui/WorkCard'
 import IntroBanner from '../components/ui/IntroBanner'
+import Skeleton from '../components/ui/Skeleton'
 import { listWorks } from '../api/works'
 
 const POPULAR_TAGS = ['fantastique', 'romance', 'drame', 'mystère', 'lycée', 'famille', 'surnaturel']
@@ -48,7 +49,13 @@ export default function Home() {
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 
-          {!works && !error && <p className="text-sm text-zinc-500">Chargement...</p>}
+          {!works && !error && (
+            <div className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 md:grid-cols-5">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-2/3 w-full" />
+              ))}
+            </div>
+          )}
 
           {works && works.length === 0 && (
             <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-zinc-500">

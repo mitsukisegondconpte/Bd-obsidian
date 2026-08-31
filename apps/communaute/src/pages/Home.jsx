@@ -5,6 +5,7 @@ import SectionHeader from '../components/ui/SectionHeader'
 import ChannelCard from '../components/ui/ChannelCard'
 import CommunityCard from '../components/ui/CommunityCard'
 import IntroBanner from '../components/ui/IntroBanner'
+import Skeleton from '../components/ui/Skeleton'
 import { listChannels } from '../api/channels'
 import { listCommunities } from '../api/communities'
 
@@ -41,6 +42,8 @@ export default function Home() {
         <section className="mt-8">
           <SectionHeader title="Canaux" subtitle="Les annonces des auteurs" to="/canaux" />
           <div className="space-y-2">
+            {!channels &&
+              Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
             {channels?.map((c) => (
               <ChannelCard key={c.id} channel={c} />
             ))}
@@ -51,6 +54,8 @@ export default function Home() {
         <section className="mt-8 pb-6">
           <SectionHeader title="Communautés" subtitle="Groupes de fans" to="/communautes" />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {!communities &&
+              Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
             {communities?.map((c) => (
               <CommunityCard key={c.id} community={c} />
             ))}

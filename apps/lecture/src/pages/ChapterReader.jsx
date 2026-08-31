@@ -194,6 +194,7 @@ export default function ChapterReader() {
               <button
                 type="button"
                 onClick={toggleLike}
+                aria-label={liked ? 'Retirer le like' : 'Aimer ce chapitre'}
                 className={`flex flex-col items-center gap-1 text-xs font-semibold ${
                   liked ? 'text-pink-400' : 'text-zinc-400'
                 }`}
@@ -201,7 +202,11 @@ export default function ChapterReader() {
                 <Heart size={22} className={liked ? 'fill-pink-400' : ''} />
                 {likeCount}
               </button>
-              <a href="#comments" className="flex flex-col items-center gap-1 text-xs font-semibold text-zinc-400">
+              <a
+                href="#comments"
+                aria-label="Voir les commentaires"
+                className="flex flex-col items-center gap-1 text-xs font-semibold text-zinc-400"
+              >
                 <MessageCircle size={22} />
                 {comments.length}
               </a>
