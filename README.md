@@ -42,7 +42,15 @@ remplace le blanc qu'affichait toute route non gérée jusqu'ici.
 corrige une faille où n'importe quel utilisateur connecté pouvait
 s'auto-attribuer `is_platform_admin` (aucune colonne n'était protégée par
 la policy RLS d'update — corrigé au niveau des GRANT/REVOKE de colonnes,
-pas seulement RLS).
+pas seulement RLS). Toutes les fonctions internes (triggers) ont aussi
+été retirées de l'API publique (`get_advisors` de Supabase est propre à
+part 2 faux positifs documentés dans leurs migrations respectives —
+`increment_series_views` et `decrement_edition_credit` sont
+volontairement publiques et déjà auto-protégées).
+
+**Reste à faire manuellement (réglage Dashboard, pas de tool SQL pour ça)** :
+Authentication → Policies → activer "Leaked password protection"
+(vérifie les mots de passe contre HaveIBeenPwned).
 
 ## Lancer un projet
 
