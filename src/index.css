@@ -1,0 +1,62 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Bohio Mag — jaune / noir, identité de la plateforme de lecture */
+  --color-brand-yellow: #f5c518;
+  --color-brand-yellow-dark: #d9ab0a;
+  --color-brand-ink: #0a0a0c;
+
+  /* Hypercube Obsidian — indigo, marque du studio (utilisé avec parcimonie) */
+  --color-hypercube-500: #5b5b96;
+  --color-hypercube-600: #47476f;
+
+  --color-surface-0: #0b0b0e;
+  --color-surface-1: #131318;
+  --color-surface-2: #1c1c23;
+  --color-surface-3: #26262f;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-surface-0 text-zinc-100 antialiased;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--color-brand-yellow);
+    color: #0a0a0c;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 999px;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
