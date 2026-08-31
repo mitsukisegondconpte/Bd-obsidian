@@ -125,16 +125,19 @@ fonctionne sur les autres.
 
 ## `apps/lecture` — BD / webtoons
 
-Branché pour de vrai sur Supabase (auth, base) — voir `apps/lecture/src/api/`
-pour les requêtes. Les couvertures/planches restent des visuels générés
-localement (pas de vrai artwork à héberger pour l'instant), mais les séries,
-chapitres, auteurs, abonnements, likes, commentaires et achats de chapitres
-sont de vraies lignes en base.
+Branché pour de vrai sur Supabase (auth, base, storage) — voir
+`apps/lecture/src/api/` pour les requêtes. Séries, chapitres, planches,
+auteurs, abonnements, likes, commentaires et achats de chapitres sont de
+vraies lignes en base ; les couvertures/planches uploadées par un auteur
+sont de vrais fichiers dans Storage (buckets `series-covers` et
+`chapter-pages`). Une couverture générée localement sert de secours quand
+l'auteur n'en fournit pas.
 
 - `/` — Accueil : hero, tendances, nouveautés, grille populaire, auteurs
 - `/serie/:slug` — Page série : couverture, résumé, chapitres, abonnement
 - `/serie/:slug/chapitre/:chapterId` — Lecture d'un chapitre en scroll vertical, achat de chapitre simulé
 - `/profil/:username` — Profil auteur
+- `/mes-series`, `/creer-serie`, `/serie/:slug/ajouter-chapitre` — Panel auteur : créer une série, y ajouter des chapitres (upload des planches, page par page, réordonnables)
 - `/connexion`, `/inscription` — Authentification Supabase (email/mot de passe)
 
 Fonctionnalités ajoutées au-delà du brief client : "Tendance"/"Nouveau"
@@ -142,7 +145,10 @@ calculés depuis les vraies vues/dates de publication (pas des drapeaux
 figés), compteur de vues incrémenté à chaque visite, hero d'accueil en
 carrousel (les séries les plus vues défilent automatiquement, swipe manuel
 possible) avec une transition "hexagone qui se déforme" reprenant le
-langage visuel du logo.
+langage visuel du logo, panel auteur complet (n'importe quel compte
+connecté peut créer une série et publier des chapitres — le flip
+`is_author` est automatique via trigger Postgres, aucune validation manuelle
+requise).
 
 Aucune donnée de démonstration n'est seedée en base — la plateforme
 démarre vide et affiche un état vide propre tant qu'aucun auteur n'a publié.

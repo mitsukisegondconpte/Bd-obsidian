@@ -13,7 +13,7 @@ import {
 import CommentItem from '../components/ui/CommentItem'
 import { pagePlaceholder } from '../utils/placeholders'
 import { useAuth } from '../context/AuthContext'
-import { getChapter, getSeriesBySlug, listSeriesChapters } from '../api/series'
+import { getChapter, getSeriesBySlug, listChapterPages, listSeriesChapters } from '../api/series'
 import { createComment, listComments } from '../api/comments'
 import { countChapterLikes, hasLikedChapter, likeChapter, unlikeChapter } from '../api/likes'
 import { hasPurchasedChapter, purchaseChapter } from '../api/purchases'
@@ -26,6 +26,7 @@ export default function ChapterReader() {
   const [seriesItem, setSeriesItem] = useState(null)
   const [chapters, setChapters] = useState(null)
   const [chapter, setChapter] = useState(null)
+  const [chapterPages, setChapterPages] = useState(null)
   const [purchased, setPurchased] = useState(false)
   const [unlocking, setUnlocking] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
@@ -51,6 +52,7 @@ export default function ChapterReader() {
     getChapter(chapterId)
       .then(setChapter)
       .catch((e) => setError(e.message))
+    listChapterPages(chapterId).then(setChapterPages)
     countChapterLikes(chapterId).then(setLikeCount)
     listComments(chapterId).then(setComments)
   }, [chapterId])
@@ -72,16 +74,16 @@ export default function ChapterReader() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const pages = useMemo(
-    () =>
-      chapter
-        ? Array.from({ length: chapter.page_count }, (_, i) => ({
-            id: `${chapter.id}-p${i + 1}`,
-            url: pagePlaceholder({ seed: chapter.id, page: i + 1, total: chapter.page_count }),
-          }))
-        : [],
-    [chapter],
-  )
+  const pages = useMemo(() => {
+    if (!chapter) return []
+    if (chapterPages?.length) {
+      return chapterPages.map((p) => ({ id: p.id, url: p.image_url }))
+    }
+    return Array.from({ length: chapter.page_count }, (_, i) => ({
+      id: `${chapter.id}-p${i + 1}`,
+      url: pagePlaceholder({ seed: chapter.id, page: i + 1, total: chapter.page_count }),
+    }))
+  }, [chapter, chapterPages])
 
   async function toggleLike() {
     if (!user) return navigate('/connexion')

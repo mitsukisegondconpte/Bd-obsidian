@@ -95,3 +95,97 @@ export async function unfollowSeries(userId, seriesId) {
     .eq('target_id', seriesId)
   if (error) throw error
 }
+
+function slugify(title) {
+  return title
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+export async function createSeries({ authorId, title, summary, status, updateDay, coverUrl, genreNames }) {
+  const base = slugify(title) || 'serie'
+  const slug = `${base}-${Math.random().toString(36).slice(2, 7)}`
+
+  const { data, error } = await supabase
+    .from('series')
+    .insert({
+      author_id: authorId,
+      title,
+      summary,
+      status,
+      update_day: updateDay || null,
+      cover_url: coverUrl || null,
+      slug,
+    })
+    .select()
+    .single()
+  if (error) throw error
+
+  if (genreNames?.length) {
+    const { data: genreRows, error: genreErr } = await supabase.from('genres').select('id, name').in('name', genreNames)
+    if (genreErr) throw genreErr
+    if (genreRows.length) {
+      const { error: tagErr } = await supabase
+        .from('series_genres')
+        .insert(genreRows.map((g) => ({ series_id: data.id, genre_id: g.id })))
+      if (tagErr) throw tagErr
+    }
+  }
+
+  return data
+}
+
+export async function uploadSeriesCover({ ownerId, file }) {
+  const path = `${ownerId}/${Date.now()}-${file.name}`
+  const { error: uploadError } = await supabase.storage.from('series-covers').upload(path, file)
+  if (uploadError) throw uploadError
+  const { data } = supabase.storage.from('series-covers').getPublicUrl(path)
+  return data.publicUrl
+}
+
+export async function uploadChapterPage({ ownerId, file, index }) {
+  const path = `${ownerId}/${Date.now()}-${index}-${file.name}`
+  const { error } = await supabase.storage.from('chapter-pages').upload(path, file)
+  if (error) throw error
+  const { data } = supabase.storage.from('chapter-pages').getPublicUrl(path)
+  return data.publicUrl
+}
+
+export async function listChapterPages(chapterId) {
+  const { data, error } = await supabase
+    .from('chapter_pages')
+    .select('*')
+    .eq('chapter_id', chapterId)
+    .order('page_number', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+export async function addSeriesChapter({ seriesId, number, title, isFree, priceCents, pageUrls }) {
+  const { data, error } = await supabase
+    .from('chapters')
+    .insert({
+      series_id: seriesId,
+      number,
+      title,
+      is_free: isFree,
+      price_cents: isFree ? 0 : priceCents,
+      page_count: pageUrls.length,
+      published_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+  if (error) throw error
+
+  if (pageUrls.length) {
+    const { error: pagesErr } = await supabase
+      .from('chapter_pages')
+      .insert(pageUrls.map((url, i) => ({ chapter_id: data.id, page_number: i + 1, image_url: url })))
+    if (pagesErr) throw pagesErr
+  }
+
+  return data
+}

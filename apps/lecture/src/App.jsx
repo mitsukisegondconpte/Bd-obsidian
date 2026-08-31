@@ -9,6 +9,9 @@ const Explore = lazy(() => import('./pages/Explore'))
 const Library = lazy(() => import('./pages/Library'))
 const SeriesDetail = lazy(() => import('./pages/SeriesDetail'))
 const ChapterReader = lazy(() => import('./pages/ChapterReader'))
+const CreateSeries = lazy(() => import('./pages/CreateSeries'))
+const AddChapter = lazy(() => import('./pages/AddChapter'))
+const MySeries = lazy(() => import('./pages/MySeries'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
 const EditProfile = lazy(() => import('./pages/EditProfile'))
 const Login = lazy(() => import('./pages/Login'))
@@ -42,6 +45,9 @@ export default function App() {
           <Route path="/abonnements" element={<Library />} />
           <Route path="/serie/:slug" element={<SeriesDetail />} />
           <Route path="/serie/:slug/chapitre/:chapterId" element={<ChapterReader />} />
+          <Route path="/serie/:slug/ajouter-chapitre" element={<AddChapter />} />
+          <Route path="/creer-serie" element={<CreateSeries />} />
+          <Route path="/mes-series" element={<MySeries />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
           <Route path="/connexion" element={<Login />} />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Search, ShieldAlert } from 'lucide-react'
+import { LogOut, PenLine, Search, ShieldAlert } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.png'
 import { useAuth } from '../../context/AuthContext'
 import PlatformSwitcher from './PlatformSwitcher'
@@ -70,6 +70,12 @@ export default function Navbar() {
 
           {user ? (
             <>
+              <Link
+                to="/mes-series"
+                className="hidden items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm font-semibold text-zinc-300 hover:border-accent/40 hover:text-accent sm:flex"
+              >
+                <PenLine size={15} /> Écrire
+              </Link>
               {profile?.is_platform_admin && (
                 <Link
                   to="/admin"
