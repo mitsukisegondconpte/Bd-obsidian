@@ -1,18 +1,56 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Star, ChevronRight } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import SeriesCard from '../components/ui/SeriesCard'
 import SectionHeader from '../components/ui/SectionHeader'
 import Badge from '../components/ui/Badge'
-import { series, genres, findAuthorById } from '../data/mockData'
-
-const featured = series.filter((s) => s.isHot).slice(0, 5)
-const newest = [...series].filter((s) => s.isNew).concat(series.slice(0, 3))
-const trending = [...series].sort((a, b) => b.views - a.views)
-const heroSeries = featured[0]
-const [bigTile, ...restTiles] = series
+import { listSeries } from '../api/series'
+import { listGenres } from '../api/genres'
+import { avatarPlaceholder, bannerPlaceholder, coverPlaceholder } from '../utils/placeholders'
 
 export default function Home() {
+  const [series, setSeries] = useState(null)
+  const [genres, setGenres] = useState([])
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    listSeries().then(setSeries).catch((e) => setError(e.message))
+    listGenres().then(setGenres)
+  }, [])
+
+  if (error) {
+    return (
+      <Layout>
+        <p className="p-6 text-zinc-400">Erreur : {error}</p>
+      </Layout>
+    )
+  }
+
+  if (!series) {
+    return (
+      <Layout>
+        <p className="p-6 text-zinc-500">Chargement...</p>
+      </Layout>
+    )
+  }
+
+  if (series.length === 0) {
+    return (
+      <Layout>
+        <p className="p-6 text-zinc-500">Aucune série publiée pour l'instant.</p>
+      </Layout>
+    )
+  }
+
+  const trending = [...series].sort((a, b) => b.views - a.views)
+  const newest = series.filter((s) => s.isNew)
+  const heroSeries = trending[0]
+  const [bigTile, ...restTiles] = series
+  const authors = series
+    .map((s) => s.author)
+    .filter((a, i, arr) => a && arr.findIndex((x) => x.id === a.id) === i)
+
   return (
     <Layout>
       {/* Hero */}
@@ -22,11 +60,14 @@ export default function Home() {
             className="relative h-[300px] w-full overflow-hidden sm:h-[400px]"
             style={{ clipPath: 'polygon(0 0, 100% 0, 100% 82%, 0 100%)' }}
           >
-            <img src={heroSeries.banner} alt={heroSeries.title} className="h-full w-full object-cover" />
+            <img
+              src={heroSeries.banner_url || bannerPlaceholder({ seed: `${heroSeries.id}-banner` })}
+              alt={heroSeries.title}
+              className="h-full w-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-surface-0/30 to-transparent" />
           </div>
 
-          {/* Carte flottante qui chevauche le bas du visuel */}
           <div className="relative -mt-14 px-4 sm:-mt-16 sm:px-6">
             <div className="max-w-xl rotate-[-0.6deg] rounded-xl border-l-4 border-accent bg-surface-1 p-4 shadow-2xl shadow-black/50 sm:p-6">
               <Badge variant="hot">Série vedette</Badge>
@@ -38,7 +79,7 @@ export default function Home() {
                 <span className="flex items-center gap-1 font-semibold text-accent">
                   <Star size={14} className="fill-accent" /> {heroSeries.rating}
                 </span>
-                <span>{heroSeries.subscribers.toLocaleString('fr-FR')} abonnés</span>
+                <span>{heroSeries.views.toLocaleString('fr-FR')} vues</span>
               </div>
             </div>
           </div>
@@ -46,7 +87,6 @@ export default function Home() {
       </section>
 
       <div className="space-y-8 px-4 pt-2 sm:px-6">
-        {/* Genres pills */}
         <section>
           <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
             {genres.map((g) => (
@@ -61,9 +101,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* En tendance */}
         <section>
-          <SectionHeader title="En tendance" subtitle="Les séries les plus lues cette semaine" to="/explorer" />
+          <SectionHeader title="En tendance" subtitle="Les séries les plus lues" to="/explorer" />
           <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
             {trending.map((s) => (
               <SeriesCard key={s.id} item={s} size="sm" />
@@ -71,17 +110,17 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Nouveautés */}
-        <section>
-          <SectionHeader title="Nouveautés" subtitle="Fraîchement publiées" to="/explorer" />
-          <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
-            {newest.map((s) => (
-              <SeriesCard key={`new-${s.id}`} item={s} size="sm" />
-            ))}
-          </div>
-        </section>
+        {newest.length > 0 && (
+          <section>
+            <SectionHeader title="Nouveautés" subtitle="Fraîchement publiées" to="/explorer" />
+            <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+              {newest.map((s) => (
+                <SeriesCard key={`new-${s.id}`} item={s} size="sm" />
+              ))}
+            </div>
+          </section>
+        )}
 
-        {/* Populaires — bento : une grande tuile + le reste en grille */}
         <section>
           <SectionHeader title="Populaires" subtitle="Sélectionnées pour toi" />
           <div className="grid grid-cols-3 gap-x-3 gap-y-5">
@@ -91,7 +130,7 @@ export default function Home() {
               style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%)' }}
             >
               <img
-                src={bigTile.cover}
+                src={bigTile.cover_url || coverPlaceholder({ seed: bigTile.id, title: bigTile.title })}
                 alt={bigTile.title}
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
@@ -108,27 +147,23 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Auteurs à suivre */}
         <section className="pb-4">
           <SectionHeader title="Auteurs à suivre" />
           <div className="no-scrollbar flex gap-4 overflow-x-auto pb-1">
-            {series
-              .map((s) => findAuthorById(s.authorId))
-              .filter((a, i, arr) => arr.findIndex((x) => x.id === a.id) === i)
-              .map((author) => (
-                <Link
-                  key={author.id}
-                  to={`/profil/${author.id}`}
-                  className="flex w-24 shrink-0 flex-col items-center gap-2 text-center"
-                >
-                  <img
-                    src={author.avatar}
-                    alt={author.name}
-                    className="h-16 w-16 rounded-full object-cover ring-2 ring-surface-2"
-                  />
-                  <span className="line-clamp-1 text-xs font-semibold text-zinc-200">{author.name}</span>
-                </Link>
-              ))}
+            {authors.map((author) => (
+              <Link
+                key={author.id}
+                to={`/profil/${author.username}`}
+                className="flex w-24 shrink-0 flex-col items-center gap-2 text-center"
+              >
+                <img
+                  src={author.avatar_url || avatarPlaceholder({ seed: author.id, name: author.display_name })}
+                  alt={author.display_name}
+                  className="h-16 w-16 rounded-full object-cover ring-2 ring-surface-2"
+                />
+                <span className="line-clamp-1 text-xs font-semibold text-zinc-200">{author.display_name}</span>
+              </Link>
+            ))}
             <Link
               to="/explorer"
               className="flex w-24 shrink-0 flex-col items-center justify-center gap-1 text-center text-zinc-500 hover:text-accent"

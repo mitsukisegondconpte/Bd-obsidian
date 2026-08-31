@@ -133,11 +133,21 @@ ou déploiement puisque chaque projet d'hébergement est cloisonné à son
 dossier.
 
 **Statut** : les 3 apps existent (`apps/lecture`, `apps/ecriture`,
-`apps/communaute`). `apps/lecture` et `apps/ecriture` sont déployées sur
-Vercel (voir liens dans le README racine). `apps/communaute` reste à
-déployer. Chaque app affiche un menu "Plateformes Hypercube" (icône grille
-dans la navbar) qui pointe vers les URLs des 2 autres — les redirections
-inter-plateformes du doc client sont donc réelles, pas juste documentées.
+`apps/communaute`) et sont **toutes les trois branchées sur le même projet
+Supabase** (`apps/lecture` l'était en données mockées au départ, migrée
+ensuite). `apps/lecture` et `apps/ecriture` sont déployées sur Vercel (voir
+liens dans le README racine). `apps/communaute` reste à déployer. Chaque
+app affiche un menu "Plateformes Hypercube" (icône grille dans la navbar)
+qui pointe vers les URLs des 2 autres — les redirections inter-plateformes
+du doc client sont donc réelles, pas juste documentées.
+
+`apps/lecture` a nécessité 2 colonnes en plus du schéma initial
+(`series.rating`, `series.views`, + une fonction `increment_series_views`
+pour éviter d'ouvrir une policy UPDATE générale) — voir
+`supabase/migrations/20260831044127_platform1_display_fields.sql`. Les
+séries/chapitres/auteurs de démo pour cette plateforme ont été insérés
+directement en SQL sur le projet (mêmes personnages que l'ancien jeu de
+données mocké : Naïka Joseph, Ricardo Dumé, Fabiola R., Jean Metellus Jr.).
 
 ## Contenu du schéma (`schema.sql`)
 

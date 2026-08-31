@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Star } from 'lucide-react'
+import { coverPlaceholder } from '../../utils/placeholders'
 
 const CORNER_CLIP =
   '[clip-path:polygon(0_14px,14px_0,100%_0,100%_calc(100%-14px),calc(100%-14px)_100%,0_100%)]'
@@ -8,6 +9,7 @@ const CORNER_CLIP =
 export default function SeriesCard({ item, size = 'md' }) {
   const widthClass = size === 'sm' ? 'w-[132px] sm:w-[150px]' : 'w-full'
   const ribbon = item.isHot ? 'Tendance' : item.isNew ? 'Nouveau' : null
+  const cover = item.cover_url || coverPlaceholder({ seed: item.id, title: item.title })
 
   return (
     <Link
@@ -18,7 +20,7 @@ export default function SeriesCard({ item, size = 'md' }) {
         className={`relative aspect-2/3 overflow-hidden bg-surface-2 shadow-lg shadow-black/40 ring-1 ring-white/5 transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-accent/20 ${CORNER_CLIP}`}
       >
         <img
-          src={item.cover}
+          src={cover}
           alt={item.title}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"

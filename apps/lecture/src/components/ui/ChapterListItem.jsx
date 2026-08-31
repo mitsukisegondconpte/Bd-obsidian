@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Lock, Heart, MessageCircle } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import Badge from './Badge'
 
 export default function ChapterListItem({ seriesSlug, chapter }) {
@@ -13,29 +13,21 @@ export default function ChapterListItem({ seriesSlug, chapter }) {
           <span className="text-sm font-semibold text-zinc-100">
             Chapitre {chapter.number}
           </span>
-          {chapter.free ? (
+          {chapter.is_free ? (
             <Badge variant="free">Gratuit</Badge>
           ) : (
             <Badge variant="paid">
-              <Lock size={10} /> {chapter.price} HTG
+              <Lock size={10} /> {chapter.price_cents / 100} HTG
             </Badge>
           )}
         </div>
         <p className="mt-0.5 truncate text-sm text-zinc-400">{chapter.title}</p>
-        <div className="mt-1.5 flex items-center gap-3 text-xs text-zinc-500">
-          <span>{chapter.publishedAt}</span>
-          <span className="flex items-center gap-1">
-            <Heart size={12} /> {chapter.likes}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle size={12} /> {chapter.comments}
-          </span>
-        </div>
+        <p className="mt-1.5 text-xs text-zinc-500">
+          {chapter.published_at ? new Date(chapter.published_at).toLocaleDateString('fr-FR') : 'Non publié'}
+        </p>
       </div>
 
-      {!chapter.free && (
-        <Lock size={16} className="shrink-0 text-zinc-600" />
-      )}
+      {!chapter.is_free && <Lock size={16} className="shrink-0 text-zinc-600" />}
     </Link>
   )
 }

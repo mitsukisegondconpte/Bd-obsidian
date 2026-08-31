@@ -1,20 +1,23 @@
 import { NavLink } from 'react-router-dom'
 import { Home, Compass, Bookmark, User } from 'lucide-react'
-
-const tabs = [
-  { to: '/', label: 'Accueil', icon: Home, end: true },
-  { to: '/explorer', label: 'Explorer', icon: Compass },
-  { to: '/abonnements', label: 'Bibliothèque', icon: Bookmark },
-  { to: '/profil/auth-1', label: 'Profil', icon: User },
-]
+import { useAuth } from '../../context/AuthContext'
 
 export default function MobileTabBar() {
+  const { user, profile } = useAuth()
+
+  const tabs = [
+    { to: '/', label: 'Accueil', icon: Home, end: true },
+    { to: '/explorer', label: 'Explorer', icon: Compass },
+    { to: '/abonnements', label: 'Bibliothèque', icon: Bookmark },
+    { to: user ? `/profil/${profile?.username ?? ''}` : '/connexion', label: 'Profil', icon: User },
+  ]
+
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-surface-1/95 backdrop-blur-md sm:hidden">
       <div className="mx-auto flex max-w-6xl items-stretch justify-around pb-[env(safe-area-inset-bottom)]">
         {tabs.map(({ to, label, icon: Icon, end }) => (
           <NavLink
-            key={to}
+            key={label}
             to={to}
             end={end}
             className={({ isActive }) =>

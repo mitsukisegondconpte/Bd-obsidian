@@ -1,15 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Layout from '../components/layout/Layout'
 import SeriesCard from '../components/ui/SeriesCard'
-import { genres, series } from '../data/mockData'
+import { listSeries } from '../api/series'
+import { listGenres } from '../api/genres'
 
 export default function Explore() {
+  const [series, setSeries] = useState(null)
+  const [genres, setGenres] = useState([])
   const [activeGenre, setActiveGenre] = useState('Tout')
 
+  useEffect(() => {
+    listSeries().then(setSeries)
+    listGenres().then(setGenres)
+  }, [])
+
   const filtered = useMemo(() => {
+    if (!series) return []
     if (activeGenre === 'Tout') return series
     return series.filter((s) => s.genres.includes(activeGenre))
-  }, [activeGenre])
+  }, [series, activeGenre])
 
   return (
     <Layout>
@@ -37,7 +46,7 @@ export default function Explore() {
           {filtered.map((s) => (
             <SeriesCard key={s.id} item={s} />
           ))}
-          {filtered.length === 0 && (
+          {series && filtered.length === 0 && (
             <p className="col-span-full py-10 text-center text-sm text-zinc-500">
               Aucune série dans ce genre pour le moment.
             </p>

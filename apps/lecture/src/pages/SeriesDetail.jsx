@@ -1,19 +1,36 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Eye, Star, Users } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import Badge from '../components/ui/Badge'
-import SubscribeButton from '../components/ui/SubscribeButton'
+import FollowButton from '../components/ui/FollowButton'
 import ChapterListItem from '../components/ui/ChapterListItem'
-import { findAuthorById, findSeriesBySlug } from '../data/mockData'
+import { avatarPlaceholder, bannerPlaceholder, coverPlaceholder } from '../utils/placeholders'
+import { countSeriesSubscribers, getSeriesBySlug, incrementSeriesViews, listSeriesChapters } from '../api/series'
+
+const STATUS_LABEL = { ongoing: 'En cours', paused: 'En pause', completed: 'Terminé' }
 
 export default function SeriesDetail() {
   const { slug } = useParams()
-  const seriesItem = findSeriesBySlug(slug)
+  const [seriesItem, setSeriesItem] = useState(null)
+  const [chapters, setChapters] = useState(null)
+  const [subscribers, setSubscribers] = useState(0)
   const [sortDesc, setSortDesc] = useState(true)
   const [tab, setTab] = useState('chapters')
+  const [error, setError] = useState('')
 
-  if (!seriesItem) {
+  useEffect(() => {
+    getSeriesBySlug(slug)
+      .then((s) => {
+        setSeriesItem(s)
+        incrementSeriesViews(s.id)
+        countSeriesSubscribers(s.id).then(setSubscribers)
+        listSeriesChapters(s.id).then(setChapters)
+      })
+      .catch((e) => setError(e.message))
+  }, [slug])
+
+  if (error) {
     return (
       <Layout>
         <p className="p-6 text-zinc-400">Série introuvable.</p>
@@ -21,15 +38,25 @@ export default function SeriesDetail() {
     )
   }
 
-  const author = findAuthorById(seriesItem.authorId)
-  const chapters = sortDesc ? [...seriesItem.chapters].reverse() : seriesItem.chapters
-  const firstChapter = seriesItem.chapters[0]
+  if (!seriesItem || !chapters) {
+    return (
+      <Layout>
+        <p className="p-6 text-zinc-500">Chargement...</p>
+      </Layout>
+    )
+  }
+
+  const author = seriesItem.author
+  const sortedChapters = sortDesc ? [...chapters].reverse() : chapters
+  const firstChapter = chapters[0]
+  const cover = seriesItem.cover_url || coverPlaceholder({ seed: seriesItem.id, title: seriesItem.title })
+  const banner = seriesItem.banner_url || bannerPlaceholder({ seed: `${seriesItem.id}-banner` })
 
   return (
     <Layout>
       <div className="relative">
         <div className="relative h-48 w-full overflow-hidden sm:h-64">
-          <img src={seriesItem.banner} alt="" className="h-full w-full object-cover" />
+          <img src={banner} alt="" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-surface-0/60 to-black/30" />
         </div>
         <Link
@@ -42,7 +69,7 @@ export default function SeriesDetail() {
 
         <div className="relative -mt-20 flex gap-4 px-4 sm:-mt-24 sm:px-6">
           <img
-            src={seriesItem.cover}
+            src={cover}
             alt={seriesItem.title}
             className="h-36 w-24 shrink-0 rounded-lg object-cover ring-2 ring-surface-0 sm:h-44 sm:w-32"
           />
@@ -53,11 +80,13 @@ export default function SeriesDetail() {
                   {g}
                 </Badge>
               ))}
-              <Badge variant={seriesItem.status === 'Terminé' ? 'free' : 'neutral'}>{seriesItem.status}</Badge>
+              <Badge variant={seriesItem.status === 'completed' ? 'free' : 'neutral'}>
+                {STATUS_LABEL[seriesItem.status]}
+              </Badge>
             </div>
             <h1 className="mt-1.5 text-xl font-extrabold text-zinc-50 sm:text-2xl">{seriesItem.title}</h1>
-            <Link to={`/profil/${author.id}`} className="text-sm text-zinc-400 hover:text-accent">
-              par {author.name}
+            <Link to={`/profil/${author.username}`} className="text-sm text-zinc-400 hover:text-accent">
+              par {author.display_name}
             </Link>
           </div>
         </div>
@@ -69,33 +98,34 @@ export default function SeriesDetail() {
             <Star size={15} className="fill-accent text-accent" /> {seriesItem.rating}
           </span>
           <span className="flex items-center gap-1.5">
-            <Users size={15} /> {seriesItem.subscribers.toLocaleString('fr-FR')}
+            <Users size={15} /> {subscribers.toLocaleString('fr-FR')}
           </span>
           <span className="flex items-center gap-1.5">
             <Eye size={15} /> {seriesItem.views.toLocaleString('fr-FR')}
           </span>
           <span className="flex items-center gap-1.5">
-            <BookOpen size={15} /> {seriesItem.chapters.length} chapitres
+            <BookOpen size={15} /> {chapters.length} chapitres
           </span>
         </div>
 
         <p className="mt-4 text-sm leading-relaxed text-zinc-300">{seriesItem.summary}</p>
 
         <div className="mt-4 flex gap-2">
-          <Link
-            to={`/serie/${slug}/chapitre/${firstChapter.id}`}
-            className="flex-1 rounded-full bg-white/10 px-5 py-2.5 text-center text-sm font-bold text-zinc-100 hover:bg-white/15 sm:flex-none"
-          >
-            Commencer la lecture
-          </Link>
-          <SubscribeButton />
+          {firstChapter && (
+            <Link
+              to={`/serie/${slug}/chapitre/${firstChapter.id}`}
+              className="flex-1 rounded-full bg-white/10 px-5 py-2.5 text-center text-sm font-bold text-zinc-100 hover:bg-white/15 sm:flex-none"
+            >
+              Commencer la lecture
+            </Link>
+          )}
+          <FollowButton targetType="series" targetId={seriesItem.id} />
         </div>
 
-        {/* Tabs */}
         <div className="mt-6 flex gap-5 border-b border-white/5 text-sm font-semibold">
           {[
-            { id: 'chapters', label: `Chapitres (${seriesItem.chapters.length})` },
-            { id: 'about', label: "À propos" },
+            { id: 'chapters', label: `Chapitres (${chapters.length})` },
+            { id: 'about', label: 'À propos' },
           ].map((t) => (
             <button
               key={t.id}
@@ -113,31 +143,33 @@ export default function SeriesDetail() {
         {tab === 'chapters' ? (
           <div>
             <div className="flex items-center justify-between py-3">
-              <span className="text-xs text-zinc-500">Mise à jour : {seriesItem.updateDay}</span>
+              <span className="text-xs text-zinc-500">Mise à jour : {seriesItem.update_day}</span>
               <button
                 type="button"
                 onClick={() => setSortDesc((v) => !v)}
                 className="text-xs font-semibold text-zinc-400 hover:text-accent"
               >
-                {sortDesc ? 'Plus récent d\'abord' : 'Chapitre 1 d\'abord'}
+                {sortDesc ? "Plus récent d'abord" : "Chapitre 1 d'abord"}
               </button>
             </div>
             <div>
-              {chapters.map((c) => (
+              {sortedChapters.map((c) => (
                 <ChapterListItem key={c.id} seriesSlug={slug} chapter={c} />
               ))}
             </div>
           </div>
         ) : (
           <div className="py-5">
-            <Link to={`/profil/${author.id}`} className="flex items-center gap-3">
-              <img src={author.avatar} alt={author.name} className="h-12 w-12 rounded-full object-cover" />
+            <Link to={`/profil/${author.username}`} className="flex items-center gap-3">
+              <img
+                src={author.avatar_url || avatarPlaceholder({ seed: author.id, name: author.display_name })}
+                alt={author.display_name}
+                className="h-12 w-12 rounded-full object-cover"
+              />
               <div>
-                <p className="text-sm font-bold text-zinc-100">{author.name}</p>
-                <p className="text-xs text-zinc-500">{author.followers.toLocaleString('fr-FR')} abonnés</p>
+                <p className="text-sm font-bold text-zinc-100">{author.display_name}</p>
               </div>
             </Link>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">{author.bio}</p>
           </div>
         )}
       </div>

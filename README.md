@@ -8,7 +8,7 @@ déploiements séparés, comment ils partagent la même base, etc.).
 
 | App | Statut | URL | Description |
 |-----|--------|-----|-------------|
-| `apps/lecture` | Déployé | https://bd-obsidian-lecture.vercel.app | BD / webtoons : publication, lecture en scroll vertical, chapitres payants (données mockées) |
+| `apps/lecture` | Déployé, branché sur Supabase | https://bd-obsidian-lecture.vercel.app | BD / webtoons : publication, lecture en scroll vertical, chapitres payants |
 | `apps/ecriture` | Déployé, branché sur Supabase | https://bd-obsidian-ecriture.vercel.app | Écriture façon Wattpad : romans/light novels, images de couverture, service d'édition |
 | `apps/communaute` | Branché sur Supabase, pas encore déployé | — | Réseau social : canaux, communautés de fans |
 
@@ -41,13 +41,21 @@ fonctionne sur les autres.
 
 ## `apps/lecture` — BD / webtoons
 
-Toujours en données mockées (`apps/lecture/src/data/mockData.js`) — pas de
-backend branché pour l'instant, volontairement.
+Branché pour de vrai sur Supabase (auth, base) — voir `apps/lecture/src/api/`
+pour les requêtes. Les couvertures/planches restent des visuels générés
+localement (pas de vrai artwork à héberger pour l'instant), mais les séries,
+chapitres, auteurs, abonnements, likes, commentaires et achats de chapitres
+sont de vraies lignes en base.
 
 - `/` — Accueil : hero, tendances, nouveautés, grille populaire, auteurs
 - `/serie/:slug` — Page série : couverture, résumé, chapitres, abonnement
-- `/serie/:slug/chapitre/:chapterId` — Lecture d'un chapitre en scroll vertical
-- `/profil/:authorId` — Profil auteur
+- `/serie/:slug/chapitre/:chapterId` — Lecture d'un chapitre en scroll vertical, achat de chapitre simulé
+- `/profil/:username` — Profil auteur
+- `/connexion`, `/inscription` — Authentification Supabase (email/mot de passe)
+
+Fonctionnalités ajoutées au-delà du brief client : "Tendance"/"Nouveau"
+calculés depuis les vraies vues/dates de publication (pas des drapeaux
+figés), compteur de vues incrémenté à chaque visite.
 
 ## `apps/ecriture` — écriture façon Wattpad
 

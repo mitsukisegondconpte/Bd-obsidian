@@ -10,40 +10,56 @@ import {
   MessageCircle,
   Share2,
 } from 'lucide-react'
-import {
-  comments as mockComments,
-  currentUser,
-  findSeriesBySlug,
-  getChapterPages,
-} from '../data/mockData'
 import CommentItem from '../components/ui/CommentItem'
+import { pagePlaceholder } from '../utils/placeholders'
+import { useAuth } from '../context/AuthContext'
+import { getChapter, getSeriesBySlug, listSeriesChapters } from '../api/series'
+import { createComment, listComments } from '../api/comments'
+import { countChapterLikes, hasLikedChapter, likeChapter, unlikeChapter } from '../api/likes'
+import { hasPurchasedChapter, purchaseChapter } from '../api/purchases'
 
 export default function ChapterReader() {
   const { slug, chapterId } = useParams()
   const navigate = useNavigate()
-  const seriesItem = findSeriesBySlug(slug)
+  const { user } = useAuth()
 
-  const chapterIndex = seriesItem?.chapters.findIndex((c) => c.id === chapterId) ?? -1
-  const chapter = seriesItem?.chapters[chapterIndex]
-  const prevChapter = chapterIndex > 0 ? seriesItem.chapters[chapterIndex - 1] : null
-  const nextChapter =
-    chapterIndex >= 0 && chapterIndex < (seriesItem?.chapters.length ?? 0) - 1
-      ? seriesItem.chapters[chapterIndex + 1]
-      : null
-
-  const pages = useMemo(
-    () => (chapter ? getChapterPages(chapter.id, chapter.pages) : []),
-    [chapter],
-  )
-
+  const [seriesItem, setSeriesItem] = useState(null)
+  const [chapters, setChapters] = useState(null)
+  const [chapter, setChapter] = useState(null)
+  const [purchased, setPurchased] = useState(false)
+  const [unlocking, setUnlocking] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
   const [liked, setLiked] = useState(false)
+  const [comments, setComments] = useState([])
+  const [newComment, setNewComment] = useState('')
+
   const [showChapterList, setShowChapterList] = useState(false)
   const [chromeVisible, setChromeVisible] = useState(true)
+  const [error, setError] = useState('')
 
-  // Toujours remonter en haut quand on change de chapitre.
+  useEffect(() => {
+    getSeriesBySlug(slug)
+      .then((s) => {
+        setSeriesItem(s)
+        listSeriesChapters(s.id).then(setChapters)
+      })
+      .catch((e) => setError(e.message))
+  }, [slug])
+
   useEffect(() => {
     window.scrollTo({ top: 0 })
+    getChapter(chapterId)
+      .then(setChapter)
+      .catch((e) => setError(e.message))
+    countChapterLikes(chapterId).then(setLikeCount)
+    listComments(chapterId).then(setComments)
   }, [chapterId])
+
+  useEffect(() => {
+    if (!user || !chapter) return
+    if (!chapter.is_free) hasPurchasedChapter(user.id, chapter.id).then(setPurchased)
+    hasLikedChapter(user.id, chapter.id).then(setLiked)
+  }, [user, chapter])
 
   useEffect(() => {
     let lastY = window.scrollY
@@ -56,7 +72,51 @@ export default function ChapterReader() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  if (!seriesItem || !chapter) {
+  const pages = useMemo(
+    () =>
+      chapter
+        ? Array.from({ length: chapter.page_count }, (_, i) => ({
+            id: `${chapter.id}-p${i + 1}`,
+            url: pagePlaceholder({ seed: chapter.id, page: i + 1, total: chapter.page_count }),
+          }))
+        : [],
+    [chapter],
+  )
+
+  async function toggleLike() {
+    if (!user) return navigate('/connexion')
+    if (liked) {
+      await unlikeChapter(user.id, chapter.id)
+      setLiked(false)
+      setLikeCount((n) => n - 1)
+    } else {
+      await likeChapter(user.id, chapter.id)
+      setLiked(true)
+      setLikeCount((n) => n + 1)
+    }
+  }
+
+  async function handleUnlock() {
+    if (!user) return navigate('/connexion')
+    setUnlocking(true)
+    try {
+      await purchaseChapter({ userId: user.id, chapterId: chapter.id, amountCents: chapter.price_cents })
+      setPurchased(true)
+    } finally {
+      setUnlocking(false)
+    }
+  }
+
+  async function handleComment(e) {
+    e.preventDefault()
+    if (!user) return navigate('/connexion')
+    if (!newComment.trim()) return
+    const created = await createComment({ userId: user.id, chapterId: chapter.id, body: newComment.trim() })
+    setComments((c) => [created, ...c])
+    setNewComment('')
+  }
+
+  if (error) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-surface-0 text-zinc-300">
         <p>Chapitre introuvable.</p>
@@ -67,11 +127,19 @@ export default function ChapterReader() {
     )
   }
 
-  const isLocked = !chapter.free
+  if (!seriesItem || !chapters || !chapter) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface-0 text-zinc-500">Chargement...</div>
+    )
+  }
+
+  const chapterIndex = chapters.findIndex((c) => c.id === chapter.id)
+  const prevChapter = chapterIndex > 0 ? chapters[chapterIndex - 1] : null
+  const nextChapter = chapterIndex >= 0 && chapterIndex < chapters.length - 1 ? chapters[chapterIndex + 1] : null
+  const isLocked = !chapter.is_free && !purchased
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Barre supérieure — masquée quand on scrolle vers le bas */}
       <header
         className={`fixed inset-x-0 top-0 z-30 flex items-center gap-3 bg-gradient-to-b from-black/90 to-transparent px-3 py-3 transition-transform duration-300 ${
           chromeVisible ? 'translate-y-0' : '-translate-y-full'
@@ -101,10 +169,9 @@ export default function ChapterReader() {
         </button>
       </header>
 
-      {/* Zone de lecture — scroll vertical continu */}
       <div className="mx-auto max-w-2xl pt-14">
         {isLocked ? (
-          <PaywallGate chapter={chapter} />
+          <PaywallGate chapter={chapter} onUnlock={handleUnlock} unlocking={unlocking} loggedIn={Boolean(user)} />
         ) : (
           <div className="flex flex-col">
             {pages.map((page, i) => (
@@ -122,22 +189,21 @@ export default function ChapterReader() {
 
       {!isLocked && (
         <>
-          {/* Fin de chapitre : actions + navigation */}
           <div className="mx-auto max-w-2xl border-t border-white/10 bg-surface-1 px-4 py-6">
             <div className="flex items-center justify-center gap-6">
               <button
                 type="button"
-                onClick={() => setLiked((v) => !v)}
+                onClick={toggleLike}
                 className={`flex flex-col items-center gap-1 text-xs font-semibold ${
                   liked ? 'text-pink-400' : 'text-zinc-400'
                 }`}
               >
                 <Heart size={22} className={liked ? 'fill-pink-400' : ''} />
-                {liked ? chapter.likes + 1 : chapter.likes}
+                {likeCount}
               </button>
               <a href="#comments" className="flex flex-col items-center gap-1 text-xs font-semibold text-zinc-400">
                 <MessageCircle size={22} />
-                {chapter.comments}
+                {comments.length}
               </a>
               <button type="button" className="flex flex-col items-center gap-1 text-xs font-semibold text-zinc-400">
                 <Share2 size={22} />
@@ -151,21 +217,33 @@ export default function ChapterReader() {
             </div>
           </div>
 
-          {/* Commentaires */}
           <section id="comments" className="mx-auto max-w-2xl bg-surface-1 px-4 pb-24 pt-2 sm:pb-10">
             <h2 className="border-t border-white/5 pt-4 text-sm font-bold text-zinc-100">
-              Commentaires ({chapter.comments})
+              Commentaires ({comments.length})
             </h2>
-            <div className="mt-1 flex items-center gap-2 border-b border-white/5 pb-4">
-              <img src={currentUser.avatar} alt="Toi" className="h-8 w-8 rounded-full object-cover" />
-              <input
-                type="text"
-                placeholder="Ajouter un commentaire..."
-                className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
-              />
-            </div>
+            {user ? (
+              <form onSubmit={handleComment} className="mt-1 flex items-center gap-2 border-b border-white/5 pb-4">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Ajouter un commentaire..."
+                  className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+                />
+                <button type="submit" className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-ink">
+                  Publier
+                </button>
+              </form>
+            ) : (
+              <p className="mt-2 border-b border-white/5 pb-4 text-sm text-zinc-500">
+                <Link to="/connexion" className="font-semibold text-accent">
+                  Connecte-toi
+                </Link>{' '}
+                pour commenter.
+              </p>
+            )}
             <div className="divide-y divide-white/5">
-              {(mockComments[chapter.id] ?? mockComments.s1c1).map((c) => (
+              {comments.map((c) => (
                 <CommentItem key={c.id} comment={c} />
               ))}
             </div>
@@ -175,7 +253,7 @@ export default function ChapterReader() {
 
       {showChapterList && (
         <ChapterListSheet
-          seriesItem={seriesItem}
+          chapters={chapters}
           currentChapterId={chapter.id}
           slug={slug}
           onClose={() => setShowChapterList(false)}
@@ -210,7 +288,7 @@ function NavButton({ to, direction, chapter }) {
   )
 }
 
-function PaywallGate({ chapter }) {
+function PaywallGate({ chapter, onUnlock, unlocking, loggedIn }) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-24 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 ring-1 ring-accent/30">
@@ -219,21 +297,27 @@ function PaywallGate({ chapter }) {
       <div>
         <h2 className="text-lg font-bold text-zinc-100">Chapitre payant</h2>
         <p className="mt-1 max-w-xs text-sm text-zinc-400">
-          Débloque « {chapter.title} » pour {chapter.price} HTG et continue l'histoire.
+          Débloque « {chapter.title} » pour {chapter.price_cents / 100} HTG et continue l'histoire.
         </p>
       </div>
       <button
         type="button"
-        className="rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-ink hover:bg-accent-dark"
+        onClick={onUnlock}
+        disabled={unlocking}
+        className="rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-ink hover:bg-accent-dark disabled:opacity-60"
       >
-        Débloquer pour {chapter.price} HTG
+        {!loggedIn
+          ? 'Se connecter pour débloquer'
+          : unlocking
+            ? 'Déblocage...'
+            : `Débloquer pour ${chapter.price_cents / 100} HTG`}
       </button>
-      <p className="text-xs text-zinc-600">Paiement simulé — aucune transaction réelle (front-end uniquement)</p>
+      <p className="text-xs text-zinc-600">Paiement simulé — aucune transaction réelle</p>
     </div>
   )
 }
 
-function ChapterListSheet({ seriesItem, currentChapterId, slug, onClose }) {
+function ChapterListSheet({ chapters, currentChapterId, slug, onClose }) {
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 sm:items-center" onClick={onClose}>
       <div
@@ -247,7 +331,7 @@ function ChapterListSheet({ seriesItem, currentChapterId, slug, onClose }) {
           </button>
         </div>
         <div className="divide-y divide-white/5">
-          {seriesItem.chapters.map((c) => (
+          {chapters.map((c) => (
             <Link
               key={c.id}
               to={`/serie/${slug}/chapitre/${c.id}`}
@@ -259,7 +343,7 @@ function ChapterListSheet({ seriesItem, currentChapterId, slug, onClose }) {
               <span>
                 Ch. {c.number} — {c.title}
               </span>
-              {!c.free && <Lock size={14} className="text-zinc-500" />}
+              {!c.is_free && <Lock size={14} className="text-zinc-500" />}
             </Link>
           ))}
         </div>

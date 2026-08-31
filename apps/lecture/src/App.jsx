@@ -6,6 +6,8 @@ import Library from './pages/Library'
 import SeriesDetail from './pages/SeriesDetail'
 import ChapterReader from './pages/ChapterReader'
 import AuthorProfile from './pages/AuthorProfile'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -25,7 +27,9 @@ export default function App() {
         <Route path="/abonnements" element={<Library />} />
         <Route path="/serie/:slug" element={<SeriesDetail />} />
         <Route path="/serie/:slug/chapitre/:chapterId" element={<ChapterReader />} />
-        <Route path="/profil/:authorId" element={<AuthorProfile />} />
+        <Route path="/profil/:username" element={<AuthorProfile />} />
+        <Route path="/connexion" element={<Login />} />
+        <Route path="/inscription" element={<Signup />} />
       </Routes>
     </>
   )

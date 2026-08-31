@@ -601,3 +601,6 @@ create policy "authors respond to own work migrations" on public.work_migrations
 
 -- Plateforme 3 (réseau social) + synchronisation cross-plateforme :
 -- voir supabase/migrations/20260831040724_platform3_social_sync.sql
+
+-- Champs d'affichage plateforme 1 (note, vues) :
+-- voir supabase/migrations/20260831044127_platform1_display_fields.sql
