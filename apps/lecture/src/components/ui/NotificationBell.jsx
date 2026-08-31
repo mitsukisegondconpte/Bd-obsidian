@@ -64,6 +64,12 @@ export default function NotificationBell() {
       setItems((prev) => prev.map((it) => (it.id === n.id ? { ...it, is_read: true } : it)))
       setUnread((c) => Math.max(0, c - 1))
     }
+    // link_path pointe vers une page communaute (ex: mention dans un groupe) —
+    // pas une route de cette app, donc lien externe plutôt qu'un navigate().
+    if (n.link_path) {
+      setOpen(false)
+      window.location.href = `https://bd-obsidian-communaute.vercel.app${n.link_path}`
+    }
   }
 
   async function handleMarkAll() {

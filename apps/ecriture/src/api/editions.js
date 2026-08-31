@@ -19,8 +19,8 @@ export const EDITION_LEVELS = [
     level: 3,
     name: 'Édition niveau 3',
     description:
-      "Réservée aux membres Hypercube Obsidian / Bohio Mag : pas besoin de payer à chaque édition, mais les œuvres produites deviennent payantes.",
-    priceLabel: 'Rejoindre Hypercube Obsidian ou Bohio Mag',
+      "Réservée aux membres Hypercube Obsidian : pas besoin de payer à chaque édition, mais les œuvres produites deviennent payantes.",
+    priceLabel: 'Rejoindre Hypercube Obsidian',
   },
 ]
 

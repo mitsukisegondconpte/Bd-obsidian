@@ -22,11 +22,22 @@ export async function getCommunity(communityId) {
 export async function listCommunityPosts(communityId) {
   const { data, error } = await supabase
     .from('community_posts')
-    .select('*, author:profiles(username, display_name, avatar_url)')
+    .select(
+      '*, author:profiles!community_posts_author_id_fkey(username, display_name, avatar_url), reply_to:community_posts!community_posts_reply_to_id_fkey(id, body, author:profiles!community_posts_author_id_fkey(display_name))',
+    )
     .eq('community_id', communityId)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true })
   if (error) throw error
   return data
+}
+
+export async function listCommunityMembers(communityId) {
+  const { data, error } = await supabase
+    .from('community_members')
+    .select('user:profiles(id, username, display_name, avatar_url)')
+    .eq('community_id', communityId)
+  if (error) throw error
+  return data.map((row) => row.user)
 }
 
 export async function createCommunity({ creatorId, name, description, relatedSeriesId, relatedWorkId }) {
@@ -39,11 +50,13 @@ export async function createCommunity({ creatorId, name, description, relatedSer
   return data
 }
 
-export async function createCommunityPost({ communityId, authorId, body }) {
+export async function createCommunityPost({ communityId, authorId, body, replyToId }) {
   const { data, error } = await supabase
     .from('community_posts')
-    .insert({ community_id: communityId, author_id: authorId, body })
-    .select('*, author:profiles(username, display_name, avatar_url)')
+    .insert({ community_id: communityId, author_id: authorId, body, reply_to_id: replyToId ?? null })
+    .select(
+      '*, author:profiles!community_posts_author_id_fkey(username, display_name, avatar_url), reply_to:community_posts!community_posts_reply_to_id_fkey(id, body, author:profiles!community_posts_author_id_fkey(display_name))',
+    )
     .single()
   if (error) throw error
   return data

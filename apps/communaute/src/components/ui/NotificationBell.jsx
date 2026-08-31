@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabaseClient'
@@ -22,6 +23,7 @@ function timeAgo(iso) {
 // chapitre, repêchage accepté) arrivent ici en direct via Supabase Realtime.
 export default function NotificationBell() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState([])
   const [unread, setUnread] = useState(0)
@@ -63,6 +65,10 @@ export default function NotificationBell() {
       await markNotificationRead(n.id)
       setItems((prev) => prev.map((it) => (it.id === n.id ? { ...it, is_read: true } : it)))
       setUnread((c) => Math.max(0, c - 1))
+    }
+    if (n.link_path) {
+      setOpen(false)
+      navigate(n.link_path)
     }
   }
 

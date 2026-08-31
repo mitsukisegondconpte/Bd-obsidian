@@ -193,7 +193,7 @@ Branché pour de vrai sur Supabase (auth, base, storage) — voir
 - `/oeuvre/:workId` — Page œuvre : chapitres, suivre l'auteur
 - `/oeuvre/:workId/chapitre/:chapterId` — Lecture (police serif, reprise de lecture automatique)
 - `/creer`, `/oeuvre/:workId/nouveau-chapitre` — Créer une œuvre / un chapitre (brouillon ou publié)
-- `/mes-oeuvres` — Tableau de bord auteur (+ propositions de repêchage Hypercube/Bohio Mag)
+- `/mes-oeuvres` — Tableau de bord auteur (+ propositions de repêchage Hypercube)
 - `/profil/:username` — Vitrine cross-plateforme (séries/communautés/canaux), badges, séries de régularité
 - `/classement` — Top œuvres et top créateurs Hypercube de la semaine
 - `/edition` — Service d'édition (3 niveaux, crédits gratuits)
@@ -210,7 +210,10 @@ Branché sur Supabase, même auth que les 2 autres.
 
 - `/`, `/explorer`, `/canaux`, `/communautes` — Découverte
 - `/canal/:channelId` — Canal (façon chaîne WhatsApp) : posts, abonnement
-- `/communaute/:communityId` — Communauté : posts, membres, rejoindre, signaler
+- `/communaute/:communityId` — Communauté : discussion de groupe façon WhatsApp
+  (bulles, répondre à un message précis, mentionner `@pseudo` avec notification
+  et autocomplétion, mais sans partage de médias — comme un groupe WhatsApp
+  texte seul), membres, rejoindre, signaler
 - `/creer-canal` — Réservé aux auteurs (vérifié côté base, pas juste côté UI)
 - `/creer-communaute` — Ouvert à tous, avec option "lier à mon œuvre"
 - `/profil/:username` — Profil unifié : agrège séries (plateforme 1),
