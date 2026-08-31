@@ -1,5 +1,9 @@
+import { useRef, useState } from 'react'
 import { Heart, Radio, Reply, Share2 } from 'lucide-react'
 import { avatarPlaceholder } from '../../utils/placeholders'
+
+const SWIPE_TRIGGER = 56
+const SWIPE_MAX = 76
 
 function renderBody(body, isOwn) {
   const parts = body.split(/(@[a-zA-Z0-9_]+)/g)
@@ -24,9 +28,42 @@ export default function PostItem({
   onToggleLike,
   onShare,
   replyTo,
+  onJumpToReply,
+  highlighted = false,
+  itemRef,
 }) {
   const name = author?.display_name ?? 'Membre'
   const avatar = author?.avatar_url || avatarPlaceholder({ seed: post.author_id ?? post.channel_id, name })
+
+  const [dragX, setDragX] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const touchStartX = useRef(0)
+  const triggered = useRef(false)
+
+  function handleTouchStart(e) {
+    if (!onReply) return
+    touchStartX.current = e.touches[0].clientX
+    triggered.current = false
+    setDragging(true)
+  }
+
+  function handleTouchMove(e) {
+    if (!onReply || !dragging) return
+    const delta = e.touches[0].clientX - touchStartX.current
+    const clamped = Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, delta))
+    setDragX(clamped)
+    if (!triggered.current && Math.abs(clamped) >= SWIPE_TRIGGER) {
+      triggered.current = true
+      navigator.vibrate?.(12)
+    }
+  }
+
+  function handleTouchEnd() {
+    if (!onReply) return
+    setDragging(false)
+    setDragX(0)
+    if (triggered.current) onReply(post)
+  }
 
   if (post.is_system) {
     return (
@@ -39,11 +76,34 @@ export default function PostItem({
   }
 
   return (
-    <div className={`group flex gap-2 py-1.5 ${isOwn ? 'flex-row-reverse' : ''}`}>
+    <div
+      ref={itemRef}
+      className={`group relative flex gap-2 py-1.5 transition-colors ${isOwn ? 'flex-row-reverse' : ''} ${
+        highlighted ? 'bg-accent/10' : ''
+      }`}
+    >
+      {Math.abs(dragX) > 8 && (
+        <div
+          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${dragX > 0 ? 'left-1' : 'right-1'}`}
+          style={{ opacity: Math.min(1, Math.abs(dragX) / SWIPE_TRIGGER) }}
+        >
+          <Reply size={16} className="text-accent" />
+        </div>
+      )}
       {!isOwn && (
         <img src={avatar} alt={name} className="h-8 w-8 shrink-0 self-end rounded-full object-cover" />
       )}
-      <div className={`flex max-w-[78%] flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+      <div
+        className={`flex max-w-[78%] flex-col ${isOwn ? 'items-end' : 'items-start'}`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: `translateX(${dragX}px)`,
+          transition: dragging ? 'none' : 'transform 0.2s ease',
+          touchAction: 'pan-y',
+        }}
+      >
         <div
           className={`rounded-2xl px-3.5 py-2 text-sm ${
             isOwn ? 'rounded-br-sm bg-accent text-accent-ink' : 'rounded-bl-sm bg-surface-2 text-zinc-100'
@@ -51,14 +111,16 @@ export default function PostItem({
         >
           {!isOwn && <p className="mb-0.5 text-xs font-bold text-accent">{name}</p>}
           {replyTo && (
-            <div
-              className={`mb-1.5 rounded-lg border-l-2 px-2 py-1 text-xs ${
+            <button
+              type="button"
+              onClick={() => onJumpToReply?.(replyTo.id)}
+              className={`mb-1.5 block w-full rounded-lg border-l-2 px-2 py-1 text-left text-xs ${
                 isOwn ? 'border-accent-ink/40 bg-black/10 text-accent-ink/80' : 'border-accent/50 bg-black/20 text-zinc-400'
               }`}
             >
               <p className="font-semibold">{replyTo.author?.display_name ?? 'Membre'}</p>
               <p className="line-clamp-1">{replyTo.body}</p>
-            </div>
+            </button>
           )}
           {post.shared_from && (
             <div

@@ -1,160 +1,146 @@
+import { ScrollText } from 'lucide-react'
 import Layout from '../components/layout/Layout'
+
+function Section({ number, title, children }) {
+  return (
+    <section>
+      <div className="flex items-center gap-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-extrabold text-accent">
+          {number}
+        </span>
+        <h2 className="text-base font-bold text-zinc-100">{title}</h2>
+      </div>
+      <div className="mt-2 space-y-2 pl-10 text-sm leading-relaxed text-zinc-400">{children}</div>
+    </section>
+  )
+}
 
 export default function ConditionsUtilisation() {
   return (
     <Layout>
-      <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 text-sm leading-relaxed text-zinc-300 sm:px-6">
-        <h1 className="text-2xl font-extrabold text-zinc-50">Conditions d'utilisation</h1>
-        <p className="mt-1 text-xs text-zinc-500">
-          Hypercube Realms — Réseau communautaire, canaux et communautés (Hypercube / HOS, Haïti)
-        </p>
-        <p className="mt-1 text-xs font-semibold text-amber-400">
-          Version de travail — à faire valider juridiquement avant mise en ligne.
-        </p>
+      <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15">
+            <ScrollText size={26} className="text-accent" />
+          </div>
+          <h1 className="mt-4 text-2xl font-extrabold text-zinc-50">Conditions d'utilisation</h1>
+          <p className="mt-1 text-sm text-zinc-500">Hypercube Realms — réseau communautaire, canaux et communautés</p>
+          <p className="mt-1 text-xs text-zinc-600">En vigueur depuis le 31 août 2026</p>
+        </div>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">1. Objet</h2>
-        <p className="mt-2">
-          Les présentes Conditions encadrent l'utilisation de cette plateforme communautaire d'Hypercube
-          (« Plateforme communautaire »), destinée à organiser les échanges autour d'œuvres sélectionnées et
-          des univers HOS et Bohio Mag.
-        </p>
+        <div className="mt-10 space-y-8">
+          <Section number="1" title="Objet">
+            <p>
+              Ces conditions encadrent l'utilisation de Hypercube Realms, destiné à organiser les échanges autour
+              d'œuvres sélectionnées et des univers HOS et Bohio Mag.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">2. Accès et comptes</h2>
-        <p className="mt-2">
-          L'utilisateur doit respecter les règles de compte, de sécurité et d'identification de la Plateforme.
-          Un utilisateur peut participer aux communautés sans que cette participation signifie qu'il devient
-          auteur, membre ou représentant de HOS ou de Bohio Mag.
-        </p>
+          <Section number="2" title="Accès et comptes">
+            <p>
+              Participer aux communautés ne signifie pas que tu deviens auteur, membre ou représentant de HOS ou
+              de Bohio Mag.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">3. Objet des canaux</h2>
-        <p className="mt-2">
-          Les canaux sont des espaces de publication et de suivi pouvant être créés par les auteurs ou
-          personnes autorisées autour des œuvres HOS et Bohio Mag, ainsi que des œuvres éligibles
-          sélectionnées parmi le Top 10 de la plateforme d'écriture. Ils peuvent servir à publier des
-          annonces, informations, actualités et autres contenus liés à l'œuvre.
-        </p>
+          <Section number="3" title="Objet des canaux">
+            <p>
+              Les canaux sont des espaces de publication et de suivi créés par les auteurs autour des œuvres HOS,
+              Bohio Mag et des œuvres actuellement dans le Top 10 de Hypercube World. Ils servent à publier des
+              annonces et actualités liées à l'œuvre.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">4. Objet des communautés de fans</h2>
-        <p className="mt-2">
-          Une communauté est un espace collectif créé par un utilisateur autour d'une œuvre ou d'un univers
-          éligible. Elle peut fonctionner comme un groupe de fans, avec publications, discussions et
-          interactions.
-        </p>
+          <Section number="4" title="Objet des communautés de fans">
+            <p>
+              Une communauté est un espace collectif créé par un utilisateur autour d'une œuvre ou d'un univers
+              éligible, fonctionnant comme un groupe de fans avec publications et discussions.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">5. Approbation</h2>
-        <p className="mt-2">
-          La création ou la mise en avant d'une communauté peut nécessiter une approbation. Hypercube peut
-          refuser, suspendre ou retirer une communauté lorsque son objet, son contenu ou son fonctionnement
-          ne respecte pas les présentes Conditions.
-        </p>
+          <Section number="5" title="Approbation et mention « validée »">
+            <p>
+              Hypercube peut refuser, suspendre ou retirer une communauté qui ne respecte pas ces conditions. La
+              mention « validée » peut être attribuée puis retirée selon des critères tels que l'activité, la
+              durée d'existence, ou le lien avec l'auteur de l'œuvre concernée.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">6. Mention « validée »</h2>
-        <p className="mt-2">
-          Hypercube peut attribuer la mention « validée » à certaines communautés. Les critères peuvent
-          notamment inclure la durée d'existence, le nombre de membres, l'activité, le fait que la communauté
-          soit créée par l'auteur de l'œuvre concernée, la qualité du contenu et l'absence de signalements ou
-          d'activités contraires au règlement. La validation peut être retirée.
-        </p>
+          <Section number="6" title="Règles de conduite">
+            <ul className="list-disc space-y-1.5 pl-4">
+              <li>Respecte les autres membres et les auteurs.</li>
+              <li>Ne harcèle, ne menace et n'intimide personne.</li>
+              <li>N'usurpe l'identité de personne, ni d'Hypercube, HOS ou Bohio Mag.</li>
+              <li>Ne publie pas de spam, de fraude ou de contenu illégal.</li>
+              <li>Respecte les règles spécifiques de chaque canal ou communauté.</li>
+            </ul>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">7. Règles de conduite</h2>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
-          <li>Respecter les autres membres et les auteurs.</li>
-          <li>Ne pas harceler, menacer, intimider ou cibler une personne.</li>
-          <li>Ne pas usurper l'identité d'un auteur, d'Hypercube, de HOS, de Bohio Mag ou d'une autre personne.</li>
-          <li>Ne pas publier de spam, publicité abusive, fraude ou manipulation artificielle.</li>
-          <li>Ne pas publier de contenu illégal ou portant atteinte aux droits de tiers.</li>
-          <li>Ne pas utiliser une communauté pour détourner volontairement les utilisateurs vers des activités frauduleuses ou dangereuses.</li>
-          <li>Respecter les règles spécifiques de chaque canal ou communauté.</li>
-        </ul>
+          <Section number="7" title="Propriété intellectuelle">
+            <p>
+              Tu restes responsable des contenus que tu publies et dois disposer des droits nécessaires. Tu
+              accordes à Hypercube une licence limitée et nécessaire pour héberger et afficher tes publications
+              au sein de Hypercube Realms, sans transfert automatique de propriété.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">8. Propriété intellectuelle</h2>
-        <p className="mt-2">
-          Les utilisateurs restent responsables des contenus qu'ils publient et doivent disposer des droits
-          nécessaires. Ils accordent à Hypercube une licence limitée, non exclusive et nécessaire pour
-          héberger, afficher, reproduire techniquement et distribuer leurs publications au sein des
-          fonctionnalités de la Plateforme. Cette licence n'emporte pas transfert automatique de propriété.
-        </p>
+          <Section number="8" title="Œuvres HOS, Bohio Mag et Top 10">
+            <p>
+              La présence d'une œuvre ou d'une communauté sur Hypercube Realms ne signifie pas que tous les
+              utilisateurs qui la suivent sont affiliés à HOS ou Bohio Mag.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">9. Œuvres HOS, Bohio Mag et Top 10</h2>
-        <p className="mt-2">
-          La présence d'une œuvre, d'un auteur ou d'une communauté sur cette Plateforme ne signifie pas que
-          tous les utilisateurs qui la suivent sont affiliés à HOS ou Bohio Mag. La Plateforme sert
-          principalement de lieu communautaire autour des œuvres éligibles.
-        </p>
+          <Section number="9" title="Redirections">
+            <p>
+              Hypercube Realms peut contenir des liens vers les autres sites Hypercube ou des services autorisés,
+              qui peuvent avoir leurs propres conditions et politiques.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">10. Redirections</h2>
-        <p className="mt-2">
-          Cette Plateforme peut contenir des liens ou redirections vers les sites Hypercube, HOS, Bohio Mag ou
-          d'autres services autorisés. Les services externes peuvent avoir leurs propres conditions et
-          politiques.
-        </p>
+          <Section number="10" title="Modération et signalements">
+            <p>
+              Hypercube peut supprimer, masquer ou modérer une publication, un canal ou une communauté en cas de
+              violation des règles. Tu peux signaler un contenu directement depuis la page concernée ou en
+              écrivant à{' '}
+              <a href="mailto:hypercubofficial@gmail.com" className="font-semibold text-accent hover:underline">
+                hypercubofficial@gmail.com
+              </a>
+              .
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">11. Modération et signalements</h2>
-        <p className="mt-2">
-          Hypercube peut supprimer, masquer, limiter ou modérer une publication, un canal ou une communauté en
-          cas de violation des règles, de risque pour la sécurité, d'atteinte aux droits d'un tiers ou de
-          demande légitime. Les utilisateurs peuvent signaler un contenu à [E-MAIL / FORMULAIRE].
-        </p>
+          <Section number="11" title="Suspension">
+            <p>
+              Un compte ou une communauté peut être suspendu en cas de violation grave ou répétée, fraude,
+              harcèlement ou atteinte aux droits d'auteur.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">12. Suspension</h2>
-        <p className="mt-2">
-          Un compte ou une communauté peut être suspendu ou supprimé en cas de violation grave ou répétée,
-          fraude, harcèlement, atteinte aux droits d'auteur, contournement des mesures de sécurité ou autre
-          comportement incompatible avec la Plateforme.
-        </p>
+          <Section number="12" title="Disponibilité et responsabilité">
+            <p>
+              Le service peut être interrompu pour maintenance ou évolution technique. Les utilisateurs restent
+              responsables de leurs publications et interactions.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">13. Disponibilité</h2>
-        <p className="mt-2">
-          Le service peut être interrompu ou modifié pour maintenance, sécurité, évolution technique ou
-          événement indépendant de la volonté d'Hypercube.
-        </p>
+          <Section number="13" title="Droit applicable">
+            <p>Ces conditions sont régies par le droit applicable en République d'Haïti.</p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">14. Responsabilité</h2>
-        <p className="mt-2">
-          Les utilisateurs sont responsables de leurs publications et interactions. Hypercube ne garantit pas
-          que toutes les informations publiées par des utilisateurs soient exactes ni que chaque comportement
-          problématique soit détecté immédiatement.
-        </p>
+          <Section number="14" title="Modifications">
+            <p>Hypercube peut modifier ces conditions pour tenir compte de l'évolution de la plateforme.</p>
+          </Section>
+        </div>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">15. Droit applicable</h2>
-        <p className="mt-2">
-          Les présentes Conditions sont destinées à être régies par le droit applicable en République d'Haïti,
-          sous réserve des règles impératives éventuellement applicables. Les modalités précises de règlement
-          des litiges devront être validées juridiquement avant publication.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">16. Modifications</h2>
-        <p className="mt-2">
-          Hypercube peut modifier les présentes Conditions afin de tenir compte de l'évolution de la
-          Plateforme ou des exigences juridiques. La version en vigueur sera publiée sur le site.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">17. Contact</h2>
-        <p className="mt-2">
-          [DÉNOMINATION JURIDIQUE]
-          <br />
-          [ADRESSE EN HAÏTI]
-          <br />
-          [E-MAIL JURIDIQUE]
-          <br />
-          [DATE D'ENTRÉE EN VIGUEUR]
-        </p>
-
-        <div className="mt-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-amber-400">
-            Informations à compléter avant publication
-          </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-zinc-300">
-            <li>Dénomination juridique exacte de l'entité exploitante</li>
-            <li>Adresse officielle en Haïti</li>
-            <li>Adresse e-mail de contact / support / juridique</li>
-            <li>Date d'entrée en vigueur</li>
-            <li>Prestataire(s) de paiement</li>
-            <li>Prestataire(s) d'hébergement et sous-traitants techniques</li>
-            <li>Outils d'analyse, cookies et technologies similaires effectivement utilisés</li>
-            <li>Durées de conservation définitives</li>
-            <li>Règles d'âge/minimum légal retenues par Hypercube</li>
-          </ul>
+        <div className="mt-10 rounded-2xl border border-white/10 bg-surface-1 p-5 text-center">
+          <p className="text-sm font-semibold text-zinc-200">Une question sur ces conditions ?</p>
+          <a
+            href="mailto:hypercubofficial@gmail.com"
+            className="mt-1.5 inline-block text-sm font-bold text-accent hover:underline"
+          >
+            hypercubofficial@gmail.com
+          </a>
         </div>
       </div>
     </Layout>

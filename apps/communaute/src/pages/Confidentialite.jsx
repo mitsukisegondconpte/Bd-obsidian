@@ -1,144 +1,143 @@
+import { ShieldCheck } from 'lucide-react'
 import Layout from '../components/layout/Layout'
+
+function Section({ number, title, children }) {
+  return (
+    <section>
+      <div className="flex items-center gap-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-extrabold text-accent">
+          {number}
+        </span>
+        <h2 className="text-base font-bold text-zinc-100">{title}</h2>
+      </div>
+      <div className="mt-2 space-y-2 pl-10 text-sm leading-relaxed text-zinc-400">{children}</div>
+    </section>
+  )
+}
 
 export default function Confidentialite() {
   return (
     <Layout>
-      <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 text-sm leading-relaxed text-zinc-300 sm:px-6">
-        <h1 className="text-2xl font-extrabold text-zinc-50">Politique de confidentialité</h1>
-        <p className="mt-1 text-xs text-zinc-500">
-          Hypercube Realms — Plateforme communautaire : canaux, communautés et redirections (Hypercube / HOS, Haïti)
-        </p>
-        <p className="mt-1 text-xs font-semibold text-amber-400">
-          Version de travail — à faire valider juridiquement avant mise en ligne.
-        </p>
+      <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15">
+            <ShieldCheck size={26} className="text-accent" />
+          </div>
+          <h1 className="mt-4 text-2xl font-extrabold text-zinc-50">Politique de confidentialité</h1>
+          <p className="mt-1 text-sm text-zinc-500">Hypercube Realms — canaux, communautés et redirections</p>
+          <p className="mt-1 text-xs text-zinc-600">En vigueur depuis le 31 août 2026</p>
+        </div>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">1. Objet</h2>
-        <p className="mt-2">
-          La présente Politique décrit le traitement des données sur cette plateforme communautaire
-          d'Hypercube (« Plateforme communautaire »). Ce service permet notamment de suivre des canaux,
-          rejoindre des communautés de fans, publier des contenus communautaires et accéder à des
-          redirections vers les autres plateformes Hypercube.
-        </p>
+        <div className="mt-10 space-y-8">
+          <Section number="1" title="Objet">
+            <p>
+              Cette politique décrit le traitement des données sur Hypercube Realms. Ce service permet de suivre
+              des canaux, rejoindre des communautés de fans, publier des contenus communautaires et accéder à des
+              redirections vers les autres plateformes Hypercube.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">2. Périmètre des communautés</h2>
-        <p className="mt-2">
-          Les canaux et communautés sont conçus autour des œuvres de HOS, de Bohio Mag et des œuvres
-          éligibles sélectionnées parmi les dix meilleures œuvres de la plateforme d'écriture. Une communauté
-          peut être soumise à approbation avant sa création ou sa mise en avant.
-        </p>
+          <Section number="2" title="Périmètre des communautés">
+            <p>
+              Les canaux et communautés sont conçus autour des œuvres de HOS, de Bohio Mag et des œuvres
+              actuellement dans le Top 10 hebdomadaire de Hypercube World.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">3. Données collectées</h2>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
-          <li>Données de compte : nom/pseudonyme, e-mail, avatar et paramètres.</li>
-          <li>
-            Données d'activité : abonnements aux canaux, participation à des communautés, publications,
-            commentaires, réactions, signalements et historique pertinent.
-          </li>
-          <li>Données techniques et de sécurité : adresse IP, appareil, navigateur, journaux, date/heure et données de sécurité.</li>
-          <li>Informations liées aux demandes adressées au support et à la modération.</li>
-        </ul>
+          <Section number="3" title="Données collectées">
+            <ul className="list-disc space-y-1.5 pl-4">
+              <li>Compte : nom/pseudonyme, e-mail, avatar et paramètres.</li>
+              <li>Activité : abonnements aux canaux, participation aux communautés, publications, réactions, signalements.</li>
+              <li>Données techniques et de sécurité : adresse IP, appareil, navigateur, journaux de connexion.</li>
+              <li>Informations liées aux demandes adressées au support et à la modération.</li>
+            </ul>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">4. Finalités</h2>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
-          <li>Permettre la création, l'administration et la participation aux communautés.</li>
-          <li>Gérer les canaux et abonnements.</li>
-          <li>Examiner les demandes d'approbation de communautés.</li>
-          <li>Attribuer, afficher et maintenir une éventuelle mention « validée ».</li>
-          <li>Prévenir le spam, le harcèlement, la fraude, l'usurpation et les abus.</li>
-          <li>Assurer la sécurité et le fonctionnement technique.</li>
-          <li>Permettre les redirections et l'interconnexion avec les plateformes Hypercube lorsque nécessaire.</li>
-          <li>Répondre aux obligations légales et aux demandes légitimes des autorités.</li>
-        </ul>
+          <Section number="4" title="Finalités">
+            <ul className="list-disc space-y-1.5 pl-4">
+              <li>Permettre la création, l'administration et la participation aux communautés.</li>
+              <li>Gérer les canaux et abonnements, examiner les demandes d'approbation.</li>
+              <li>Attribuer et afficher la mention « validée » d'une communauté.</li>
+              <li>Prévenir le spam, le harcèlement, la fraude et l'usurpation.</li>
+              <li>Permettre les redirections et l'interconnexion avec les autres plateformes Hypercube.</li>
+            </ul>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">5. Communautés et données publiques</h2>
-        <p className="mt-2">
-          Les publications, commentaires, pseudonymes, informations de communauté et autres contenus publiés
-          dans un espace public peuvent être visibles par d'autres utilisateurs. Une personne doit éviter de
-          publier des informations personnelles qu'elle ne souhaite pas rendre publiques.
-        </p>
+          <Section number="5" title="Communautés et données publiques">
+            <p>
+              Les publications, commentaires et pseudonymes partagés dans un espace public peuvent être visibles
+              par d'autres utilisateurs. Évite de publier des informations personnelles que tu ne souhaites pas
+              rendre publiques.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">6. Statut « validée »</h2>
-        <p className="mt-2">
-          Une communauté peut recevoir une mention « validée » selon des critères définis par Hypercube,
-          pouvant notamment prendre en compte sa durée d'existence, son nombre de membres, son activité, son
-          lien avec l'auteur d'une œuvre ou la qualité de son contenu. Cette mention n'est pas une
-          certification officielle d'une personne ni une garantie absolue sur le contenu.
-        </p>
+          <Section number="6" title="Statut « validée »">
+            <p>
+              Une communauté peut recevoir la mention « validée » selon des critères tels que sa durée
+              d'existence, son activité, ou le fait d'être créée par l'auteur de l'œuvre concernée. Cette mention
+              n'est ni une certification officielle ni une garantie absolue sur le contenu.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">7. Interconnexion</h2>
-        <p className="mt-2">
-          Cette plateforme peut échanger certaines informations avec les autres plateformes Hypercube pour
-          permettre l'authentification, reconnaître certains statuts nécessaires au fonctionnement, afficher
-          des œuvres et effectuer des redirections. Les données échangées doivent rester limitées à ce qui
-          est nécessaire.
-        </p>
+          <Section number="7" title="Interconnexion">
+            <p>
+              Hypercube Realms peut échanger certaines informations avec les autres plateformes Hypercube pour
+              l'authentification, la reconnaissance de statuts nécessaires au fonctionnement, et les
+              redirections. Les données échangées restent limitées à ce qui est nécessaire.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">8. Prestataires</h2>
-        <p className="mt-2">
-          Hypercube peut utiliser des prestataires d'hébergement, sécurité, messagerie, analyse et autres
-          services techniques. Les prestataires autorisés ne doivent recevoir que les informations nécessaires
-          à leurs fonctions.
-        </p>
+          <Section number="8" title="Partage avec des prestataires">
+            <p>
+              Hypercube fait appel à Vercel (hébergement) et Supabase (base de données, authentification et
+              stockage) pour faire fonctionner le service. Ces prestataires ne reçoivent que les informations
+              techniquement nécessaires à leurs fonctions.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">9. Conservation et sécurité</h2>
-        <p className="mt-2">
-          Les données sont conservées pendant la durée nécessaire aux finalités du service et aux exigences
-          légales, de sécurité ou de résolution des litiges. Les durées définitives seront précisées avant
-          publication. Hypercube applique des mesures raisonnables de sécurité sans pouvoir garantir une
-          sécurité absolue.
-        </p>
+          <Section number="9" title="Conservation et sécurité">
+            <p>
+              Les données sont conservées tant que le compte reste actif, puis supprimées dans un délai
+              raisonnable après suppression du compte. Hypercube applique des mesures raisonnables de sécurité
+              (chiffrement HTTPS, règles de sécurité au niveau des lignes) sans pouvoir garantir une sécurité
+              absolue.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">10. Droits et demandes</h2>
-        <p className="mt-2">
-          Pour toute demande concernant les données personnelles : [E-MAIL CONFIDENTIALITÉ]. Les demandes
-          seront traitées selon le droit applicable et les capacités techniques du service.
-        </p>
+          <Section number="10" title="Droits et demandes">
+            <p>
+              Pour toute demande concernant tes données personnelles, écris à{' '}
+              <a href="mailto:hypercubofficial@gmail.com" className="font-semibold text-accent hover:underline">
+                hypercubofficial@gmail.com
+              </a>
+              .
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">11. Cookies</h2>
-        <p className="mt-2">
-          Des cookies ou technologies similaires peuvent être utilisés pour les sessions, la sécurité, les
-          préférences et la mesure d'audience. Une notice complémentaire pourra détailler les catégories
-          effectivement utilisées.
-        </p>
+          <Section number="11" title="Cookies">
+            <p>
+              Seuls des cookies techniques essentiels sont utilisés (session, préférence de langue). Hypercube
+              Realms n'utilise actuellement aucun outil d'analyse ou de publicité tiers.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">12. Mineurs</h2>
-        <p className="mt-2">
-          Les règles d'âge et, le cas échéant, les mécanismes de consentement nécessaires devront être définis
-          avant le lancement public.
-        </p>
+          <Section number="12" title="Âge minimum">
+            <p>Le service est destiné aux personnes âgées d'au moins 13 ans.</p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">13. Modifications</h2>
-        <p className="mt-2">
-          Hypercube peut mettre à jour la présente Politique. La version en vigueur sera publiée sur la
-          Plateforme.
-        </p>
+          <Section number="13" title="Modifications">
+            <p>Hypercube peut mettre à jour cette politique. La version en vigueur est toujours celle publiée ici.</p>
+          </Section>
+        </div>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">14. Contact</h2>
-        <p className="mt-2">
-          [DÉNOMINATION JURIDIQUE]
-          <br />
-          [ADRESSE EN HAÏTI]
-          <br />
-          [E-MAIL]
-          <br />
-          [DATE D'ENTRÉE EN VIGUEUR]
-        </p>
-
-        <div className="mt-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-amber-400">
-            Informations à compléter avant publication
-          </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-zinc-300">
-            <li>Dénomination juridique exacte de l'entité exploitante</li>
-            <li>Adresse officielle en Haïti</li>
-            <li>Adresse e-mail de contact / support / juridique</li>
-            <li>Date d'entrée en vigueur</li>
-            <li>Prestataire(s) de paiement</li>
-            <li>Prestataire(s) d'hébergement et sous-traitants techniques</li>
-            <li>Outils d'analyse, cookies et technologies similaires effectivement utilisés</li>
-            <li>Durées de conservation définitives</li>
-            <li>Règles d'âge/minimum légal retenues par Hypercube</li>
-          </ul>
+        <div className="mt-10 rounded-2xl border border-white/10 bg-surface-1 p-5 text-center">
+          <p className="text-sm font-semibold text-zinc-200">Une question sur cette politique ou tes données ?</p>
+          <a
+            href="mailto:hypercubofficial@gmail.com"
+            className="mt-1.5 inline-block text-sm font-bold text-accent hover:underline"
+          >
+            hypercubofficial@gmail.com
+          </a>
         </div>
       </div>
     </Layout>

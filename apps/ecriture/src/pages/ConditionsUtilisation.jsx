@@ -1,264 +1,211 @@
+import { ScrollText } from 'lucide-react'
 import Layout from '../components/layout/Layout'
+
+function Section({ number, title, children }) {
+  return (
+    <section>
+      <div className="flex items-center gap-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-extrabold text-accent">
+          {number}
+        </span>
+        <h2 className="text-base font-bold text-zinc-100">{title}</h2>
+      </div>
+      <div className="mt-2 space-y-2 pl-10 text-sm leading-relaxed text-zinc-400">{children}</div>
+    </section>
+  )
+}
 
 export default function ConditionsUtilisation() {
   return (
     <Layout>
-      <div className="mx-auto max-w-2xl px-4 pb-16 pt-8 text-sm leading-relaxed text-zinc-300 sm:px-6">
-        <h1 className="text-2xl font-extrabold text-zinc-50">Conditions d'utilisation</h1>
-        <p className="mt-1 text-xs text-zinc-500">
-          Hypercube World — Plateforme ouverte de création, publication et lecture (Hypercube / HOS, Haïti)
-        </p>
-        <p className="mt-1 text-xs font-semibold text-amber-400">
-          Version de travail — à faire valider juridiquement avant mise en ligne.
-        </p>
+      <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15">
+            <ScrollText size={26} className="text-accent" />
+          </div>
+          <h1 className="mt-4 text-2xl font-extrabold text-zinc-50">Conditions d'utilisation</h1>
+          <p className="mt-1 text-sm text-zinc-500">Hypercube World — plateforme de création, publication et lecture</p>
+          <p className="mt-1 text-xs text-zinc-600">En vigueur depuis le 31 août 2026</p>
+        </div>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">1. Objet et acceptation</h2>
-        <p className="mt-2">
-          Les présentes Conditions régissent l'accès et l'utilisation de cette plateforme d'Hypercube
-          (« Plateforme »). En créant un compte, en publiant une œuvre ou en utilisant la Plateforme,
-          l'utilisateur reconnaît avoir pris connaissance des présentes Conditions et les accepter, sous
-          réserve des droits impératifs qui lui sont applicables.
-        </p>
+        <div className="mt-10 space-y-8">
+          <Section number="1" title="Objet et acceptation">
+            <p>
+              Les présentes conditions régissent l'accès et l'utilisation de Hypercube World. En créant un compte,
+              en publiant une œuvre ou en utilisant la plateforme, tu reconnais avoir pris connaissance de ces
+              conditions et les accepter.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">2. Nature de la Plateforme</h2>
-        <p className="mt-2">
-          La Plateforme fonctionne selon un modèle ouvert inspiré des plateformes de publication
-          communautaire : les utilisateurs peuvent créer des ouvrages, notamment des romans et light novels,
-          éventuellement accompagnés d'images, puis les publier pour permettre leur lecture et leur
-          interaction par d'autres utilisateurs.
-        </p>
+          <Section number="2" title="Nature de la plateforme">
+            <p>
+              Hypercube World fonctionne selon un modèle ouvert de publication communautaire : les utilisateurs
+              peuvent créer des romans et light novels, éventuellement accompagnés d'images, puis les publier pour
+              permettre leur lecture et leur interaction par d'autres utilisateurs.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">3. Le statut d'auteur sur la Plateforme</h2>
-        <p className="mt-2">
-          Tout utilisateur autorisé à publier est un auteur de la Plateforme au sens fonctionnel. Cette
-          qualité est indépendante de HOS et de Bohio Mag. La publication sur la Plateforme ne constitue ni
-          une signature avec HOS/Bohio Mag, ni une admission dans leurs équipes, ni une reconnaissance
-          automatique comme auteur officiel.
-        </p>
+          <Section number="3" title="Le statut d'auteur">
+            <p>
+              Tout utilisateur autorisé à publier est un auteur de la plateforme au sens fonctionnel. Cette qualité
+              est indépendante de HOS et de Bohio Mag : publier sur Hypercube World ne constitue ni une signature
+              avec eux, ni une admission dans leurs équipes, ni une reconnaissance automatique comme auteur officiel.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">4. Liberté créative et principes fondamentaux</h2>
-        <p className="mt-2">
-          Les auteurs disposent d'une large liberté créative et peuvent explorer les genres, styles, univers
-          et thèmes qu'ils souhaitent. Toutefois, la Plateforme est exploitée dans un environnement dont les
-          règles fondamentales sont inspirées des principes HOS suivants :
-        </p>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
-          <li>
-            <span className="font-semibold text-zinc-100">Amour (Agapé / Charité)</span> : encourager l'amour
-            du prochain, la patience, le pardon, l'intérêt d'autrui et une conduite fondée sur un amour
-            intentionnel et non malveillant.
-          </li>
-          <li>
-            <span className="font-semibold text-zinc-100">Foi / Connaissance</span> : valoriser la
-            compréhension, l'apprentissage, la recherche de connaissances et la construction réfléchie des
-            convictions.
-          </li>
-          <li>
-            <span className="font-semibold text-zinc-100">Vérité</span> : valoriser la sincérité, les
-            connaissances fondées sur la vérité et éviter la diffusion volontairement mensongère ou trompeuse.
-          </li>
-          <li>
-            <span className="font-semibold text-zinc-100">Justice</span> : promouvoir le bien, dénoncer le
-            mal, favoriser une moralité élevée et traiter les personnes de manière équitable.
-          </li>
-        </ul>
-        <p className="mt-2">
-          Ces principes constituent des règles de fonctionnement et de modération de la Plateforme. Ils
-          n'impliquent pas que chaque utilisateur soit membre ou adhérent de HOS. Les utilisateurs restent
-          libres d'explorer leurs propres univers créatifs dans les limites des présentes Conditions.
-        </p>
+          <Section number="4" title="Liberté créative et principes fondamentaux">
+            <p>
+              Les auteurs disposent d'une large liberté créative. La plateforme est toutefois exploitée dans un
+              environnement dont les règles de modération s'inspirent des principes HOS suivants :
+            </p>
+            <ul className="list-disc space-y-1.5 pl-4">
+              <li>
+                <span className="font-semibold text-zinc-300">Amour</span> — patience, pardon, une conduite fondée
+                sur le respect d'autrui.
+              </li>
+              <li>
+                <span className="font-semibold text-zinc-300">Connaissance</span> — valoriser l'apprentissage et la
+                construction réfléchie des idées.
+              </li>
+              <li>
+                <span className="font-semibold text-zinc-300">Vérité</span> — sincérité, éviter la diffusion
+                volontairement mensongère ou trompeuse.
+              </li>
+              <li>
+                <span className="font-semibold text-zinc-300">Justice</span> — traiter les personnes de manière
+                équitable.
+              </li>
+            </ul>
+            <p>Ces principes n'impliquent pas d'adhésion à HOS ; ils encadrent seulement la modération du service.</p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">5. Compte</h2>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
-          <li>L'utilisateur doit fournir des informations exactes dans la mesure nécessaire à la création du compte.</li>
-          <li>Il est responsable de la confidentialité de ses identifiants.</li>
-          <li>Il ne doit pas usurper l'identité d'une autre personne ni utiliser un compte pour tromper les utilisateurs.</li>
-          <li>Hypercube peut demander une vérification lorsque cela est nécessaire à la sécurité ou à la prévention des abus.</li>
-        </ul>
+          <Section number="5" title="Ton compte">
+            <ul className="list-disc space-y-1.5 pl-4">
+              <li>Fournis des informations exactes lors de la création de ton compte.</li>
+              <li>Tu es responsable de la confidentialité de tes identifiants.</li>
+              <li>N'usurpe pas l'identité d'une autre personne.</li>
+              <li>Hypercube peut demander une vérification en cas de nécessité de sécurité.</li>
+            </ul>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">6. Publication des œuvres</h2>
-        <p className="mt-2">
-          L'auteur conserve, sous réserve des droits de tiers et de la loi applicable, ses droits sur ses
-          œuvres. Il garantit qu'il dispose des droits nécessaires pour publier les textes, images, couvertures
-          et autres contenus qu'il fournit.
-        </p>
-        <p className="mt-2">
-          En publiant, l'auteur accorde à Hypercube une licence non exclusive, mondiale et nécessaire au
-          fonctionnement de la Plateforme pour héberger, reproduire techniquement, formater, afficher,
-          distribuer à la demande des utilisateurs, sauvegarder et promouvoir l'œuvre sur les espaces et
-          fonctionnalités liés à la Plateforme. Cette licence cesse selon les modalités de retrait du contenu,
-          sous réserve des copies techniques, obligations légales et autres droits contractuellement acquis.
-        </p>
+          <Section number="6" title="Publication des œuvres">
+            <p>
+              Tu conserves tes droits sur tes œuvres et garantis détenir les droits nécessaires pour publier les
+              textes, images et couvertures fournis. En publiant, tu accordes à Hypercube une licence non exclusive
+              et nécessaire au fonctionnement de la plateforme (hébergement, affichage, distribution aux
+              utilisateurs), qui cesse selon les modalités de retrait du contenu.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">7. Contenus interdits ou susceptibles d'être retirés</h2>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
-          <li>Contenus dont l'utilisateur ne détient pas les droits nécessaires.</li>
-          <li>Usurpation, fraude, escroquerie, spam ou manipulation artificielle des statistiques.</li>
-          <li>Menaces, harcèlement ciblé, intimidation ou incitation à la violence.</li>
-          <li>Contenus illégaux ou visant à faciliter une activité illégale.</li>
-          <li>Contenus volontairement trompeurs lorsqu'ils sont utilisés pour nuire, frauder ou manipuler.</li>
-          <li>Contenus incompatibles avec les principes fondamentaux de la Plateforme ou portant gravement atteinte à son environnement communautaire.</li>
-          <li>Contenus portant atteinte aux droits, à la dignité ou à la sécurité d'autrui.</li>
-          <li>Contenus soumis à des restrictions particulières qui ne respectent pas les règles de la Plateforme.</li>
-        </ul>
+          <Section number="7" title="Contenus interdits">
+            <ul className="list-disc space-y-1.5 pl-4">
+              <li>Contenus dont tu ne détiens pas les droits nécessaires.</li>
+              <li>Usurpation, fraude, spam ou manipulation artificielle des statistiques.</li>
+              <li>Menaces, harcèlement ciblé ou incitation à la violence.</li>
+              <li>Contenus illégaux ou portant gravement atteinte aux droits d'autrui.</li>
+            </ul>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">8. Modération</h2>
-        <p className="mt-2">
-          Hypercube peut examiner, limiter, masquer, démonétiser, retirer ou supprimer un contenu lorsqu'il
-          estime raisonnablement qu'il viole les présentes Conditions, les règles de la Plateforme, les droits
-          de tiers ou le droit applicable. Selon la gravité, Hypercube peut également suspendre ou fermer le
-          compte.
-        </p>
+          <Section number="8" title="Modération">
+            <p>
+              Hypercube peut examiner, limiter, masquer ou retirer un contenu qui viole ces conditions, et
+              suspendre ou fermer un compte selon la gravité de l'infraction.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">9. Commentaires et interactions</h2>
-        <p className="mt-2">
-          Les commentaires, likes, abonnements et autres interactions doivent rester conformes aux règles de
-          conduite. Hypercube peut modérer les interactions sans garantir qu'il détectera immédiatement toute
-          violation.
-        </p>
+          <Section number="9" title="Images et services d'édition">
+            <p>
+              Les images fournies par la plateforme peuvent être gratuites ou payantes selon leur licence. Une
+              commande d'image personnalisée peut être organisée directement avec Hypercube. Hypercube propose
+              aussi plusieurs niveaux d'édition (retour de lecture, accompagnement approfondi, ou intégration aux
+              structures HOS/Bohio Mag) dont les modalités et tarifs peuvent évoluer.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">10. Images et ressources visuelles</h2>
-        <p className="mt-2">
-          Les images fournies par la Plateforme peuvent être gratuites ou payantes selon leur licence.
-          L'utilisateur doit respecter les conditions applicables à chaque ressource. Une commande d'image
-          personnalisée peut être organisée avec Hypercube ou un prestataire désigné, notamment via une
-          messagerie externe. Les conditions, prix, délais et droits d'utilisation doivent être convenus avant
-          paiement.
-        </p>
+          <Section number="10" title="Sélection par HOS ou Bohio Mag">
+            <p>
+              Une œuvre publiée peut attirer l'attention de HOS ou de Bohio Mag. Une prise de contact ne constitue
+              pas automatiquement une sélection ni un contrat : les conditions de transfert, de republication ou de
+              rémunération sont toujours définies dans un accord distinct. Si une œuvre est effectivement
+              transférée, elle peut être retirée de Hypercube World selon cet accord — l'œuvre n'est jamais
+              retirée automatiquement.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">11. Services d'édition</h2>
-        <p className="mt-2">
-          Hypercube peut proposer plusieurs niveaux d'édition. Les avantages, limites, essais gratuits, tarifs
-          et modalités peuvent évoluer.
-        </p>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
-          <li>
-            <span className="font-semibold text-zinc-100">Édition niveau 1</span> : lecture de l'œuvre et
-            retour général sur les corrections, ajouts et améliorations à envisager ; quatre éditions peuvent
-            être offertes gratuitement au lancement selon les règles commerciales en vigueur.
-          </li>
-          <li>
-            <span className="font-semibold text-zinc-100">Édition niveau 2</span> : accompagnement plus
-            approfondi, avec essai gratuit limité selon l'offre ; l'éditeur peut fournir une liste de
-            corrections puis échanger avec l'auteur afin de proposer des conseils personnalisés.
-          </li>
-          <li>
-            <span className="font-semibold text-zinc-100">Édition niveau 3</span> : service réservé aux
-            personnes intégrant les structures concernées selon les modalités d'Hypercube, HOS ou Bohio Mag.
-          </li>
-        </ul>
+          <Section number="11" title="Classement, Top 10 et Hypercube Realms">
+            <p>
+              Hypercube établit un classement hebdomadaire des œuvres selon leur engagement. Les canaux et
+              communautés de Hypercube Realms sont réservés aux œuvres HOS, Bohio Mag et aux œuvres actuellement
+              dans le Top 10 de Hypercube World. Faire partie du Top 10 ne garantit pas une sélection par HOS ou
+              Bohio Mag.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">12. Sélection par HOS ou Bohio Mag</h2>
-        <p className="mt-2">
-          Une œuvre publiée sur la Plateforme peut attirer l'attention de HOS ou de Bohio Mag. Une prise de
-          contact ne constitue pas automatiquement une sélection ni un contrat. Si l'auteur accepte une
-          proposition, les conditions de transfert, de republication, d'édition, de rémunération et de
-          propriété des droits devront être définies dans un accord distinct.
-        </p>
-        <p className="mt-2">
-          Lorsqu'une œuvre est effectivement transférée vers une plateforme officielle HOS ou Bohio Mag, elle
-          peut être retirée de cette Plateforme conformément à l'accord conclu et au fonctionnement décrit par
-          Hypercube. Les modalités concernant les chapitres déjà écrits ou déjà lus et leur gratuité devront
-          être précisées dans l'offre ou le contrat concerné.
-        </p>
+          <Section number="12" title="Paiements">
+            <p>
+              Les prix sont affichés avant l'achat lorsque la fonctionnalité est disponible. Aucun prestataire de
+              paiement réel n'est actuellement intégré : les achats sont simulés durant cette phase de test, sans
+              transaction financière réelle. Cela sera clairement indiqué si un système de paiement réel est
+              introduit.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">13. Classement et Top 10</h2>
-        <p className="mt-2">
-          Hypercube peut établir un classement des œuvres. Les critères peuvent inclure la lecture,
-          l'engagement, la qualité, la régularité, les évaluations, les signalements ou d'autres indicateurs.
-          Faire partie du Top 10 ne garantit pas une sélection par HOS ou Bohio Mag.
-        </p>
+          <Section number="13" title="Propriété intellectuelle d'Hypercube">
+            <p>
+              Les marques, logos, interfaces et le code de la plateforme restent la propriété d'Hypercube. Ces
+              conditions ne cèdent aucun droit dessus au-delà du droit limité d'utiliser le service.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">14. Plateforme communautaire</h2>
-        <p className="mt-2">
-          Les fonctions communautaires de la plateforme communautaire Hypercube sont distinctes. Les canaux et
-          communautés de cette plateforme sont réservés aux œuvres HOS, Bohio Mag et aux œuvres éligibles
-          sélectionnées parmi les dix meilleures œuvres de cette Plateforme, selon les règles de la plateforme
-          communautaire.
-        </p>
+          <Section number="14" title="Signalements">
+            <p>
+              Tu peux signaler un contenu ou un comportement contraire aux règles directement depuis la page
+              concernée, ou en écrivant à{' '}
+              <a href="mailto:hypercubofficial@gmail.com" className="font-semibold text-accent hover:underline">
+                hypercubofficial@gmail.com
+              </a>
+              . Les signalements volontairement faux peuvent eux-mêmes faire l'objet de mesures.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">15. Paiements</h2>
-        <p className="mt-2">
-          Les prix sont affichés avant l'achat lorsque la fonctionnalité est disponible. Les modalités de
-          paiement, taxes éventuelles, remboursements et frais seront précisés au moment de la transaction
-          et/ou dans les conditions commerciales applicables.
-        </p>
+          <Section number="15" title="Disponibilité et responsabilité">
+            <p>
+              La plateforme peut être temporairement indisponible pour maintenance ou incident technique. Hypercube
+              ne garantit pas l'exactitude ou la disponibilité permanente de chaque contenu publié par les
+              utilisateurs ; les auteurs restent responsables de leurs œuvres.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">16. Propriété intellectuelle d'Hypercube</h2>
-        <p className="mt-2">
-          Les marques, logos, interfaces, éléments graphiques, logiciels, textes originaux et autres éléments
-          appartenant à Hypercube ou à ses concédants restent protégés. Aucun droit n'est transféré à
-          l'utilisateur au-delà du droit limité d'utiliser le service.
-        </p>
+          <Section number="16" title="Suspension et résiliation">
+            <p>
+              Hypercube peut suspendre ou fermer un compte en cas de violation grave ou répétée de ces conditions.
+              Tu peux demander la suppression de ton compte à tout moment.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">17. Signalements</h2>
-        <p className="mt-2">
-          Toute personne peut signaler un contenu ou un comportement contraire aux règles à [E-MAIL /
-          FORMULAIRE]. Les signalements abusifs ou volontairement faux peuvent eux-mêmes faire l'objet de
-          mesures.
-        </p>
+          <Section number="17" title="Droit applicable">
+            <p>
+              Ces conditions sont régies par le droit applicable en République d'Haïti, sous réserve des règles
+              impératives éventuellement applicables à l'utilisateur.
+            </p>
+          </Section>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">18. Disponibilité</h2>
-        <p className="mt-2">
-          La Plateforme peut être temporairement indisponible pour maintenance, mise à jour, incident
-          technique, sécurité ou événement indépendant de la volonté d'Hypercube.
-        </p>
+          <Section number="18" title="Modifications">
+            <p>
+              Hypercube peut modifier ces conditions pour tenir compte de l'évolution du service. La poursuite de
+              l'utilisation après une modification vaut acceptation des nouvelles conditions.
+            </p>
+          </Section>
+        </div>
 
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">19. Suspension et fermeture</h2>
-        <p className="mt-2">
-          Hypercube peut suspendre ou fermer un compte en cas de violation grave ou répétée, fraude, atteinte
-          à la sécurité, atteinte aux droits de tiers ou nécessité légale. Lorsque cela est raisonnablement
-          possible, l'utilisateur peut être informé du motif.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">20. Limitation de responsabilité</h2>
-        <p className="mt-2">
-          Dans la mesure permise par le droit applicable, Hypercube ne garantit pas l'exactitude, la
-          disponibilité permanente ou la qualité de chaque contenu publié par les utilisateurs. Les auteurs
-          restent responsables de leurs œuvres et de leurs droits sur celles-ci.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">21. Droit applicable et règlement des litiges</h2>
-        <p className="mt-2">
-          Les présentes Conditions sont destinées à être régies par le droit applicable en République d'Haïti,
-          sous réserve des règles impératives éventuellement applicables à l'utilisateur. Les modalités
-          précises de juridiction, médiation ou règlement amiable devront être validées juridiquement et
-          complétées.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">22. Modifications</h2>
-        <p className="mt-2">
-          Hypercube peut modifier les présentes Conditions. Les modifications importantes seront portées à la
-          connaissance des utilisateurs par un moyen approprié. La poursuite de l'utilisation après l'entrée
-          en vigueur des nouvelles Conditions vaut acceptation dans la mesure permise par le droit applicable.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-zinc-100">23. Contact</h2>
-        <p className="mt-2">
-          [DÉNOMINATION JURIDIQUE]
-          <br />
-          [ADRESSE EN HAÏTI]
-          <br />
-          [E-MAIL JURIDIQUE]
-          <br />
-          [DATE D'ENTRÉE EN VIGUEUR]
-        </p>
-
-        <div className="mt-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-amber-400">
-            Informations à compléter avant publication
-          </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-zinc-300">
-            <li>Dénomination juridique exacte de l'entité exploitante</li>
-            <li>Adresse officielle en Haïti</li>
-            <li>Adresse e-mail de contact / support / juridique</li>
-            <li>Date d'entrée en vigueur</li>
-            <li>Prestataire(s) de paiement</li>
-            <li>Prestataire(s) d'hébergement et sous-traitants techniques</li>
-            <li>Outils d'analyse, cookies et technologies similaires effectivement utilisés</li>
-            <li>Durées de conservation définitives</li>
-            <li>Règles d'âge/minimum légal retenues par Hypercube</li>
-          </ul>
+        <div className="mt-10 rounded-2xl border border-white/10 bg-surface-1 p-5 text-center">
+          <p className="text-sm font-semibold text-zinc-200">Une question sur ces conditions ?</p>
+          <a
+            href="mailto:hypercubofficial@gmail.com"
+            className="mt-1.5 inline-block text-sm font-bold text-accent hover:underline"
+          >
+            hypercubofficial@gmail.com
+          </a>
         </div>
       </div>
     </Layout>

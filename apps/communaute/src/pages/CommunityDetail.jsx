@@ -38,10 +38,35 @@ export default function CommunityDetail() {
   const [uploadingCover, setUploadingCover] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
+  const [highlightedId, setHighlightedId] = useState(null)
 
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
   const coverInputRef = useRef(null)
+  const messageRefs = useRef({})
+
+  function jumpToReply(id) {
+    const el = messageRefs.current[id]
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setHighlightedId(id)
+    setTimeout(() => setHighlightedId((current) => (current === id ? null : current)), 1500)
+  }
+
+  function formatDaySeparator(dateStr) {
+    const date = new Date(dateStr)
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(today.getDate() - 1)
+    const sameDay = (a, b) => a.toDateString() === b.toDateString()
+    if (sameDay(date, today)) return "Aujourd'hui"
+    if (sameDay(date, yesterday)) return 'Hier'
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+    })
+  }
 
   useEffect(() => {
     getCommunity(communityId).then(setCommunity)
@@ -217,16 +242,34 @@ export default function CommunityDetail() {
         )}
 
         <div className="mt-4 rounded-xl border border-white/5 bg-surface-1/50 p-3 sm:p-4">
-          {posts.map((p) => (
-            <PostItem
-              key={p.id}
-              post={p}
-              author={p.author}
-              isOwn={p.author_id === user?.id}
-              onReply={setReplyTarget}
-              replyTo={p.reply_to_id ? postsById.get(p.reply_to_id) : null}
-            />
-          ))}
+          {posts.map((p, i) => {
+            const prev = posts[i - 1]
+            const showDaySeparator =
+              !prev || new Date(prev.created_at).toDateString() !== new Date(p.created_at).toDateString()
+            return (
+              <div key={p.id}>
+                {showDaySeparator && (
+                  <div className="my-2 flex items-center justify-center">
+                    <span className="rounded-full bg-surface-2/70 px-3 py-1 text-[11px] font-semibold text-zinc-500">
+                      {formatDaySeparator(p.created_at)}
+                    </span>
+                  </div>
+                )}
+                <PostItem
+                  post={p}
+                  author={p.author}
+                  isOwn={p.author_id === user?.id}
+                  onReply={setReplyTarget}
+                  replyTo={p.reply_to_id ? postsById.get(p.reply_to_id) : null}
+                  onJumpToReply={jumpToReply}
+                  highlighted={highlightedId === p.id}
+                  itemRef={(el) => {
+                    messageRefs.current[p.id] = el
+                  }}
+                />
+              </div>
+            )
+          })}
           {posts.length === 0 && <p className="py-6 text-center text-sm text-zinc-500">Aucun message pour l'instant. Sois le premier à écrire !</p>}
           <div ref={scrollRef} />
         </div>
