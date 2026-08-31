@@ -37,6 +37,7 @@ export default function CommunityDetail() {
   const [reportSent, setReportSent] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
 
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
@@ -105,6 +106,7 @@ export default function CommunityDetail() {
     e.preventDefault()
     if (!newPost.trim() || sending) return
     setSending(true)
+    setSendError('')
     try {
       if (!isMember) {
         await joinCommunity(user.id, communityId)
@@ -123,6 +125,8 @@ export default function CommunityDetail() {
       setReplyTarget(null)
       setMentionQuery(null)
       recordStreakActivity('community').catch(() => {})
+    } catch (err) {
+      setSendError(err.message || "Le message n'a pas pu être envoyé. Réessaie.")
     } finally {
       setSending(false)
     }
@@ -280,6 +284,7 @@ export default function CommunityDetail() {
                 <Send size={16} />
               </button>
             </div>
+            {sendError && <p className="mt-1.5 px-1 text-xs text-red-400">{sendError}</p>}
           </form>
         ) : (
           <p className="mt-3 text-center text-sm text-zinc-500">

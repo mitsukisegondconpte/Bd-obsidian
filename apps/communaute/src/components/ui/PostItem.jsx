@@ -27,6 +27,16 @@ export default function PostItem({
   const name = author?.display_name ?? 'Membre'
   const avatar = author?.avatar_url || avatarPlaceholder({ seed: post.author_id ?? post.channel_id, name })
 
+  if (post.is_system) {
+    return (
+      <div className="py-1.5 text-center">
+        <span className="rounded-full bg-surface-2/60 px-3 py-1 text-xs text-zinc-500">
+          <span className="font-semibold text-zinc-400">{name}</span> {post.body}
+        </span>
+      </div>
+    )
+  }
+
   return (
     <div className={`group flex gap-2 py-1.5 ${isOwn ? 'flex-row-reverse' : ''}`}>
       {!isOwn && (
