@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import LoadingScreen from './components/ui/LoadingScreen'
+import SuspendedScreen from './components/ui/SuspendedScreen'
 import { useAuth } from './context/AuthContext'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -15,6 +16,7 @@ const Signup = lazy(() => import('./pages/Signup'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const Admin = lazy(() => import('./pages/Admin'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -25,9 +27,10 @@ function ScrollToTop() {
 }
 
 export default function App() {
-  const { loading } = useAuth()
+  const { loading, profile } = useAuth()
 
   if (loading) return <LoadingScreen />
+  if (profile?.is_suspended) return <SuspendedScreen />
 
   return (
     <>
@@ -45,6 +48,7 @@ export default function App() {
           <Route path="/inscription" element={<Signup />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
