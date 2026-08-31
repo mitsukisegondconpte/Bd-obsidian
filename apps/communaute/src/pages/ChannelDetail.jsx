@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Bell, Check, Copy, Radio, Send, Share2, X } from 'lucide-react'
+import { ArrowLeft, Bell, Check, Copy, Flag, Radio, Send, Share2, X } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import PostItem from '../components/ui/PostItem'
 import { avatarPlaceholder } from '../utils/placeholders'
@@ -14,6 +14,7 @@ import {
   isSubscribedToChannel,
   likeChannelPost,
   listChannelPosts,
+  reportChannel,
   subscribeToChannel,
   unlikeChannelPost,
   unsubscribeFromChannel,
@@ -38,6 +39,9 @@ export default function ChannelDetail() {
   const [shareTarget, setShareTarget] = useState(null)
   const [myCommunities, setMyCommunities] = useState([])
   const [shareDone, setShareDone] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportSent, setReportSent] = useState(false)
 
   useEffect(() => {
     getChannel(channelId).then(setChannel)
@@ -122,6 +126,12 @@ export default function ChannelDetail() {
     } else {
       handleCopyLink(post)
     }
+  }
+
+  async function handleReport() {
+    if (!reportReason.trim()) return
+    await reportChannel({ channelId, reporterId: user.id, reason: reportReason.trim() })
+    setReportSent(true)
   }
 
   async function handleRepost(communityId) {
@@ -218,6 +228,35 @@ export default function ChannelDetail() {
           ))}
           {posts.length === 0 && <p className="py-6 text-sm text-zinc-500">Aucune publication pour l'instant.</p>}
         </div>
+
+        {user && !isOwner && (
+          <div className="border-t border-white/5 pb-6 pt-3">
+            {reportSent ? (
+              <p className="text-xs text-emerald-400">Signalement envoyé, merci.</p>
+            ) : reportOpen ? (
+              <div className="space-y-2">
+                <textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Pourquoi signaler cette chaine ?"
+                  rows={2}
+                  className="w-full rounded-lg border border-white/10 bg-surface-2 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+                />
+                <button type="button" onClick={handleReport} className="rounded-full bg-red-500/20 px-3 py-1.5 text-xs font-bold text-red-400">
+                  Envoyer le signalement
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setReportOpen(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-400"
+              >
+                <Flag size={13} /> Signaler cette chaine
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {shareTarget && (

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ShieldAlert, Trash2, Check, Search } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
-import { listChannels } from '../api/channels'
+import { listChannelReports, listChannels, resolveChannelReport } from '../api/channels'
 import { listCommunities, listReports, resolveReport } from '../api/communities'
 import { listAllProfiles, setProfileFlags, deleteCommunityAdmin, deleteChannelAdmin, getDashboardStats } from '../api/admin'
 
@@ -185,49 +185,98 @@ function ChannelsTab() {
 }
 
 function ReportsTab() {
-  const [reports, setReports] = useState(null)
+  const [communityReports, setCommunityReports] = useState(null)
+  const [channelReports, setChannelReports] = useState(null)
+
   function reload() {
-    listReports().then(setReports)
+    listReports().then(setCommunityReports)
+    listChannelReports().then(setChannelReports)
   }
   useEffect(() => {
     reload()
   }, [])
 
-  async function handleResolve(id) {
+  async function handleResolveCommunity(id) {
     await resolveReport(id)
-    setReports((prev) => prev.filter((r) => r.id !== id))
+    setCommunityReports((prev) => prev.filter((r) => r.id !== id))
   }
 
+  async function handleResolveChannel(id) {
+    await resolveChannelReport(id)
+    setChannelReports((prev) => prev.filter((r) => r.id !== id))
+  }
+
+  const noReports = communityReports?.length === 0 && channelReports?.length === 0
+
   return (
-    <div className="space-y-3">
-      {reports?.length === 0 && (
+    <div className="space-y-6">
+      {noReports && (
         <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-zinc-500">
           Aucun signalement en attente.
         </p>
       )}
-      {reports?.map((r) => (
-        <div key={r.id} className="rounded-lg border border-white/5 bg-surface-1 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <Link to={`/communaute/${r.community?.id}`} className="font-semibold text-zinc-100 hover:text-accent">
-                {r.community?.name ?? 'Communauté supprimée'}
-              </Link>
-              <p className="mt-1 text-sm text-zinc-400">{r.reason}</p>
-              <p className="mt-1 text-xs text-zinc-600">
-                Signalé par @{r.reporter?.username} · {new Date(r.created_at).toLocaleDateString('fr-FR')}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleResolve(r.id)}
-              aria-label="Marquer comme résolu"
-              className="flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-accent hover:text-accent-ink"
-            >
-              <Check size={14} /> Résolu
-            </button>
+
+      {communityReports?.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Communautés</h3>
+          <div className="space-y-3">
+            {communityReports.map((r) => (
+              <div key={r.id} className="rounded-lg border border-white/5 bg-surface-1 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Link to={`/communaute/${r.community?.id}`} className="font-semibold text-zinc-100 hover:text-accent">
+                      {r.community?.name ?? 'Communauté supprimée'}
+                    </Link>
+                    <p className="mt-1 text-sm text-zinc-400">{r.reason}</p>
+                    <p className="mt-1 text-xs text-zinc-600">
+                      Signalé par @{r.reporter?.username} · {new Date(r.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleResolveCommunity(r.id)}
+                    aria-label="Marquer comme résolu"
+                    className="flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-accent hover:text-accent-ink"
+                  >
+                    <Check size={14} /> Résolu
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      ))}
+      )}
+
+      {channelReports?.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">Canaux</h3>
+          <div className="space-y-3">
+            {channelReports.map((r) => (
+              <div key={r.id} className="rounded-lg border border-white/5 bg-surface-1 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Link to={`/canal/${r.channel?.id}`} className="font-semibold text-zinc-100 hover:text-accent">
+                      {r.channel?.name ?? 'Canal supprimé'}
+                    </Link>
+                    <p className="mt-1 text-sm text-zinc-400">{r.reason}</p>
+                    <p className="mt-1 text-xs text-zinc-600">
+                      Signalé par @{r.reporter?.username} · {new Date(r.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleResolveChannel(r.id)}
+                    aria-label="Marquer comme résolu"
+                    className="flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-accent hover:text-accent-ink"
+                  >
+                    <Check size={14} /> Résolu
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

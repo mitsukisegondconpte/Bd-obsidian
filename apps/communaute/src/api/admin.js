@@ -33,21 +33,23 @@ export async function deleteChannelAdmin(channelId) {
 }
 
 export async function getDashboardStats() {
-  const [profiles, channels, communities, unresolvedReports] = await Promise.all([
+  const [profiles, channels, communities, unresolvedCommunityReports, unresolvedChannelReports] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('channels').select('id', { count: 'exact', head: true }),
     supabase.from('communities').select('id', { count: 'exact', head: true }),
     supabase.from('community_reports').select('id', { count: 'exact', head: true }).is('resolved_at', null),
+    supabase.from('channel_reports').select('id', { count: 'exact', head: true }).is('resolved_at', null),
   ])
   if (profiles.error) throw profiles.error
   if (channels.error) throw channels.error
   if (communities.error) throw communities.error
-  if (unresolvedReports.error) throw unresolvedReports.error
+  if (unresolvedCommunityReports.error) throw unresolvedCommunityReports.error
+  if (unresolvedChannelReports.error) throw unresolvedChannelReports.error
 
   return {
     totalProfiles: profiles.count ?? 0,
     totalChannels: channels.count ?? 0,
     totalCommunities: communities.count ?? 0,
-    unresolvedReports: unresolvedReports.count ?? 0,
+    unresolvedReports: (unresolvedCommunityReports.count ?? 0) + (unresolvedChannelReports.count ?? 0),
   }
 }

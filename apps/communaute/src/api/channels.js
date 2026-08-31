@@ -132,3 +132,27 @@ export async function unsubscribeFromChannel(userId, channelId) {
     .eq('target_id', channelId)
   if (error) throw error
 }
+
+export async function reportChannel({ channelId, reporterId, reason }) {
+  const { error } = await supabase.from('channel_reports').insert({ channel_id: channelId, reporter_id: reporterId, reason })
+  if (error) throw error
+}
+
+export async function listChannelReports({ includeResolved = false } = {}) {
+  let query = supabase
+    .from('channel_reports')
+    .select('*, channel:channels(id, name), reporter:profiles(username, display_name)')
+    .order('created_at', { ascending: false })
+  if (!includeResolved) query = query.is('resolved_at', null)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function resolveChannelReport(reportId) {
+  const { error } = await supabase
+    .from('channel_reports')
+    .update({ resolved_at: new Date().toISOString() })
+    .eq('id', reportId)
+  if (error) throw error
+}
