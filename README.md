@@ -16,6 +16,13 @@ Chaque app affiche un sélecteur "Plateformes Hypercube" (icône grille dans
 la navbar) qui pointe vers les 2 autres — les redirections inter-plateformes
 du doc client sont réelles.
 
+Identité visuelle commune : logo à fond transparent (plus de pastille
+blanche dans la navbar), animation de chargement "hypercube qui se déforme
+puis se reforme" (`components/ui/BrandLoader.jsx` + `LoadingScreen.jsx`,
+dupliqués dans les 3 apps) affichée pendant la vérification de session au
+démarrage. Connexion Google OAuth disponible en plus d'email/mot de passe
+sur les 3 apps (voir section "Auth Google" plus bas).
+
 ## Lancer un projet
 
 ```bash
@@ -55,7 +62,13 @@ sont de vraies lignes en base.
 
 Fonctionnalités ajoutées au-delà du brief client : "Tendance"/"Nouveau"
 calculés depuis les vraies vues/dates de publication (pas des drapeaux
-figés), compteur de vues incrémenté à chaque visite.
+figés), compteur de vues incrémenté à chaque visite, hero d'accueil en
+carrousel (les séries les plus vues défilent automatiquement, swipe manuel
+possible) avec une transition "hexagone qui se déforme" reprenant le
+langage visuel du logo.
+
+Aucune donnée de démonstration n'est seedée en base — la plateforme
+démarre vide et affiche un état vide propre tant qu'aucun auteur n'a publié.
 
 ## `apps/ecriture` — écriture façon Wattpad
 
@@ -68,11 +81,12 @@ Branché pour de vrai sur Supabase (auth, base, storage) — voir
 - `/creer`, `/oeuvre/:workId/nouveau-chapitre` — Créer une œuvre / un chapitre (brouillon ou publié)
 - `/mes-oeuvres` — Tableau de bord auteur (+ propositions de repêchage Hypercube/Bohio Mag)
 - `/edition` — Service d'édition (3 niveaux, crédits gratuits)
-- `/connexion`, `/inscription` — Authentification Supabase (email/mot de passe)
+- `/connexion`, `/inscription` — Authentification Supabase (email/mot de passe + Google OAuth)
 
 Fonctionnalités ajoutées au-delà du brief client (proposées et
 implémentées) : tags libres, brouillon/publié par chapitre, reprise de
-lecture, listes de lecture.
+lecture, listes de lecture, bandeau d'accueil explicatif qui se referme
+tout seul après 10s (ou au clic sur fermer).
 
 ## `apps/communaute` — réseau social
 
@@ -90,4 +104,26 @@ Fonctionnalités ajoutées au-delà du brief client : un utilisateur devient
 auteur automatiquement (et débloque la création de canal) dès qu'il publie
 une série ou une œuvre ailleurs ; une communauté créée par l'auteur pour sa
 propre œuvre est certifiée automatiquement ; accepter un repêchage
-(plateforme 2) poste une annonce sur le canal de l'auteur (plateforme 3).
+(plateforme 2) poste une annonce sur le canal de l'auteur (plateforme 3) ;
+bandeau d'accueil qui se referme tout seul après 10s.
+
+## Auth Google (OAuth)
+
+Les 3 apps exposent un bouton "Continuer/S'inscrire avec Google" sur
+`/connexion` et `/inscription` (`context/AuthContext.jsx` →
+`signInWithGoogle()`, qui appelle `supabase.auth.signInWithOAuth`). Le code
+client est prêt sur les 3 plateformes, mais il faut une configuration
+externe côté Supabase/Google que je ne peux pas faire à ta place :
+
+1. Google Cloud Console → créer un OAuth Client ID (type "Web application"),
+   avec comme URI de redirection autorisée
+   `https://<ref-projet>.supabase.co/auth/v1/callback`.
+2. Supabase Dashboard → Authentication → Providers → Google → coller le
+   Client ID et le Client Secret, puis activer le provider.
+
+Tant que ce n'est pas fait, cliquer sur le bouton Google renverra une
+erreur "provider is not enabled" — c'est normal, ça ne dépend pas du code.
+Le trigger `handle_new_user` gère déjà les comptes Google (pas de
+username/display_name fournis par le formulaire) : il dérive un username
+unique depuis l'email ou le nom Google, et récupère nom complet + avatar
+depuis les métadonnées que Google fournit automatiquement.

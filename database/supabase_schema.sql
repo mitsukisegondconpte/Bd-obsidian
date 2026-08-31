@@ -604,3 +604,7 @@ create policy "authors respond to own work migrations" on public.work_migrations
 
 -- Champs d'affichage plateforme 1 (note, vues) :
 -- voir supabase/migrations/20260831044127_platform1_display_fields.sql
+
+-- Durcissement de handle_new_user() pour l'inscription Google OAuth
+-- (username dérivé sans collision, nom/avatar depuis les métadonnées Google) :
+-- voir supabase/migrations/20260831053000_oauth_signup_hardening.sql

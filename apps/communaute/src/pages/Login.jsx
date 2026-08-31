@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
+import GoogleButton from '../components/ui/GoogleButton'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const { signIn } = useAuth()
+  const { signIn, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -22,6 +24,16 @@ export default function Login() {
       return
     }
     navigate('/')
+  }
+
+  async function handleGoogle() {
+    setError('')
+    setGoogleLoading(true)
+    const { error: err } = await signInWithGoogle()
+    if (err) {
+      setError(err.message)
+      setGoogleLoading(false)
+    }
   }
 
   return (
@@ -56,6 +68,14 @@ export default function Login() {
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
+
+        <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wide text-zinc-600">
+          <div className="h-px flex-1 bg-white/10" />
+          ou
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <GoogleButton onClick={handleGoogle} loading={googleLoading} />
 
         <p className="mt-4 text-center text-sm text-zinc-500">
           Pas encore de compte ?{' '}

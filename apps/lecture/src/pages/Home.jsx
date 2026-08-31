@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import SeriesCard from '../components/ui/SeriesCard'
 import SectionHeader from '../components/ui/SectionHeader'
+import HeroCarousel from '../components/ui/HeroCarousel'
 import Badge from '../components/ui/Badge'
 import { listSeries } from '../api/series'
 import { listGenres } from '../api/genres'
-import { avatarPlaceholder, bannerPlaceholder, coverPlaceholder } from '../utils/placeholders'
+import { avatarPlaceholder, coverPlaceholder } from '../utils/placeholders'
 
 export default function Home() {
   const [series, setSeries] = useState(null)
@@ -45,7 +46,7 @@ export default function Home() {
 
   const trending = [...series].sort((a, b) => b.views - a.views)
   const newest = series.filter((s) => s.isNew)
-  const heroSeries = trending[0]
+  const featured = trending.slice(0, 5)
   const [bigTile, ...restTiles] = series
   const authors = series
     .map((s) => s.author)
@@ -53,38 +54,7 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative pb-16 sm:pb-20">
-        <Link to={`/serie/${heroSeries.slug}`} className="block">
-          <div
-            className="relative h-[300px] w-full overflow-hidden sm:h-[400px]"
-            style={{ clipPath: 'polygon(0 0, 100% 0, 100% 82%, 0 100%)' }}
-          >
-            <img
-              src={heroSeries.banner_url || bannerPlaceholder({ seed: `${heroSeries.id}-banner` })}
-              alt={heroSeries.title}
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-surface-0/30 to-transparent" />
-          </div>
-
-          <div className="relative -mt-14 px-4 sm:-mt-16 sm:px-6">
-            <div className="max-w-xl rotate-[-0.6deg] rounded-xl border-l-4 border-accent bg-surface-1 p-4 shadow-2xl shadow-black/50 sm:p-6">
-              <Badge variant="hot">Série vedette</Badge>
-              <h1 className="mt-2 font-display text-2xl font-extrabold text-white text-balance sm:text-4xl">
-                {heroSeries.title}
-              </h1>
-              <p className="mt-1 line-clamp-2 text-sm text-zinc-300 sm:text-base">{heroSeries.summary}</p>
-              <div className="mt-3 flex items-center gap-3 text-sm text-zinc-300">
-                <span className="flex items-center gap-1 font-semibold text-accent">
-                  <Star size={14} className="fill-accent" /> {heroSeries.rating}
-                </span>
-                <span>{heroSeries.views.toLocaleString('fr-FR')} vues</span>
-              </div>
-            </div>
-          </div>
-        </Link>
-      </section>
+      <HeroCarousel items={featured} />
 
       <div className="space-y-8 px-4 pt-2 sm:px-6">
         <section>

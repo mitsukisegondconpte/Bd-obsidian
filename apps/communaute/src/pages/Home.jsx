@@ -4,6 +4,7 @@ import Layout from '../components/layout/Layout'
 import SectionHeader from '../components/ui/SectionHeader'
 import ChannelCard from '../components/ui/ChannelCard'
 import CommunityCard from '../components/ui/CommunityCard'
+import IntroBanner from '../components/ui/IntroBanner'
 import { listChannels } from '../api/channels'
 import { listCommunities } from '../api/communities'
 
@@ -19,7 +20,7 @@ export default function Home() {
   return (
     <Layout>
       <div className="px-4 pt-6 sm:px-6">
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-surface-2 to-surface-1 p-6 sm:p-8">
+        <IntroBanner>
           <h1 className="font-display max-w-md text-2xl font-extrabold text-zinc-50 sm:text-3xl">
             Suis tes auteurs préférés, rejoins des communautés de fans.
           </h1>
@@ -35,7 +36,7 @@ export default function Home() {
               Voir les communautés
             </Link>
           </div>
-        </section>
+        </IntroBanner>
 
         <section className="mt-8">
           <SectionHeader title="Canaux" subtitle="Les annonces des auteurs" to="/canaux" />

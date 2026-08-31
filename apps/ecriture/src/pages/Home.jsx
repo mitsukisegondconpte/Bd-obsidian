@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Layout from '../components/layout/Layout'
 import SectionHeader from '../components/ui/SectionHeader'
 import WorkCard from '../components/ui/WorkCard'
+import IntroBanner from '../components/ui/IntroBanner'
 import { listWorks } from '../api/works'
 
 const POPULAR_TAGS = ['fantastique', 'romance', 'drame', 'mystère', 'lycée', 'famille', 'surnaturel']
@@ -19,7 +20,7 @@ export default function Home() {
   return (
     <Layout>
       <div className="px-4 pt-6 sm:px-6">
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-surface-2 to-surface-1 p-6 sm:p-8">
+        <IntroBanner>
           <h1 className="font-display max-w-md text-2xl font-extrabold text-zinc-50 sm:text-3xl">
             Écris ton roman ou ton light novel. Publie-le gratuitement.
           </h1>
@@ -27,7 +28,7 @@ export default function Home() {
             N'importe qui peut créer une œuvre et la partager. Les lecteurs commentent, s'abonnent, et tu peux
             demander un accompagnement éditorial quand tu es prêt.
           </p>
-        </section>
+        </IntroBanner>
 
         <section className="mt-8">
           <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">

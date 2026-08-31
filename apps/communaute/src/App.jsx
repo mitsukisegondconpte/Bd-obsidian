@@ -10,6 +10,8 @@ import CreateCommunity from './pages/CreateCommunity'
 import AuthorProfile from './pages/AuthorProfile'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import LoadingScreen from './components/ui/LoadingScreen'
+import { useAuth } from './context/AuthContext'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -20,6 +22,10 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const { loading } = useAuth()
+
+  if (loading) return <LoadingScreen />
+
   return (
     <>
       <ScrollToTop />

@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/layout/Layout'
+import GoogleButton from '../components/ui/GoogleButton'
 import { useAuth } from '../context/AuthContext'
 
 export default function Signup() {
-  const { signUp } = useAuth()
+  const { signUp, signInWithGoogle } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', username: '', displayName: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [done, setDone] = useState(false)
 
   function update(field) {
@@ -26,6 +28,16 @@ export default function Signup() {
       return
     }
     setDone(true)
+  }
+
+  async function handleGoogle() {
+    setError('')
+    setGoogleLoading(true)
+    const { error: err } = await signInWithGoogle()
+    if (err) {
+      setError(err.message)
+      setGoogleLoading(false)
+    }
   }
 
   if (done) {
@@ -56,7 +68,17 @@ export default function Signup() {
           Gratuit. Ce compte fonctionnera aussi sur les autres plateformes Hypercube.
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+        <div className="mt-6">
+          <GoogleButton onClick={handleGoogle} loading={googleLoading} label="S'inscrire avec Google" />
+        </div>
+
+        <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wide text-zinc-600">
+          <div className="h-px flex-1 bg-white/10" />
+          ou
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
           <input
             required
             placeholder="Nom affiché"
