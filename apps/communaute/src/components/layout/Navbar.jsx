@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { LogOut, ShieldAlert } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.png'
 import { useAuth } from '../../context/AuthContext'
 import PlatformSwitcher from './PlatformSwitcher'
@@ -44,6 +44,15 @@ export default function Navbar() {
 
           {user ? (
             <>
+              {profile?.is_platform_admin && (
+                <Link
+                  to="/admin/signalements"
+                  aria-label="Signalements"
+                  className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100"
+                >
+                  <ShieldAlert size={17} />
+                </Link>
+              )}
               <NotificationBell />
               <button
                 type="button"

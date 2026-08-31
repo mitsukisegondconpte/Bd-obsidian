@@ -12,6 +12,7 @@ const CommunityDetail = lazy(() => import('./pages/CommunityDetail'))
 const CreateCommunity = lazy(() => import('./pages/CreateCommunity'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
 const EditProfile = lazy(() => import('./pages/EditProfile'))
+const AdminReports = lazy(() => import('./pages/AdminReports'))
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/communaute/:communityId" element={<CommunityDetail />} />
           <Route path="/creer-communaute" element={<CreateCommunity />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
+          <Route path="/admin/signalements" element={<AdminReports />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Signup />} />

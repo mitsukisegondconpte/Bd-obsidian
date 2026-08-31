@@ -88,6 +88,25 @@ export async function reportCommunity({ communityId, reporterId, reason }) {
   if (error) throw error
 }
 
+export async function listReports({ includeResolved = false } = {}) {
+  let query = supabase
+    .from('community_reports')
+    .select('*, community:communities(id, name, is_validated), reporter:profiles(username, display_name)')
+    .order('created_at', { ascending: false })
+  if (!includeResolved) query = query.is('resolved_at', null)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function resolveReport(reportId) {
+  const { error } = await supabase
+    .from('community_reports')
+    .update({ resolved_at: new Date().toISOString() })
+    .eq('id', reportId)
+  if (error) throw error
+}
+
 export async function listMyCommunities(userId) {
   const { data, error } = await supabase
     .from('community_members')
