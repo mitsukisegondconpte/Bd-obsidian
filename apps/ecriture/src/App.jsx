@@ -11,6 +11,7 @@ const ChapterReader = lazy(() => import('./pages/ChapterReader'))
 const CreateWork = lazy(() => import('./pages/CreateWork'))
 const AddChapter = lazy(() => import('./pages/AddChapter'))
 const MyWorks = lazy(() => import('./pages/MyWorks'))
+const ReadingLists = lazy(() => import('./pages/ReadingLists'))
 const EditionServices = lazy(() => import('./pages/EditionServices'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
 const Classement = lazy(() => import('./pages/Classement'))
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/oeuvre/:workId/nouveau-chapitre" element={<AddChapter />} />
           <Route path="/creer" element={<CreateWork />} />
           <Route path="/mes-oeuvres" element={<MyWorks />} />
+          <Route path="/mes-listes" element={<ReadingLists />} />
           <Route path="/edition" element={<EditionServices />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />

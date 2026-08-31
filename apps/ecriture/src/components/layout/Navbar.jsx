@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, PenLine, Search, ShieldAlert, Trophy } from 'lucide-react'
+import { Bookmark, LogOut, PenLine, Search, ShieldAlert, Trophy } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.png'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
@@ -73,6 +73,15 @@ export default function Navbar() {
           <Link to="/classement" aria-label={t('nav.classement')} className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100">
             <Trophy size={17} />
           </Link>
+          {user && (
+            <Link
+              to="/mes-listes"
+              aria-label={t('nav.lists')}
+              className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100"
+            >
+              <Bookmark size={17} />
+            </Link>
+          )}
           <LanguageToggle />
           <PlatformSwitcher />
 

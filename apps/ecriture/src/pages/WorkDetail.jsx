@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Lock } from 'lucide-react'
+import { ArrowLeft, BookOpen, Bookmark, Lock } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import Badge from '../components/ui/Badge'
 import FollowButton from '../components/ui/FollowButton'
 import { bookCoverPlaceholder } from '../utils/placeholders'
 import { getReadingProgress, getWork, listWorkChapters } from '../api/works'
+import { addWorkToList, listMyReadingLists, removeWorkFromList } from '../api/readingLists'
 import { useAuth } from '../context/AuthContext'
 
 export default function WorkDetail() {
@@ -15,6 +16,8 @@ export default function WorkDetail() {
   const [chapters, setChapters] = useState(null)
   const [resumeChapterId, setResumeChapterId] = useState(null)
   const [error, setError] = useState('')
+  const [lists, setLists] = useState(null)
+  const [showListMenu, setShowListMenu] = useState(false)
 
   useEffect(() => {
     getWork(workId)
@@ -25,7 +28,29 @@ export default function WorkDetail() {
 
   useEffect(() => {
     if (user) getReadingProgress(user.id, workId).then(setResumeChapterId)
+    if (user) listMyReadingLists(user.id).then(setLists)
   }, [user, workId])
+
+  async function toggleInList(list) {
+    const inList = list.reading_list_items.some((it) => it.work_id === workId)
+    if (inList) {
+      await removeWorkFromList({ listId: list.id, workId })
+    } else {
+      await addWorkToList({ listId: list.id, workId })
+    }
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === list.id
+          ? {
+              ...l,
+              reading_list_items: inList
+                ? l.reading_list_items.filter((it) => it.work_id !== workId)
+                : [...l.reading_list_items, { work_id: workId, work }],
+            }
+          : l
+      )
+    )
+  }
 
   if (error) {
     return (
@@ -94,6 +119,54 @@ export default function WorkDetail() {
             </Link>
           )}
           <FollowButton authorId={work.author_id} />
+          {user && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowListMenu((v) => !v)}
+                aria-label="Ajouter à une liste de lecture"
+                className={`rounded-full border px-4 py-2.5 text-sm font-bold ${
+                  lists?.some((l) => l.reading_list_items.some((it) => it.work_id === workId))
+                    ? 'border-accent/40 text-accent'
+                    : 'border-white/10 text-zinc-300 hover:bg-white/5'
+                }`}
+              >
+                <Bookmark size={16} />
+              </button>
+              {showListMenu && (
+                <div
+                  className="absolute right-0 top-full z-20 mt-2 w-56 rounded-xl border border-white/10 bg-surface-1 p-2 shadow-xl"
+                  onMouseLeave={() => setShowListMenu(false)}
+                >
+                  {lists?.length ? (
+                    lists.map((l) => {
+                      const inList = l.reading_list_items.some((it) => it.work_id === workId)
+                      return (
+                        <button
+                          key={l.id}
+                          type="button"
+                          onClick={() => toggleInList(l)}
+                          className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm text-zinc-200 hover:bg-surface-2"
+                        >
+                          <span className="truncate">{l.name}</span>
+                          {inList && <span className="text-accent">✓</span>}
+                        </button>
+                      )
+                    })
+                  ) : (
+                    <p className="px-2.5 py-2 text-xs text-zinc-500">Aucune liste pour l'instant.</p>
+                  )}
+                  <Link
+                    to="/mes-listes"
+                    onClick={() => setShowListMenu(false)}
+                    className="mt-1 block rounded-lg px-2.5 py-2 text-sm font-semibold text-accent hover:bg-surface-2"
+                  >
+                    + Créer une liste
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
           {isOwner && (
             <Link
               to={`/oeuvre/${work.id}/nouveau-chapitre`}
