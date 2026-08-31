@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, List } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import CommentItem from '../components/ui/CommentItem'
 import { getWork, getWorkChapter, listWorkChapters, saveReadingProgress } from '../api/works'
-import { createComment, listComments } from '../api/comments'
+import { countCommentLikes, createComment, hasLikedComment, likeComment, listComments, unlikeComment } from '../api/comments'
 import { recordStreakActivity } from '../api/streaks'
 import { useAuth } from '../context/AuthContext'
 
@@ -18,6 +18,8 @@ export default function ChapterReader() {
   const [chapter, setChapter] = useState(null)
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState('')
+  const [commentLikes, setCommentLikes] = useState({})
+  const [replyTarget, setReplyTarget] = useState(null)
   const [showList, setShowList] = useState(false)
 
   useEffect(() => {
@@ -28,19 +30,56 @@ export default function ChapterReader() {
   useEffect(() => {
     window.scrollTo({ top: 0 })
     getWorkChapter(chapterId).then(setChapter)
-    listComments(chapterId).then(setComments)
     if (user) {
       saveReadingProgress({ userId: user.id, workId, chapterId })
       recordStreakActivity('reading').catch(() => {})
     }
   }, [chapterId, workId, user])
 
+  useEffect(() => {
+    let cancelled = false
+    listComments(chapterId).then(async (data) => {
+      if (cancelled) return
+      setComments(data)
+      const entries = await Promise.all(
+        data.map(async (c) => {
+          const count = await countCommentLikes(c.id)
+          const liked = user ? await hasLikedComment(user.id, c.id) : false
+          return [c.id, { count, liked }]
+        })
+      )
+      if (!cancelled) setCommentLikes(Object.fromEntries(entries))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [chapterId, user])
+
   async function handleComment(e) {
     e.preventDefault()
     if (!newComment.trim() || !user) return
-    const created = await createComment({ userId: user.id, targetId: chapterId, body: newComment.trim() })
+    const created = await createComment({
+      userId: user.id,
+      targetId: chapterId,
+      body: newComment.trim(),
+      parentCommentId: replyTarget?.id ?? null,
+    })
     setComments((c) => [created, ...c])
+    setCommentLikes((s) => ({ ...s, [created.id]: { count: 0, liked: false } }))
     setNewComment('')
+    setReplyTarget(null)
+  }
+
+  async function toggleCommentLike(commentId) {
+    if (!user) return navigate('/connexion')
+    const current = commentLikes[commentId] ?? { count: 0, liked: false }
+    if (current.liked) {
+      await unlikeComment(user.id, commentId)
+      setCommentLikes((s) => ({ ...s, [commentId]: { count: current.count - 1, liked: false } }))
+    } else {
+      await likeComment(user.id, commentId)
+      setCommentLikes((s) => ({ ...s, [commentId]: { count: current.count + 1, liked: true } }))
+    }
   }
 
   if (!work || !chapter || !chapters) {
@@ -50,6 +89,15 @@ export default function ChapterReader() {
       </Layout>
     )
   }
+
+  const topLevelComments = comments.filter((c) => !c.parent_comment_id)
+  const repliesByParent = comments.reduce((acc, c) => {
+    if (c.parent_comment_id) {
+      if (!acc[c.parent_comment_id]) acc[c.parent_comment_id] = []
+      acc[c.parent_comment_id].push(c)
+    }
+    return acc
+  }, {})
 
   const visible = chapters.filter((c) => !c.is_draft || c.id === chapter.id)
   const index = visible.findIndex((c) => c.id === chapter.id)
@@ -97,16 +145,32 @@ export default function ChapterReader() {
       <section className="mx-auto max-w-2xl border-t border-white/5 px-5 pb-24 pt-4 sm:px-0 sm:pb-10">
         <h2 className="text-sm font-bold text-zinc-100">Commentaires ({comments.length})</h2>
         {user ? (
-          <form onSubmit={handleComment} className="mt-3 flex gap-2">
-            <input
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Ajouter un commentaire..."
-              className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
-            />
-            <button type="submit" className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-ink">
-              Publier
-            </button>
+          <form onSubmit={handleComment} className="mt-3">
+            {replyTarget && (
+              <div className="mb-2 flex items-center justify-between text-xs text-zinc-500">
+                <span>
+                  Réponse à <span className="font-semibold text-zinc-300">{replyTarget.name}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setReplyTarget(null)}
+                  className="text-zinc-500 hover:text-zinc-300"
+                >
+                  Annuler
+                </button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder={replyTarget ? `Répondre à ${replyTarget.name}...` : 'Ajouter un commentaire...'}
+                className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+              />
+              <button type="submit" className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-ink">
+                Publier
+              </button>
+            </div>
           </form>
         ) : (
           <p className="mt-3 text-sm text-zinc-500">
@@ -117,8 +181,31 @@ export default function ChapterReader() {
           </p>
         )}
         <div className="mt-2 divide-y divide-white/5">
-          {comments.map((c) => (
-            <CommentItem key={c.id} comment={c} />
+          {topLevelComments.map((c) => (
+            <div key={c.id}>
+              <CommentItem
+                comment={c}
+                liked={commentLikes[c.id]?.liked}
+                likeCount={commentLikes[c.id]?.count ?? 0}
+                onToggleLike={() => toggleCommentLike(c.id)}
+                onReply={
+                  user ? () => setReplyTarget({ id: c.id, name: c.user?.display_name ?? 'Lecteur' }) : undefined
+                }
+              />
+              {repliesByParent[c.id]
+                ?.slice()
+                .reverse()
+                .map((r) => (
+                  <CommentItem
+                    key={r.id}
+                    comment={r}
+                    isReply
+                    liked={commentLikes[r.id]?.liked}
+                    likeCount={commentLikes[r.id]?.count ?? 0}
+                    onToggleLike={() => toggleCommentLike(r.id)}
+                  />
+                ))}
+            </div>
           ))}
         </div>
       </section>

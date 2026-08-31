@@ -14,7 +14,7 @@ import CommentItem from '../components/ui/CommentItem'
 import { pagePlaceholder } from '../utils/placeholders'
 import { useAuth } from '../context/AuthContext'
 import { getChapter, getSeriesBySlug, listChapterPages, listSeriesChapters } from '../api/series'
-import { createComment, listComments } from '../api/comments'
+import { countCommentLikes, createComment, hasLikedComment, likeComment, listComments, unlikeComment } from '../api/comments'
 import { countChapterLikes, hasLikedChapter, likeChapter, unlikeChapter } from '../api/likes'
 import { hasPurchasedChapter, purchaseChapter } from '../api/purchases'
 import { recordStreakActivity } from '../api/streaks'
@@ -34,6 +34,8 @@ export default function ChapterReader() {
   const [liked, setLiked] = useState(false)
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState('')
+  const [commentLikes, setCommentLikes] = useState({})
+  const [replyTarget, setReplyTarget] = useState(null)
 
   const [showChapterList, setShowChapterList] = useState(false)
   const [chromeVisible, setChromeVisible] = useState(true)
@@ -55,8 +57,26 @@ export default function ChapterReader() {
       .catch((e) => setError(e.message))
     listChapterPages(chapterId).then(setChapterPages)
     countChapterLikes(chapterId).then(setLikeCount)
-    listComments(chapterId).then(setComments)
   }, [chapterId])
+
+  useEffect(() => {
+    let cancelled = false
+    listComments(chapterId).then(async (data) => {
+      if (cancelled) return
+      setComments(data)
+      const entries = await Promise.all(
+        data.map(async (c) => {
+          const count = await countCommentLikes(c.id)
+          const liked = user ? await hasLikedComment(user.id, c.id) : false
+          return [c.id, { count, liked }]
+        })
+      )
+      if (!cancelled) setCommentLikes(Object.fromEntries(entries))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [chapterId, user])
 
   useEffect(() => {
     if (!user || !chapter) return
@@ -115,9 +135,28 @@ export default function ChapterReader() {
     e.preventDefault()
     if (!user) return navigate('/connexion')
     if (!newComment.trim()) return
-    const created = await createComment({ userId: user.id, chapterId: chapter.id, body: newComment.trim() })
+    const created = await createComment({
+      userId: user.id,
+      chapterId: chapter.id,
+      body: newComment.trim(),
+      parentCommentId: replyTarget?.id ?? null,
+    })
     setComments((c) => [created, ...c])
+    setCommentLikes((s) => ({ ...s, [created.id]: { count: 0, liked: false } }))
     setNewComment('')
+    setReplyTarget(null)
+  }
+
+  async function toggleCommentLike(commentId) {
+    if (!user) return navigate('/connexion')
+    const current = commentLikes[commentId] ?? { count: 0, liked: false }
+    if (current.liked) {
+      await unlikeComment(user.id, commentId)
+      setCommentLikes((s) => ({ ...s, [commentId]: { count: current.count - 1, liked: false } }))
+    } else {
+      await likeComment(user.id, commentId)
+      setCommentLikes((s) => ({ ...s, [commentId]: { count: current.count + 1, liked: true } }))
+    }
   }
 
   if (error) {
@@ -136,6 +175,15 @@ export default function ChapterReader() {
       <div className="flex min-h-screen items-center justify-center bg-surface-0 text-zinc-500">Chargement...</div>
     )
   }
+
+  const topLevelComments = comments.filter((c) => !c.parent_comment_id)
+  const repliesByParent = comments.reduce((acc, c) => {
+    if (c.parent_comment_id) {
+      if (!acc[c.parent_comment_id]) acc[c.parent_comment_id] = []
+      acc[c.parent_comment_id].push(c)
+    }
+    return acc
+  }, {})
 
   const chapterIndex = chapters.findIndex((c) => c.id === chapter.id)
   const prevChapter = chapterIndex > 0 ? chapters[chapterIndex - 1] : null
@@ -231,17 +279,33 @@ export default function ChapterReader() {
               Commentaires ({comments.length})
             </h2>
             {user ? (
-              <form onSubmit={handleComment} className="mt-1 flex items-center gap-2 border-b border-white/5 pb-4">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Ajouter un commentaire..."
-                  className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
-                />
-                <button type="submit" className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-ink">
-                  Publier
-                </button>
+              <form onSubmit={handleComment} className="mt-1 border-b border-white/5 pb-4">
+                {replyTarget && (
+                  <div className="mb-2 flex items-center justify-between text-xs text-zinc-500">
+                    <span>
+                      Réponse à <span className="font-semibold text-zinc-300">{replyTarget.name}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setReplyTarget(null)}
+                      className="text-zinc-500 hover:text-zinc-300"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder={replyTarget ? `Répondre à ${replyTarget.name}...` : 'Ajouter un commentaire...'}
+                    className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+                  />
+                  <button type="submit" className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-ink">
+                    Publier
+                  </button>
+                </div>
               </form>
             ) : (
               <p className="mt-2 border-b border-white/5 pb-4 text-sm text-zinc-500">
@@ -252,8 +316,33 @@ export default function ChapterReader() {
               </p>
             )}
             <div className="divide-y divide-white/5">
-              {comments.map((c) => (
-                <CommentItem key={c.id} comment={c} />
+              {topLevelComments.map((c) => (
+                <div key={c.id}>
+                  <CommentItem
+                    comment={c}
+                    liked={commentLikes[c.id]?.liked}
+                    likeCount={commentLikes[c.id]?.count ?? 0}
+                    onToggleLike={() => toggleCommentLike(c.id)}
+                    onReply={
+                      user
+                        ? () => setReplyTarget({ id: c.id, name: c.user?.display_name ?? 'Lecteur' })
+                        : undefined
+                    }
+                  />
+                  {repliesByParent[c.id]
+                    ?.slice()
+                    .reverse()
+                    .map((r) => (
+                      <CommentItem
+                        key={r.id}
+                        comment={r}
+                        isReply
+                        liked={commentLikes[r.id]?.liked}
+                        likeCount={commentLikes[r.id]?.count ?? 0}
+                        onToggleLike={() => toggleCommentLike(r.id)}
+                      />
+                    ))}
+                </div>
               ))}
             </div>
           </section>

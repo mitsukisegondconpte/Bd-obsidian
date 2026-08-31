@@ -23,6 +23,17 @@ export async function purchaseChapter({ userId, chapterId, amountCents }) {
 // `follows.target_id` est polymorphe (author | series | work | channel), donc
 // pas de vraie clé étrangère vers `series` — on récupère les ids suivis puis
 // on va chercher les séries correspondantes en 2 requêtes plutôt qu'un join.
+export async function listMyChapterPurchases(userId) {
+  const { data, error } = await supabase
+    .from('chapter_purchases')
+    .select('id, amount_cents, purchased_at, chapter:chapters(id, number, title, series:series(slug, title, cover_url))')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .order('purchased_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
 export async function listMySubscribedSeries(userId) {
   const { data: follows, error: followsError } = await supabase
     .from('follows')
