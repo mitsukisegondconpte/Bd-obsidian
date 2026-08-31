@@ -1,6 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import { Search } from 'lucide-react'
-import bohioLogo from '../../assets/bohio-mag-logo.jpg'
+import hypercubeLogo from '../../assets/hypercube-obsidian-logo.jpg'
 import { currentUser } from '../../data/mockData'
 
 const links = [
@@ -13,8 +13,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-30 border-b border-white/5 bg-surface-0/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
-        <Link to="/" className="flex shrink-0 items-center gap-2 rounded bg-white p-1">
-          <img src={bohioLogo} alt="Bohio Mag" className="h-6 w-auto" />
+        <Link to="/" className="flex shrink-0 items-center gap-2 rounded bg-white px-2 py-1">
+          <img src={hypercubeLogo} alt="Hypercube Obsidian" className="h-6 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">
@@ -25,7 +25,7 @@ export default function Navbar() {
               end={l.to === '/'}
               className={({ isActive }) =>
                 `rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
-                  isActive ? 'bg-surface-2 text-brand-yellow' : 'text-zinc-400 hover:text-zinc-100'
+                  isActive ? 'bg-surface-2 text-accent' : 'text-zinc-400 hover:text-zinc-100'
                 }`
               }
             >
@@ -40,7 +40,7 @@ export default function Navbar() {
             <input
               type="search"
               placeholder="Chercher une série, un auteur..."
-              className="w-56 rounded-full border border-white/10 bg-surface-2 py-1.5 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-brand-yellow/50 focus:outline-none"
+              className="w-56 rounded-full border border-white/10 bg-surface-2 py-1.5 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
             />
           </div>
           <button
@@ -52,7 +52,7 @@ export default function Navbar() {
           </button>
           <Link
             to="/profil/auth-1"
-            className="h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-brand-yellow"
+            className="h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-accent"
           >
             <img src={currentUser.avatar} alt="Mon profil" className="h-full w-full object-cover" />
           </Link>

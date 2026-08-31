@@ -56,7 +56,7 @@ export default function SeriesDetail() {
               <Badge variant={seriesItem.status === 'Terminé' ? 'free' : 'neutral'}>{seriesItem.status}</Badge>
             </div>
             <h1 className="mt-1.5 text-xl font-extrabold text-zinc-50 sm:text-2xl">{seriesItem.title}</h1>
-            <Link to={`/profil/${author.id}`} className="text-sm text-zinc-400 hover:text-brand-yellow">
+            <Link to={`/profil/${author.id}`} className="text-sm text-zinc-400 hover:text-accent">
               par {author.name}
             </Link>
           </div>
@@ -66,7 +66,7 @@ export default function SeriesDetail() {
       <div className="px-4 pt-4 sm:px-6">
         <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-400">
           <span className="flex items-center gap-1.5">
-            <Star size={15} className="fill-brand-yellow text-brand-yellow" /> {seriesItem.rating}
+            <Star size={15} className="fill-accent text-accent" /> {seriesItem.rating}
           </span>
           <span className="flex items-center gap-1.5">
             <Users size={15} /> {seriesItem.subscribers.toLocaleString('fr-FR')}
@@ -102,7 +102,7 @@ export default function SeriesDetail() {
               type="button"
               onClick={() => setTab(t.id)}
               className={`-mb-px border-b-2 pb-2.5 ${
-                tab === t.id ? 'border-brand-yellow text-brand-yellow' : 'border-transparent text-zinc-500'
+                tab === t.id ? 'border-accent text-accent' : 'border-transparent text-zinc-500'
               }`}
             >
               {t.label}
@@ -117,7 +117,7 @@ export default function SeriesDetail() {
               <button
                 type="button"
                 onClick={() => setSortDesc((v) => !v)}
-                className="text-xs font-semibold text-zinc-400 hover:text-brand-yellow"
+                className="text-xs font-semibold text-zinc-400 hover:text-accent"
               >
                 {sortDesc ? 'Plus récent d\'abord' : 'Chapitre 1 d\'abord'}
               </button>

@@ -11,7 +11,7 @@ export default function SectionHeader({ title, subtitle, to }) {
       {to && (
         <Link
           to={to}
-          className="flex items-center gap-0.5 text-xs font-semibold text-zinc-400 hover:text-brand-yellow"
+          className="flex items-center gap-0.5 text-xs font-semibold text-zinc-400 hover:text-accent"
         >
           Voir tout
           <ChevronRight size={14} />

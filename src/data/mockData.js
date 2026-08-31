@@ -66,10 +66,10 @@ export const authors = [
 export const series = [
   {
     id: 's1',
-    title: 'Lame de Bohio',
-    slug: 'lame-de-bohio',
-    cover: coverPlaceholder({ seed: 's1', title: 'Lame de Bohio' }),
-    banner: bannerPlaceholder({ seed: 's1-banner', title: 'Lame de Bohio' }),
+    title: "Lame d'Ayiti",
+    slug: 'lame-ayiti',
+    cover: coverPlaceholder({ seed: 's1', title: "Lame d'Ayiti" }),
+    banner: bannerPlaceholder({ seed: 's1-banner', title: "Lame d'Ayiti" }),
     authorId: 'auth-1',
     genres: ['Fantastique', 'Action'],
     status: 'En cours',

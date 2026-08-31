@@ -4,12 +4,12 @@
   --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* Bohio Mag — jaune / noir, identité de la plateforme de lecture */
-  --color-brand-yellow: #f5c518;
-  --color-brand-yellow-dark: #d9ab0a;
-  --color-brand-ink: #0a0a0c;
+  /* Hypercube Obsidian — violet/indigo, identité de la plateforme */
+  --color-accent: #8b7bfa;
+  --color-accent-dark: #6a58e6;
+  --color-accent-ink: #0d0b1a;
 
-  /* Hypercube Obsidian — indigo, marque du studio (utilisé avec parcimonie) */
+  --color-hypercube-400: #9d96d9;
   --color-hypercube-500: #5b5b96;
   --color-hypercube-600: #47476f;
 
@@ -30,8 +30,8 @@
   }
 
   ::selection {
-    background: var(--color-brand-yellow);
-    color: #0a0a0c;
+    background: var(--color-accent);
+    color: #0d0b1a;
   }
 
   ::-webkit-scrollbar {

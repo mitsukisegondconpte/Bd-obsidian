@@ -1,4 +1,4 @@
-# Bohio Mag — aperçu front-end
+# Hypercube Obsidian — aperçu front-end
 
 Aperçu visuel (front-end uniquement) d'une plateforme de publication de BD /
 webtoons : les auteurs publient des chapitres en scroll vertical, les

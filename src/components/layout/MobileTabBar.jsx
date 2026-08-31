@@ -19,7 +19,7 @@ export default function MobileTabBar() {
             end={end}
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium ${
-                isActive ? 'text-brand-yellow' : 'text-zinc-500'
+                isActive ? 'text-accent' : 'text-zinc-500'
               }`
             }
           >

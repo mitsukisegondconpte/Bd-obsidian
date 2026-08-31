@@ -24,8 +24,8 @@ export default function Explore() {
               onClick={() => setActiveGenre(g)}
               className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${
                 activeGenre === g
-                  ? 'bg-brand-yellow text-brand-ink'
-                  : 'border border-white/10 bg-surface-2 text-zinc-300 hover:border-brand-yellow/40'
+                  ? 'bg-accent text-accent-ink'
+                  : 'border border-white/10 bg-surface-2 text-zinc-300 hover:border-accent/40'
               }`}
             >
               {g}

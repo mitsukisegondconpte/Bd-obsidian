@@ -60,7 +60,7 @@ export default function ChapterReader() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-surface-0 text-zinc-300">
         <p>Chapitre introuvable.</p>
-        <Link to="/" className="text-brand-yellow underline">
+        <Link to="/" className="text-accent underline">
           Retour à l'accueil
         </Link>
       </div>
@@ -161,7 +161,7 @@ export default function ChapterReader() {
               <input
                 type="text"
                 placeholder="Ajouter un commentaire..."
-                className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-brand-yellow/50 focus:outline-none"
+                className="flex-1 rounded-full border border-white/10 bg-surface-2 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
               />
             </div>
             <div className="divide-y divide-white/5">
@@ -213,8 +213,8 @@ function NavButton({ to, direction, chapter }) {
 function PaywallGate({ chapter }) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-24 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-yellow/10 ring-1 ring-brand-yellow/30">
-        <Lock size={26} className="text-brand-yellow" />
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 ring-1 ring-accent/30">
+        <Lock size={26} className="text-accent" />
       </div>
       <div>
         <h2 className="text-lg font-bold text-zinc-100">Chapitre payant</h2>
@@ -224,7 +224,7 @@ function PaywallGate({ chapter }) {
       </div>
       <button
         type="button"
-        className="rounded-full bg-brand-yellow px-6 py-2.5 text-sm font-bold text-brand-ink hover:bg-brand-yellow-dark"
+        className="rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-ink hover:bg-accent-dark"
       >
         Débloquer pour {chapter.price} HTG
       </button>
@@ -253,7 +253,7 @@ function ChapterListSheet({ seriesItem, currentChapterId, slug, onClose }) {
               to={`/serie/${slug}/chapitre/${c.id}`}
               onClick={onClose}
               className={`flex items-center justify-between py-3 text-sm ${
-                c.id === currentChapterId ? 'text-brand-yellow' : 'text-zinc-200'
+                c.id === currentChapterId ? 'text-accent' : 'text-zinc-200'
               }`}
             >
               <span>
