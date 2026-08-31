@@ -1,21 +1,22 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
-import Home from './pages/Home'
-import Channels from './pages/Channels'
-import ChannelDetail from './pages/ChannelDetail'
-import CreateChannel from './pages/CreateChannel'
-import Communities from './pages/Communities'
-import CommunityDetail from './pages/CommunityDetail'
-import CreateCommunity from './pages/CreateCommunity'
-import AuthorProfile from './pages/AuthorProfile'
-import EditProfile from './pages/EditProfile'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
-import NotFound from './pages/NotFound'
 import LoadingScreen from './components/ui/LoadingScreen'
 import { useAuth } from './context/AuthContext'
+
+const Home = lazy(() => import('./pages/Home'))
+const Channels = lazy(() => import('./pages/Channels'))
+const ChannelDetail = lazy(() => import('./pages/ChannelDetail'))
+const CreateChannel = lazy(() => import('./pages/CreateChannel'))
+const Communities = lazy(() => import('./pages/Communities'))
+const CommunityDetail = lazy(() => import('./pages/CommunityDetail'))
+const CreateCommunity = lazy(() => import('./pages/CreateCommunity'))
+const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
+const EditProfile = lazy(() => import('./pages/EditProfile'))
+const Login = lazy(() => import('./pages/Login'))
+const Signup = lazy(() => import('./pages/Signup'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -33,22 +34,24 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/canaux" element={<Channels />} />
-        <Route path="/canal/:channelId" element={<ChannelDetail />} />
-        <Route path="/creer-canal" element={<CreateChannel />} />
-        <Route path="/communautes" element={<Communities />} />
-        <Route path="/communaute/:communityId" element={<CommunityDetail />} />
-        <Route path="/creer-communaute" element={<CreateCommunity />} />
-        <Route path="/profil/modifier" element={<EditProfile />} />
-        <Route path="/profil/:username" element={<AuthorProfile />} />
-        <Route path="/connexion" element={<Login />} />
-        <Route path="/inscription" element={<Signup />} />
-        <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
-        <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/canaux" element={<Channels />} />
+          <Route path="/canal/:channelId" element={<ChannelDetail />} />
+          <Route path="/creer-canal" element={<CreateChannel />} />
+          <Route path="/communautes" element={<Communities />} />
+          <Route path="/communaute/:communityId" element={<CommunityDetail />} />
+          <Route path="/creer-communaute" element={<CreateCommunity />} />
+          <Route path="/profil/modifier" element={<EditProfile />} />
+          <Route path="/profil/:username" element={<AuthorProfile />} />
+          <Route path="/connexion" element={<Login />} />
+          <Route path="/inscription" element={<Signup />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </>
   )
 }
