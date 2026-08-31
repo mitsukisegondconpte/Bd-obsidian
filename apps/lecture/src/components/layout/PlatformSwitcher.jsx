@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ExternalLink, Grid2x2 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 
 // Redirections inter-plateformes (doc client, point "c") : les 3 apps sont
 // des déploiements séparés mais partagent la même base — ce menu les relie.
@@ -10,7 +11,19 @@ const PLATFORMS = [
 ]
 
 export default function PlatformSwitcher() {
+  const { session } = useAuth()
   const [open, setOpen] = useState(false)
+
+  // Connexion automatique : si l'utilisateur est déjà connecté ici, on
+  // fait voyager son token de session dans le fragment d'URL (jamais
+  // envoyé au serveur) vers l'autre app, qui l'utilise pour ouvrir la
+  // session sans redemander les identifiants.
+  function hrefFor(p) {
+    if (p.current) return undefined
+    if (!session) return p.url
+    const params = new URLSearchParams({ sso_at: session.access_token, sso_rt: session.refresh_token })
+    return `${p.url}/#${params.toString()}`
+  }
 
   return (
     <div className="relative">
@@ -32,7 +45,7 @@ export default function PlatformSwitcher() {
             {PLATFORMS.map((p) => (
               <a
                 key={p.name}
-                href={p.current ? undefined : p.url}
+                href={hrefFor(p)}
                 target={p.current ? undefined : '_blank'}
                 rel="noreferrer"
                 aria-current={p.current}

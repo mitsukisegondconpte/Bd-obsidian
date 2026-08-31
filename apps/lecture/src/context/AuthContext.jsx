@@ -9,10 +9,30 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    // Connexion automatique inter-plateformes : si l'utilisateur arrive
+    // depuis une autre app Hypercube déjà connecté (lien du sélecteur de
+    // plateformes), le token de session voyage dans le fragment d'URL
+    // (jamais envoyé au serveur, contrairement à une query string) — on
+    // l'utilise pour ouvrir la session ici sans redemander les identifiants.
+    async function init() {
+      const hash = window.location.hash
+      if (hash.includes('sso_at=')) {
+        const params = new URLSearchParams(hash.slice(1))
+        const access_token = params.get('sso_at')
+        const refresh_token = params.get('sso_rt')
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        if (access_token && refresh_token) {
+          const { data } = await supabase.auth.setSession({ access_token, refresh_token })
+          setSession(data.session)
+          setLoading(false)
+          return
+        }
+      }
+      const { data } = await supabase.auth.getSession()
       setSession(data.session)
       setLoading(false)
-    })
+    }
+    init()
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession)

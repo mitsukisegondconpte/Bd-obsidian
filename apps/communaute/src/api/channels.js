@@ -35,10 +35,59 @@ export async function createChannel({ ownerId, name, description }) {
   return data
 }
 
-export async function createChannelPost({ channelId, body }) {
-  const { data, error } = await supabase.from('channel_posts').insert({ channel_id: channelId, body }).select().single()
+export async function createChannelPost({ channelId, body, mediaUrl }) {
+  const { data, error } = await supabase
+    .from('channel_posts')
+    .insert({ channel_id: channelId, body, media_url: mediaUrl ?? null })
+    .select()
+    .single()
   if (error) throw error
   return data
+}
+
+export async function uploadChannelMedia({ ownerId, file }) {
+  const path = `${ownerId}/${Date.now()}-${file.name}`
+  const { error: uploadError } = await supabase.storage.from('channel-media').upload(path, file)
+  if (uploadError) throw uploadError
+  const { data } = supabase.storage.from('channel-media').getPublicUrl(path)
+  return data.publicUrl
+}
+
+export async function countChannelPostLikes(postId) {
+  const { count, error } = await supabase
+    .from('likes')
+    .select('id', { count: 'exact', head: true })
+    .eq('target_type', 'channel_post')
+    .eq('target_id', postId)
+  if (error) throw error
+  return count ?? 0
+}
+
+export async function hasLikedChannelPost(userId, postId) {
+  const { data, error } = await supabase
+    .from('likes')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('target_type', 'channel_post')
+    .eq('target_id', postId)
+    .maybeSingle()
+  if (error) throw error
+  return Boolean(data)
+}
+
+export async function likeChannelPost(userId, postId) {
+  const { error } = await supabase.from('likes').insert({ user_id: userId, target_type: 'channel_post', target_id: postId })
+  if (error) throw error
+}
+
+export async function unlikeChannelPost(userId, postId) {
+  const { error } = await supabase
+    .from('likes')
+    .delete()
+    .eq('user_id', userId)
+    .eq('target_type', 'channel_post')
+    .eq('target_id', postId)
+  if (error) throw error
 }
 
 export async function listMyChannels(ownerId) {

@@ -1,4 +1,4 @@
-import { Reply } from 'lucide-react'
+import { Heart, Radio, Reply, Share2 } from 'lucide-react'
 import { avatarPlaceholder } from '../../utils/placeholders'
 
 function renderBody(body, isOwn) {
@@ -14,7 +14,16 @@ function renderBody(body, isOwn) {
   )
 }
 
-export default function PostItem({ post, author, isOwn = false, onReply }) {
+export default function PostItem({
+  post,
+  author,
+  isOwn = false,
+  onReply,
+  likeCount,
+  liked,
+  onToggleLike,
+  onShare,
+}) {
   const name = author?.display_name ?? 'Membre'
   const avatar = author?.avatar_url || avatarPlaceholder({ seed: post.author_id ?? post.channel_id, name })
 
@@ -40,12 +49,48 @@ export default function PostItem({ post, author, isOwn = false, onReply }) {
               <p className="line-clamp-1">{post.reply_to.body}</p>
             </div>
           )}
+          {post.shared_from && (
+            <div
+              className={`mb-1.5 space-y-1 rounded-lg border-l-2 px-2 py-1.5 text-xs ${
+                isOwn ? 'border-accent-ink/40 bg-black/10 text-accent-ink/80' : 'border-accent/50 bg-black/20 text-zinc-400'
+              }`}
+            >
+              <p className="flex items-center gap-1 font-semibold">
+                <Radio size={11} /> Repartagé depuis {post.shared_from.channel?.name ?? 'un canal'}
+              </p>
+              <p className="line-clamp-2">{post.shared_from.body}</p>
+              {post.shared_from.media_url && (
+                <img src={post.shared_from.media_url} alt="" className="mt-1 max-h-40 rounded-md object-cover" />
+              )}
+            </div>
+          )}
           <p className="whitespace-pre-line">{renderBody(post.body, isOwn)}</p>
+          {post.media_url && <img src={post.media_url} alt="" className="mt-2 max-h-72 w-full rounded-lg object-cover" />}
         </div>
-        <div className="mt-0.5 flex items-center gap-2 px-1">
+        <div className="mt-0.5 flex items-center gap-3 px-1">
           <span className="text-[11px] text-zinc-600">
             {new Date(post.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
           </span>
+          {onToggleLike && (
+            <button
+              type="button"
+              onClick={onToggleLike}
+              aria-label={liked ? 'Retirer le like' : 'Aimer'}
+              className={`flex items-center gap-1 text-[11px] font-semibold ${liked ? 'text-pink-400' : 'text-zinc-600 hover:text-pink-400'}`}
+            >
+              <Heart size={12} className={liked ? 'fill-pink-400' : ''} /> {likeCount > 0 ? likeCount : ''}
+            </button>
+          )}
+          {onShare && (
+            <button
+              type="button"
+              onClick={onShare}
+              aria-label="Partager"
+              className="flex items-center gap-1 text-[11px] text-zinc-600 hover:text-accent"
+            >
+              <Share2 size={12} /> Partager
+            </button>
+          )}
           {onReply && (
             <button
               type="button"

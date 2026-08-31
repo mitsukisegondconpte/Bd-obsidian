@@ -118,6 +118,18 @@ export default function Signup() {
           </button>
         </form>
 
+        <p className="mt-3 text-center text-xs text-zinc-600">
+          En créant un compte, tu acceptes nos{' '}
+          <Link to="/conditions-utilisation" className="text-zinc-400 underline hover:text-accent">
+            conditions d'utilisation
+          </Link>{' '}
+          et notre{' '}
+          <Link to="/confidentialite" className="text-zinc-400 underline hover:text-accent">
+            politique de confidentialité
+          </Link>
+          .
+        </p>
+
         <p className="mt-4 text-center text-sm text-zinc-500">
           {t('auth.alreadyAccount')}{' '}
           <Link to="/connexion" className="font-semibold text-accent">

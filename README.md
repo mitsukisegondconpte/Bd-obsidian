@@ -14,7 +14,16 @@ déploiements séparés, comment ils partagent la même base, etc.).
 
 Chaque app affiche un sélecteur "Plateformes Hypercube" (icône grille dans
 la navbar) qui pointe vers les 2 autres — les redirections inter-plateformes
-du doc client sont réelles.
+du doc client sont réelles. **Connexion automatique** : si tu es déjà
+connecté et changes de plateforme via ce sélecteur, ton token de session
+voyage dans le fragment d'URL (jamais envoyé au serveur, ni visible dans les
+logs) vers l'app de destination, qui l'utilise pour ouvrir ta session sans
+te redemander tes identifiants — la vérification email/mot de passe ou
+Google n'est nécessaire qu'une seule fois, sur la première plateforme.
+
+Google OAuth Console demande un lien de politique de confidentialité et de
+conditions d'utilisation : `/confidentialite` et `/conditions-utilisation`
+existent sur les 3 apps (contenu réel, à affiner — voir ces pages).
 
 Identité visuelle commune : logo à fond transparent (plus de pastille
 blanche dans la navbar), animation de chargement "hypercube qui se déforme
@@ -209,7 +218,11 @@ tout seul après 10s (ou au clic sur fermer).
 Branché sur Supabase, même auth que les 2 autres.
 
 - `/`, `/explorer`, `/canaux`, `/communautes` — Découverte
-- `/canal/:channelId` — Canal (façon chaîne WhatsApp) : posts, abonnement
+- `/canal/:channelId` — Canal à sens unique (façon chaîne WhatsApp) : seul
+  le propriétaire publie, mais avec image (bucket `channel-media`) ; les
+  abonnés peuvent liker, partager sur les réseaux sociaux (Web Share API /
+  copier le lien), ou repartager directement dans un de leurs groupes de
+  fans — contrairement aux groupes, les canaux supportent les médias
 - `/communaute/:communityId` — Communauté : discussion de groupe façon WhatsApp
   (bulles, répondre à un message précis, mentionner `@pseudo` avec notification
   et autocomplétion, mais sans partage de médias — comme un groupe WhatsApp

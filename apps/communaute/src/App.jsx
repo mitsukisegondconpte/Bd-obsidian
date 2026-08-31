@@ -14,6 +14,8 @@ const CommunityDetail = lazy(() => import('./pages/CommunityDetail'))
 const CreateCommunity = lazy(() => import('./pages/CreateCommunity'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
 const Classement = lazy(() => import('./pages/Classement'))
+const Confidentialite = lazy(() => import('./pages/Confidentialite'))
+const ConditionsUtilisation = lazy(() => import('./pages/ConditionsUtilisation'))
 const EditProfile = lazy(() => import('./pages/EditProfile'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Login = lazy(() => import('./pages/Login'))
@@ -53,6 +55,8 @@ export default function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
           <Route path="/classement" element={<Classement />} />
+          <Route path="/confidentialite" element={<Confidentialite />} />
+          <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Signup />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />

@@ -19,12 +19,15 @@ export async function getCommunity(communityId) {
   return data
 }
 
+const COMMUNITY_POST_SELECT =
+  '*, author:profiles!community_posts_author_id_fkey(username, display_name, avatar_url), ' +
+  'reply_to:community_posts!community_posts_reply_to_id_fkey(id, body, author:profiles!community_posts_author_id_fkey(display_name)), ' +
+  'shared_from:channel_posts!community_posts_shared_from_channel_post_id_fkey(id, body, media_url, channel:channels(id, name))'
+
 export async function listCommunityPosts(communityId) {
   const { data, error } = await supabase
     .from('community_posts')
-    .select(
-      '*, author:profiles!community_posts_author_id_fkey(username, display_name, avatar_url), reply_to:community_posts!community_posts_reply_to_id_fkey(id, body, author:profiles!community_posts_author_id_fkey(display_name))',
-    )
+    .select(COMMUNITY_POST_SELECT)
     .eq('community_id', communityId)
     .order('created_at', { ascending: true })
   if (error) throw error
@@ -50,13 +53,17 @@ export async function createCommunity({ creatorId, name, description, relatedSer
   return data
 }
 
-export async function createCommunityPost({ communityId, authorId, body, replyToId }) {
+export async function createCommunityPost({ communityId, authorId, body, replyToId, sharedFromChannelPostId }) {
   const { data, error } = await supabase
     .from('community_posts')
-    .insert({ community_id: communityId, author_id: authorId, body, reply_to_id: replyToId ?? null })
-    .select(
-      '*, author:profiles!community_posts_author_id_fkey(username, display_name, avatar_url), reply_to:community_posts!community_posts_reply_to_id_fkey(id, body, author:profiles!community_posts_author_id_fkey(display_name))',
-    )
+    .insert({
+      community_id: communityId,
+      author_id: authorId,
+      body,
+      reply_to_id: replyToId ?? null,
+      shared_from_channel_post_id: sharedFromChannelPostId ?? null,
+    })
+    .select(COMMUNITY_POST_SELECT)
     .single()
   if (error) throw error
   return data
