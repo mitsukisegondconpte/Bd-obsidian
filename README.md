@@ -31,6 +31,19 @@ génèrent une notification que l'utilisateur voit apparaître en direct —
 même s'il est en train d'utiliser une autre des 3 plateformes au moment où
 ça se produit. Voir `supabase/migrations/20260831054500_cross_platform_notifications.sql`.
 
+**Profil éditable** (`/profil/modifier`, lien "Modifier le profil" visible
+sur son propre profil) : nom affiché, bio, avatar (bucket Storage
+`avatars`, même schéma de policy par dossier utilisateur que
+`work-covers`). Mot de passe oublié : `/mot-de-passe-oublie` puis
+`/reinitialiser-mot-de-passe`, sur les 3 apps. Une page 404 de marque
+remplace le blanc qu'affichait toute route non gérée jusqu'ici.
+
+⚠️ **Sécurité** : `supabase/migrations/20260831062000_fix_profiles_privilege_escalation.sql`
+corrige une faille où n'importe quel utilisateur connecté pouvait
+s'auto-attribuer `is_platform_admin` (aucune colonne n'était protégée par
+la policy RLS d'update — corrigé au niveau des GRANT/REVOKE de colonnes,
+pas seulement RLS).
+
 ## Lancer un projet
 
 ```bash
