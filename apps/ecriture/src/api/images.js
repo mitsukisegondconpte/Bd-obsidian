@@ -49,7 +49,7 @@ export async function createImageRequest({ requesterId, description, priceCents 
 export async function listMyImageRequests(requesterId) {
   const { data, error } = await supabase
     .from('image_requests')
-    .select('*')
+    .select('*, delivered_image:platform_images(image_url)')
     .eq('requester_id', requesterId)
     .order('created_at', { ascending: false })
   if (error) throw error

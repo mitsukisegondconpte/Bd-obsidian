@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Sparkles } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Plus, Sparkles } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import WorkCard from '../components/ui/WorkCard'
 import { useAuth } from '../context/AuthContext'
@@ -27,7 +27,13 @@ export default function MyWorks() {
 
   async function respond(id, accept) {
     await respondToWorkMigration(id, accept)
-    setMigrations((m) => m.filter((mig) => mig.id !== id))
+    if (accept) {
+      // Le trigger côté base crée la série et passe le statut à 'completed'
+      // dans la même opération — on recharge pour récupérer son slug.
+      listMyWorkMigrations(user.id).then(setMigrations)
+    } else {
+      setMigrations((m) => m.filter((mig) => mig.id !== id))
+    }
   }
 
   return (
@@ -45,34 +51,55 @@ export default function MyWorks() {
 
         {migrations.length > 0 && (
           <div className="mt-5 space-y-3">
-            {migrations.map((m) => (
-              <div key={m.id} className="rounded-xl border border-accent/30 bg-accent/10 p-4">
-                <p className="flex items-center gap-2 text-sm font-bold text-accent">
-                  <Sparkles size={16} /> Hypercube Obsidian s'intéresse à « {m.work.title} »
-                </p>
-                <p className="mt-1 text-sm text-zinc-300">
-                  Ton œuvre pourrait être republiée sur la plateforme de lecture. Si tu acceptes, elle sera retirée
-                  d'ici et tu deviendras membre — les chapitres déjà lus par le public resteront gratuits, les
-                  suivants seront payants.
-                </p>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => respond(m.id, true)}
-                    className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-accent-ink"
-                  >
-                    Accepter
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => respond(m.id, false)}
-                    className="rounded-full border border-white/10 px-4 py-1.5 text-xs font-semibold text-zinc-300"
-                  >
-                    Refuser
-                  </button>
+            {migrations.map((m) =>
+              m.status === 'completed' ? (
+                <div key={m.id} className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                  <p className="flex items-center gap-2 text-sm font-bold text-emerald-400">
+                    <CheckCircle2 size={16} /> « {m.work.title} » a sa série sur Lecture
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-300">
+                    L'œuvre reste ici telle quelle. Une série vide a été créée sur la plateforme Lecture à ton nom
+                    — vas-y ajouter des planches illustrées quand tu veux.
+                  </p>
+                  {m.new_series?.slug && (
+                    <a
+                      href={`https://bd-obsidian-lecture.vercel.app/serie/${m.new_series.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-4 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/30"
+                    >
+                      Voir la série <ExternalLink size={13} />
+                    </a>
+                  )}
                 </div>
-              </div>
-            ))}
+              ) : (
+                <div key={m.id} className="rounded-xl border border-accent/30 bg-accent/10 p-4">
+                  <p className="flex items-center gap-2 text-sm font-bold text-accent">
+                    <Sparkles size={16} /> Hypercube Obsidian s'intéresse à « {m.work.title} »
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-300">
+                    Si tu acceptes, une série à ton nom est créée sur la plateforme Lecture, prête à recevoir des
+                    planches illustrées — cette œuvre reste ici inchangée, sur écriture.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => respond(m.id, true)}
+                      className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-accent-ink"
+                    >
+                      Accepter
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => respond(m.id, false)}
+                      className="rounded-full border border-white/10 px-4 py-1.5 text-xs font-semibold text-zinc-300"
+                    >
+                      Refuser
+                    </button>
+                  </div>
+                </div>
+              ),
+            )}
           </div>
         )}
 

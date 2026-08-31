@@ -114,7 +114,7 @@ export default function CommunityDetail() {
 
   return (
     <Layout>
-      <div className="px-4 pt-4 sm:px-6">
+      <div className="mx-auto max-w-2xl px-4 pt-4 sm:px-6">
         <Link to="/communautes" className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-400">
           <ArrowLeft size={16} /> Communautés
         </Link>

@@ -39,6 +39,26 @@ Realtime activé. Un nouvel abonné sur une série (plateforme 1) ou une
 génèrent une notification que l'utilisateur voit apparaître en direct —
 même s'il est en train d'utiliser une autre des 3 plateformes au moment où
 ça se produit. Voir `supabase/migrations/20260831054500_cross_platform_notifications.sql`.
+Chaque notification porte un `link_path` cliquable qui t'amène directement
+au bon endroit — en interne si la page appartient à l'app où tu es, sinon
+via un lien externe vers la bonne plateforme (le mapping vit dans
+`NotificationBell.jsx` de chaque app, dupliqué comme le reste).
+
+**Repêchage (écriture → lecture), complété de bout en bout** : accepter une
+proposition de repêchage crée réellement une série vide sur la plateforme
+Lecture au nom de l'auteur (trigger `complete_work_migration`), prête à
+recevoir des planches — l'œuvre écriture originale n'est pas touchée (une
+suppression automatique aurait été une action destructive non réversible,
+donc pas déclenchée sans confirmation explicite). Auparavant l'acceptation
+ne faisait qu'annoncer/notifier sans jamais créer la série — corrigé dans
+`supabase/migrations/20260831150000_complete_work_migration_pipeline.sql`.
+
+**Livraison image sur mesure / retour d'édition** (`apps/ecriture`) :
+l'admin peut désormais réellement livrer l'image demandée (upload direct
+depuis l'onglet "Demandes images") et écrire un retour d'édition texte
+(onglet "Demandes d'édition") — les deux étaient des menus déroulants de
+statut qui ne débouchaient jamais sur rien de concret. Le demandeur voit le
+résultat sur `/edition` et reçoit une notification.
 
 **Profil éditable** (`/profil/modifier`, lien "Modifier le profil" visible
 sur son propre profil) : nom affiché, bio, avatar (bucket Storage

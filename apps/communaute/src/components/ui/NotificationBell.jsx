@@ -10,6 +10,24 @@ import {
   markAllNotificationsRead,
 } from '../../api/notifications'
 
+const PLATFORM_URLS = {
+  lecture: 'https://bd-obsidian-lecture.vercel.app',
+  ecriture: 'https://bd-obsidian-ecriture.vercel.app',
+  communaute: 'https://bd-obsidian-communaute.vercel.app',
+}
+
+// link_path est écrit par le trigger qui a créé la notification, sans
+// savoir depuis quelle des 3 apps il sera consulté (même table partagée) —
+// on route en interne si le chemin appartient à cette app, sinon en lien
+// externe vers la bonne plateforme.
+function resolveNotificationLink(path) {
+  let targetApp = 'communaute'
+  if (path.startsWith('/serie/')) targetApp = 'lecture'
+  else if (path.startsWith('/oeuvre/') || path.startsWith('/edition') || path.startsWith('/mes-oeuvres')) targetApp = 'ecriture'
+  if (targetApp === 'communaute') return { internal: true, url: path }
+  return { internal: false, url: `${PLATFORM_URLS[targetApp]}${path}` }
+}
+
 function timeAgo(iso) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000
   if (diff < 60) return "à l'instant"
@@ -68,7 +86,9 @@ export default function NotificationBell() {
     }
     if (n.link_path) {
       setOpen(false)
-      navigate(n.link_path)
+      const { internal, url } = resolveNotificationLink(n.link_path)
+      if (internal) navigate(url)
+      else window.location.href = url
     }
   }
 

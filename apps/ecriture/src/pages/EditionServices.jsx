@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, Clock, Lock } from 'lucide-react'
+import { CheckCircle2, Clock, ImagePlus, Lock } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { EDITION_LEVELS, createEditionRequest, getEditionCredits, listEditionRequests } from '../api/editions'
+import { listMyImageRequests } from '../api/images'
 import { listWorksByAuthor } from '../api/works'
 
 const STATUS_LABEL = {
   pending: 'En attente',
+  in_discussion: 'En discussion',
   assigned: 'Assignée',
   in_progress: 'En cours',
   delivered: 'Livrée',
@@ -18,6 +20,7 @@ export default function EditionServices() {
   const [credits, setCredits] = useState(null)
   const [works, setWorks] = useState([])
   const [requests, setRequests] = useState([])
+  const [imageRequests, setImageRequests] = useState([])
   const [selectedWorkId, setSelectedWorkId] = useState('')
   const [selectedLevel, setSelectedLevel] = useState(1)
   const [error, setError] = useState('')
@@ -28,6 +31,7 @@ export default function EditionServices() {
     getEditionCredits(user.id).then(setCredits)
     listWorksByAuthor(user.id).then(setWorks)
     listEditionRequests(user.id).then(setRequests)
+    listMyImageRequests(user.id).then(setImageRequests)
   }, [user])
 
   if (!user) {
@@ -152,6 +156,36 @@ export default function EditionServices() {
               </div>
             ))}
             {requests.length === 0 && <p className="py-4 text-sm text-zinc-500">Aucune demande pour l'instant.</p>}
+          </div>
+        </div>
+
+        <div className="pb-10">
+          <h2 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-zinc-100">
+            <ImagePlus size={15} /> Mes images sur mesure
+          </h2>
+          <p className="mb-2 text-xs text-zinc-500">
+            Demandées depuis l'onglet "Sur mesure" en créant une œuvre.
+          </p>
+          <div className="divide-y divide-white/5">
+            {imageRequests.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-200">{r.description}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {r.delivered_image?.image_url && (
+                    <img src={r.delivered_image.image_url} alt="" className="h-12 w-8 rounded object-cover" />
+                  )}
+                  <span className="flex items-center gap-1 text-xs font-semibold text-zinc-400">
+                    {r.status === 'delivered' ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Clock size={13} />}
+                    {STATUS_LABEL[r.status]}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {imageRequests.length === 0 && (
+              <p className="py-4 text-sm text-zinc-500">Aucune demande d'image pour l'instant.</p>
+            )}
           </div>
         </div>
       </div>

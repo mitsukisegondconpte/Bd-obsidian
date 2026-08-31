@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShieldAlert, Trash2, Upload, Send, Search } from 'lucide-react'
+import { ShieldAlert, Trash2, Upload, Send, Search, ImagePlus } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -13,9 +13,11 @@ import {
   deleteCatalogImage,
   listAllImageRequests,
   updateImageRequestStatus,
+  deliverImageRequest,
   listAllEditionRequests,
   assignEditionRequest,
   updateEditionRequestStatus,
+  deliverEditionFeedback,
   createWorkMigrationOffer,
   listAllWorkMigrations,
   getDashboardStats,
@@ -258,8 +260,9 @@ function CatalogTab() {
   )
 }
 
-function ImageRequestsTab() {
+function ImageRequestsTab({ currentUserId }) {
   const [requests, setRequests] = useState(null)
+  const [uploadingId, setUploadingId] = useState(null)
   function reload() {
     listAllImageRequests().then(setRequests)
   }
@@ -272,13 +275,29 @@ function ImageRequestsTab() {
     reload()
   }
 
+  async function handleDeliver(request, file) {
+    if (!file) return
+    setUploadingId(request.id)
+    try {
+      await deliverImageRequest({ requestId: request.id, requesterId: request.requester_id, adminId: currentUserId, file })
+      reload()
+    } finally {
+      setUploadingId(null)
+    }
+  }
+
   return (
     <div className="space-y-2">
       {requests?.map((r) => (
         <div key={r.id} className="rounded-lg border border-white/5 bg-surface-1 p-3">
           <p className="text-sm font-semibold text-zinc-100">@{r.requester?.username}</p>
           <p className="mt-1 text-sm text-zinc-400">{r.description}</p>
-          <div className="mt-2 flex items-center gap-2">
+
+          {r.delivered_image?.image_url && (
+            <img src={r.delivered_image.image_url} alt="Livrée" className="mt-2 h-24 w-16 rounded-lg object-cover" />
+          )}
+
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <select
               value={r.status}
               onChange={(e) => updateStatus(r.id, e.target.value)}
@@ -289,6 +308,18 @@ function ImageRequestsTab() {
               <option value="delivered">Livrée</option>
               <option value="cancelled">Annulée</option>
             </select>
+
+            <label className="flex cursor-pointer items-center gap-1.5 rounded-full bg-accent/20 px-3 py-1 text-xs font-semibold text-accent hover:bg-accent/30">
+              <ImagePlus size={13} />
+              {uploadingId === r.id ? 'Envoi...' : r.delivered_image ? "Remplacer l'image" : "Livrer l'image"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploadingId === r.id}
+                onChange={(e) => handleDeliver(r, e.target.files?.[0])}
+              />
+            </label>
           </div>
         </div>
       ))}
@@ -299,6 +330,8 @@ function ImageRequestsTab() {
 
 function EditionRequestsTab({ currentUserId }) {
   const [requests, setRequests] = useState(null)
+  const [feedbackDrafts, setFeedbackDrafts] = useState({})
+  const [sendingId, setSendingId] = useState(null)
   function reload() {
     listAllEditionRequests().then(setRequests)
   }
@@ -314,6 +347,18 @@ function EditionRequestsTab({ currentUserId }) {
     await updateEditionRequestStatus(id, status)
     reload()
   }
+  async function handleDeliverFeedback(r) {
+    const feedback = (feedbackDrafts[r.id] ?? '').trim()
+    if (!feedback) return
+    setSendingId(r.id)
+    try {
+      await deliverEditionFeedback(r.id, feedback)
+      setFeedbackDrafts((d) => ({ ...d, [r.id]: '' }))
+      reload()
+    } finally {
+      setSendingId(null)
+    }
+  }
 
   return (
     <div className="space-y-2">
@@ -325,6 +370,14 @@ function EditionRequestsTab({ currentUserId }) {
           <p className="text-xs text-zinc-500">
             Auteur @{r.author?.username} · Éditeur {r.editor ? `@${r.editor.username}` : 'non assigné'}
           </p>
+
+          {r.feedback && (
+            <p className="mt-2 rounded-lg bg-surface-2 p-2 text-xs text-zinc-300">
+              <span className="font-semibold text-accent">Retour envoyé : </span>
+              {r.feedback}
+            </p>
+          )}
+
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {!r.editor_id && (
               <button
@@ -346,6 +399,24 @@ function EditionRequestsTab({ currentUserId }) {
               <option value="delivered">Livrée</option>
               <option value="cancelled">Annulée</option>
             </select>
+          </div>
+
+          <div className="mt-2 flex items-end gap-2">
+            <textarea
+              value={feedbackDrafts[r.id] ?? ''}
+              onChange={(e) => setFeedbackDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
+              placeholder="Écris le retour d'édition pour l'auteur..."
+              rows={2}
+              className="flex-1 rounded-lg border border-white/10 bg-surface-2 px-2.5 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => handleDeliverFeedback(r)}
+              disabled={sendingId === r.id || !(feedbackDrafts[r.id] ?? '').trim()}
+              className="flex shrink-0 items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-ink disabled:opacity-40"
+            >
+              <Send size={12} /> Envoyer
+            </button>
           </div>
         </div>
       ))}
@@ -430,7 +501,7 @@ export default function Admin() {
           {tab === 'users' && <UsersTab currentUserId={user.id} />}
           {tab === 'works' && <WorksTab />}
           {tab === 'catalog' && <CatalogTab />}
-          {tab === 'imageRequests' && <ImageRequestsTab />}
+          {tab === 'imageRequests' && <ImageRequestsTab currentUserId={user.id} />}
           {tab === 'editionRequests' && <EditionRequestsTab currentUserId={user.id} />}
           {tab === 'migrations' && <MigrationsTab />}
         </div>

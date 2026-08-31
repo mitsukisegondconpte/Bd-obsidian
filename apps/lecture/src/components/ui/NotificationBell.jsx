@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabaseClient'
@@ -8,6 +9,24 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from '../../api/notifications'
+
+const PLATFORM_URLS = {
+  lecture: 'https://bd-obsidian-lecture.vercel.app',
+  ecriture: 'https://bd-obsidian-ecriture.vercel.app',
+  communaute: 'https://bd-obsidian-communaute.vercel.app',
+}
+
+// link_path est écrit par le trigger qui a créé la notification, sans
+// savoir depuis quelle des 3 apps il sera consulté (même table partagée) —
+// on route en interne si le chemin appartient à cette app, sinon en lien
+// externe vers la bonne plateforme.
+function resolveNotificationLink(path) {
+  let targetApp = 'lecture'
+  if (path.startsWith('/oeuvre/') || path.startsWith('/edition') || path.startsWith('/mes-oeuvres')) targetApp = 'ecriture'
+  else if (path.startsWith('/communaute/') || path.startsWith('/canal/')) targetApp = 'communaute'
+  if (targetApp === 'lecture') return { internal: true, url: path }
+  return { internal: false, url: `${PLATFORM_URLS[targetApp]}${path}` }
+}
 
 function timeAgo(iso) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000
@@ -22,6 +41,7 @@ function timeAgo(iso) {
 // chapitre, repêchage accepté) arrivent ici en direct via Supabase Realtime.
 export default function NotificationBell() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState([])
   const [unread, setUnread] = useState(0)
@@ -64,11 +84,11 @@ export default function NotificationBell() {
       setItems((prev) => prev.map((it) => (it.id === n.id ? { ...it, is_read: true } : it)))
       setUnread((c) => Math.max(0, c - 1))
     }
-    // link_path pointe vers une page communaute (ex: mention dans un groupe) —
-    // pas une route de cette app, donc lien externe plutôt qu'un navigate().
     if (n.link_path) {
       setOpen(false)
-      window.location.href = `https://bd-obsidian-communaute.vercel.app${n.link_path}`
+      const { internal, url } = resolveNotificationLink(n.link_path)
+      if (internal) navigate(url)
+      else window.location.href = url
     }
   }
 

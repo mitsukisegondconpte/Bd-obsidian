@@ -95,9 +95,10 @@ export async function saveReadingProgress({ userId, workId, chapterId }) {
 export async function listMyWorkMigrations(authorId) {
   const { data, error } = await supabase
     .from('work_migrations')
-    .select('*, work:works!inner(title, author_id)')
+    .select('*, work:works!inner(title, author_id), new_series:series(slug)')
     .eq('work.author_id', authorId)
-    .eq('status', 'proposed')
+    .in('status', ['proposed', 'completed'])
+    .order('proposed_at', { ascending: false })
   if (error) throw error
   return data
 }

@@ -71,7 +71,9 @@ export async function deleteCatalogImage(imageId) {
 export async function listAllImageRequests() {
   const { data, error } = await supabase
     .from('image_requests')
-    .select('*, requester:profiles!image_requests_requester_id_fkey(username, display_name)')
+    .select(
+      '*, requester:profiles!image_requests_requester_id_fkey(username, display_name), delivered_image:platform_images(image_url)',
+    )
     .order('created_at', { ascending: false })
   if (error) throw error
   return data
@@ -80,6 +82,32 @@ export async function listAllImageRequests() {
 export async function updateImageRequestStatus(requestId, status) {
   const { error } = await supabase.from('image_requests').update({ status }).eq('id', requestId)
   if (error) throw error
+}
+
+// Livraison de l'image sur mesure : upload par l'admin (le dossier de
+// stockage doit être celui de l'admin — policy Storage — mais la ligne
+// platform_images appartient au demandeur pour qu'il puisse s'en servir),
+// puis reliée à sa demande. Déclenche la notification de livraison côté base.
+export async function deliverImageRequest({ requestId, requesterId, adminId, file }) {
+  const path = `${adminId}/${Date.now()}-${file.name}`
+  const { error: uploadError } = await supabase.storage.from('work-covers').upload(path, file)
+  if (uploadError) throw uploadError
+  const { data: publicUrlData } = supabase.storage.from('work-covers').getPublicUrl(path)
+
+  const { data: image, error: imageError } = await supabase
+    .from('platform_images')
+    .insert({ owner_id: requesterId, source: 'user_upload', image_url: publicUrlData.publicUrl, is_free: true, price_cents: 0 })
+    .select()
+    .single()
+  if (imageError) throw imageError
+
+  const { error: updateError } = await supabase
+    .from('image_requests')
+    .update({ delivered_image_id: image.id, status: 'delivered' })
+    .eq('id', requestId)
+  if (updateError) throw updateError
+
+  return image
 }
 
 export async function listAllEditionRequests() {
@@ -105,6 +133,16 @@ export async function updateEditionRequestStatus(requestId, status) {
   const updates = { status }
   if (status === 'delivered') updates.delivered_at = new Date().toISOString()
   const { error } = await supabase.from('edition_requests').update(updates).eq('id', requestId)
+  if (error) throw error
+}
+
+// Livraison du retour d'édition : le texte de feedback est ce que l'auteur
+// verra sur /edition — déclenche la notification de livraison côté base.
+export async function deliverEditionFeedback(requestId, feedback) {
+  const { error } = await supabase
+    .from('edition_requests')
+    .update({ feedback, status: 'delivered', delivered_at: new Date().toISOString() })
+    .eq('id', requestId)
   if (error) throw error
 }
 
