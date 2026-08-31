@@ -57,3 +57,10 @@ export async function unlikeComment(userId, commentId) {
     .eq('target_id', commentId)
   if (error) throw error
 }
+
+// RLS n'autorise cette suppression qu'à l'auteur du commentaire ou à un
+// admin de la plateforme (`users or admins delete comments`).
+export async function deleteComment(commentId) {
+  const { error } = await supabase.from('comments').delete().eq('id', commentId)
+  if (error) throw error
+}

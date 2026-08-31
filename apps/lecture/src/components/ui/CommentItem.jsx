@@ -1,7 +1,15 @@
-import { Heart } from 'lucide-react'
+import { Heart, Trash2 } from 'lucide-react'
 import { avatarPlaceholder } from '../../utils/placeholders'
 
-export default function CommentItem({ comment, isReply = false, liked = false, likeCount = 0, onToggleLike, onReply }) {
+export default function CommentItem({
+  comment,
+  isReply = false,
+  liked = false,
+  likeCount = 0,
+  onToggleLike,
+  onReply,
+  onDelete,
+}) {
   const name = comment.user?.display_name ?? 'Lecteur'
   const avatar = comment.user?.avatar_url || avatarPlaceholder({ seed: comment.user_id, name })
 
@@ -32,6 +40,16 @@ export default function CommentItem({ comment, isReply = false, liked = false, l
           {onReply && (
             <button type="button" onClick={onReply} className="text-xs font-semibold text-zinc-500 hover:text-zinc-300">
               Répondre
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label="Supprimer le commentaire"
+              className="ml-auto text-zinc-600 hover:text-red-400"
+            >
+              <Trash2 size={13} />
             </button>
           )}
         </div>

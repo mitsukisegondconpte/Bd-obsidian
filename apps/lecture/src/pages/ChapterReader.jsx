@@ -14,7 +14,15 @@ import CommentItem from '../components/ui/CommentItem'
 import { pagePlaceholder } from '../utils/placeholders'
 import { useAuth } from '../context/AuthContext'
 import { getChapter, getSeriesBySlug, listChapterPages, listSeriesChapters } from '../api/series'
-import { countCommentLikes, createComment, hasLikedComment, likeComment, listComments, unlikeComment } from '../api/comments'
+import {
+  countCommentLikes,
+  createComment,
+  deleteComment,
+  hasLikedComment,
+  likeComment,
+  listComments,
+  unlikeComment,
+} from '../api/comments'
 import { countChapterLikes, hasLikedChapter, likeChapter, unlikeChapter } from '../api/likes'
 import { hasPurchasedChapter, purchaseChapter } from '../api/purchases'
 import { recordStreakActivity } from '../api/streaks'
@@ -22,7 +30,7 @@ import { recordStreakActivity } from '../api/streaks'
 export default function ChapterReader() {
   const { slug, chapterId } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   const [seriesItem, setSeriesItem] = useState(null)
   const [chapters, setChapters] = useState(null)
@@ -145,6 +153,12 @@ export default function ChapterReader() {
     setCommentLikes((s) => ({ ...s, [created.id]: { count: 0, liked: false } }))
     setNewComment('')
     setReplyTarget(null)
+  }
+
+  async function handleDeleteComment(commentId) {
+    if (!window.confirm('Supprimer ce commentaire ?')) return
+    await deleteComment(commentId)
+    setComments((c) => c.filter((item) => item.id !== commentId && item.parent_comment_id !== commentId))
   }
 
   async function toggleCommentLike(commentId) {
@@ -328,6 +342,11 @@ export default function ChapterReader() {
                         ? () => setReplyTarget({ id: c.id, name: c.user?.display_name ?? 'Lecteur' })
                         : undefined
                     }
+                    onDelete={
+                      user && (user.id === c.user_id || profile?.is_platform_admin)
+                        ? () => handleDeleteComment(c.id)
+                        : undefined
+                    }
                   />
                   {repliesByParent[c.id]
                     ?.slice()
@@ -340,6 +359,11 @@ export default function ChapterReader() {
                         liked={commentLikes[r.id]?.liked}
                         likeCount={commentLikes[r.id]?.count ?? 0}
                         onToggleLike={() => toggleCommentLike(r.id)}
+                        onDelete={
+                          user && (user.id === r.user_id || profile?.is_platform_admin)
+                            ? () => handleDeleteComment(r.id)
+                            : undefined
+                        }
                       />
                     ))}
                 </div>

@@ -4,13 +4,21 @@ import { ArrowLeft, ChevronLeft, ChevronRight, List } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import CommentItem from '../components/ui/CommentItem'
 import { getWork, getWorkChapter, listWorkChapters, saveReadingProgress } from '../api/works'
-import { countCommentLikes, createComment, hasLikedComment, likeComment, listComments, unlikeComment } from '../api/comments'
+import {
+  countCommentLikes,
+  createComment,
+  deleteComment,
+  hasLikedComment,
+  likeComment,
+  listComments,
+  unlikeComment,
+} from '../api/comments'
 import { recordStreakActivity } from '../api/streaks'
 import { useAuth } from '../context/AuthContext'
 
 export default function ChapterReader() {
   const { workId, chapterId } = useParams()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const [work, setWork] = useState(null)
@@ -68,6 +76,12 @@ export default function ChapterReader() {
     setCommentLikes((s) => ({ ...s, [created.id]: { count: 0, liked: false } }))
     setNewComment('')
     setReplyTarget(null)
+  }
+
+  async function handleDeleteComment(commentId) {
+    if (!window.confirm('Supprimer ce commentaire ?')) return
+    await deleteComment(commentId)
+    setComments((c) => c.filter((item) => item.id !== commentId && item.parent_comment_id !== commentId))
   }
 
   async function toggleCommentLike(commentId) {
@@ -191,6 +205,11 @@ export default function ChapterReader() {
                 onReply={
                   user ? () => setReplyTarget({ id: c.id, name: c.user?.display_name ?? 'Lecteur' }) : undefined
                 }
+                onDelete={
+                  user && (user.id === c.user_id || profile?.is_platform_admin)
+                    ? () => handleDeleteComment(c.id)
+                    : undefined
+                }
               />
               {repliesByParent[c.id]
                 ?.slice()
@@ -203,6 +222,11 @@ export default function ChapterReader() {
                     liked={commentLikes[r.id]?.liked}
                     likeCount={commentLikes[r.id]?.count ?? 0}
                     onToggleLike={() => toggleCommentLike(r.id)}
+                    onDelete={
+                      user && (user.id === r.user_id || profile?.is_platform_admin)
+                        ? () => handleDeleteComment(r.id)
+                        : undefined
+                    }
                   />
                 ))}
             </div>
