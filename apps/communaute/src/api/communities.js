@@ -19,9 +19,16 @@ export async function getCommunity(communityId) {
   return data
 }
 
+// Pas d'embed reply_to ici : PostgREST ne résout pas de façon fiable une
+// jointure d'une table sur elle-même (community_posts -> community_posts
+// via reply_to_id), même avec le nom de contrainte explicite — ça casse
+// aussi bien la lecture que l'écriture avec une erreur PGRST200
+// "Could not find a relationship between community_posts and
+// community_posts". Le message d'origine d'une réponse est de toute façon
+// déjà chargé dans la liste : on le retrouve côté client (voir
+// CommunityDetail.jsx) plutôt que de demander cette jointure au serveur.
 const COMMUNITY_POST_SELECT =
   '*, author:profiles!community_posts_author_id_fkey(username, display_name, avatar_url), ' +
-  'reply_to:community_posts!community_posts_reply_to_id_fkey(id, body, author:profiles!community_posts_author_id_fkey(display_name)), ' +
   'shared_from:channel_posts!community_posts_shared_from_channel_post_id_fkey(id, body, media_url, channel:channels(id, name))'
 
 export async function listCommunityPosts(communityId) {

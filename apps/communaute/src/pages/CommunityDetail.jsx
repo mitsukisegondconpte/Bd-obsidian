@@ -141,6 +141,11 @@ export default function CommunityDetail() {
   const mentionMatches =
     mentionQuery !== null ? members.filter((m) => m.username.toLowerCase().startsWith(mentionQuery)).slice(0, 5) : []
 
+  // La cible d'une réponse est déjà présente dans la liste chargée : pas
+  // besoin de la redemander au serveur (voir la note dans communities.js
+  // sur l'embed reply_to cassé côté PostgREST pour une table sur elle-même).
+  const postsById = new Map(posts.map((p) => [p.id, p]))
+
   if (!community) {
     return (
       <Layout>
@@ -219,6 +224,7 @@ export default function CommunityDetail() {
               author={p.author}
               isOwn={p.author_id === user?.id}
               onReply={setReplyTarget}
+              replyTo={p.reply_to_id ? postsById.get(p.reply_to_id) : null}
             />
           ))}
           {posts.length === 0 && <p className="py-6 text-center text-sm text-zinc-500">Aucun message pour l'instant. Sois le premier à écrire !</p>}

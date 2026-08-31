@@ -23,6 +23,7 @@ export default function PostItem({
   liked,
   onToggleLike,
   onShare,
+  replyTo,
 }) {
   const name = author?.display_name ?? 'Membre'
   const avatar = author?.avatar_url || avatarPlaceholder({ seed: post.author_id ?? post.channel_id, name })
@@ -49,14 +50,14 @@ export default function PostItem({
           }`}
         >
           {!isOwn && <p className="mb-0.5 text-xs font-bold text-accent">{name}</p>}
-          {post.reply_to && (
+          {replyTo && (
             <div
               className={`mb-1.5 rounded-lg border-l-2 px-2 py-1 text-xs ${
                 isOwn ? 'border-accent-ink/40 bg-black/10 text-accent-ink/80' : 'border-accent/50 bg-black/20 text-zinc-400'
               }`}
             >
-              <p className="font-semibold">{post.reply_to.author?.display_name ?? 'Membre'}</p>
-              <p className="line-clamp-1">{post.reply_to.body}</p>
+              <p className="font-semibold">{replyTo.author?.display_name ?? 'Membre'}</p>
+              <p className="line-clamp-1">{replyTo.body}</p>
             </div>
           )}
           {post.shared_from && (
