@@ -1,5 +1,24 @@
 # Architecture base de données — 3 plateformes, 1 compte utilisateur
 
+## Statut : Supabase provisionné et testé
+
+- **Projet** : `hypercube-obsidian` (ref `pcbjqxogwbjqcskwygpf`), région
+  `us-east-1`, organisation gratuite (0 $/mois).
+- **URL** : `https://pcbjqxogwbjqcskwygpf.supabase.co`
+- Le schéma complet (23 tables, triggers, Row Level Security) a été
+  **appliqué pour de vrai** sur ce projet, pas juste écrit sur papier :
+  inscription simulée → création automatique du profil + des 4 crédits
+  d'édition gratuits → vérifié → nettoyé. RLS est activé sur les 23 tables.
+- Fichier source de vérité pour Supabase : `supabase/migrations/` (convention
+  du CLI Supabase — une nouvelle modif = une nouvelle migration, jamais
+  éditer un fichier déjà appliqué). `database/supabase_schema.sql` en est une
+  copie de lecture. `database/schema.sql` reste la version "PostgreSQL
+  générique" (sans dépendance à `auth.users` de Supabase), gardée comme
+  référence si le projet change un jour de backend.
+- Variables d'environnement front-end : voir `.env.example` à la racine —
+  **les 3 plateformes utilisent exactement les mêmes valeurs**, c'est ce qui
+  fait qu'un compte est partagé entre elles.
+
 ## Le principe
 
 Le client a confirmé : ce sont **3 plateformes distinctes** (3 expériences,
@@ -55,13 +74,54 @@ extraire chaque dossier vers son propre repo sans perdre l'historique git —
 c'est une opération simple à faire plus tard, pas une décision à prendre
 maintenant.
 
-**Backend** : le schéma ci-contre est écrit en PostgreSQL standard, il
-marche avec n'importe quel backend (Node/Express, Django, etc.). Une option
-qui irait vite pour ce projet : **Supabase** (PostgreSQL managé + auth
-partagée native + stockage de fichiers pour les images de couverture) — les
-3 front-ends pointeraient sur le même projet Supabase, avec sa gestion de
-compte déjà prête à l'emploi. Dis-moi si tu veux partir sur cette option, je
-peux le provisionner directement depuis cette session.
+**Backend** : ✅ Supabase (voir "Statut" ci-dessus) — PostgreSQL managé, auth
+partagée native, stockage de fichiers pour les couvertures/planches. Les 3
+front-ends pointent sur le **même** projet Supabase (même URL, même clé),
+donc un compte créé sur une plateforme fonctionne directement sur les 2
+autres.
+
+## Comment éviter qu'un seul repo = un seul déploiement
+
+C'est la question à régler avant de coder les plateformes 2 et 3 : un repo
+GitHub n'est pas un déploiement. Un déploiement (Vercel, Netlify, Cloudflare
+Pages...) se configure avec un **dossier de départ** ("Root Directory" chez
+Vercel, "Base directory" chez Netlify). Le mécanisme :
+
+1. Le repo garde la structure monorepo (`apps/lecture`, `apps/ecriture`,
+   `apps/communaute`), chaque dossier étant une app Vite/React autonome avec
+   son propre `package.json`, sa propre config Tailwind, son propre
+   `index.html`.
+2. Sur l'hébergeur, tu crées **3 projets distincts**, tous branchés sur le
+   **même repo GitHub** (`mitsukisegondconpte/Bd-obsidian`), mais chacun
+   configuré avec un dossier de départ différent :
+
+   | Projet hébergeur | Dossier de départ    | URL                          |
+   |-------------------|-----------------------|-------------------------------|
+   | `lecture`          | `apps/lecture`        | lecture.tondomaine.com       |
+   | `ecriture`          | `apps/ecriture`       | ecriture.tondomaine.com      |
+   | `communaute`        | `apps/communaute`     | communaute.tondomaine.com    |
+
+3. Chaque projet ne build et ne sert QUE son propre dossier. Un push sur le
+   repo déclenche bien 3 vérifications (une par projet), mais chaque
+   hébergeur permet de **sauter le build si rien n'a changé dans son
+   dossier** ("Ignored Build Step" chez Vercel, condition équivalente chez
+   Netlify) — donc modifier la plateforme 1 ne redéploie pas les 2 autres.
+4. Les 3 projets utilisent les **mêmes** variables d'environnement Supabase
+   (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — voir `.env.example`),
+   c'est la base de données qui reste unique, pas le déploiement.
+
+En résumé : **1 repo → 3 apps dans des dossiers séparés → 3 projets
+d'hébergement pointant chacun sur un dossier → 3 URLs indépendantes → 1
+seule base Supabase derrière les 3.** Rien à dupliquer côté code partagé
+(auth, design system) si on garde le monorepo ; rien à partager côté build
+ou déploiement puisque chaque projet d'hébergement est cloisonné à son
+dossier.
+
+Prochaine étape concrète : dès que tu m'auras donné les specs des
+plateformes 2 et 3, je restructure ce repo (`apps/lecture` reçoit le code
+actuel, `apps/ecriture` et `apps/communaute` sont créés), et je peux mettre
+en place les 3 projets Vercel directement depuis cette session si tu veux
+utiliser Vercel comme hébergeur.
 
 ## Contenu du schéma (`schema.sql`)
 
@@ -145,10 +205,21 @@ erDiagram
 
 ## Appliquer le schéma
 
+Déjà fait sur le projet Supabase `hypercube-obsidian` — rien à rejouer pour
+l'instant. Pour une future modification (ajout d'une table, etc.) :
+
+```bash
+# Ajouter une migration (jamais éditer un fichier déjà appliqué)
+supabase migration new nom_du_changement
+# éditer le fichier généré dans supabase/migrations/
+supabase link --project-ref pcbjqxogwbjqcskwygpf
+supabase db push
+```
+
+Pour tester en local sans toucher au projet cloud (PostgreSQL générique,
+sans Supabase Auth) :
+
 ```bash
 createdb hypercube
 psql -d hypercube -f database/schema.sql
 ```
-
-Ou, si tu pars sur Supabase : colle le contenu de `schema.sql` dans l'éditeur
-SQL du projet Supabase (Dashboard → SQL Editor → New query).
