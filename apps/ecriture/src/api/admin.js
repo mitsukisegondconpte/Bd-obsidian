@@ -17,7 +17,21 @@ export async function setProfileFlags(targetUserId, flags) {
     new_is_editor: flags.isEditor ?? null,
     new_is_platform_admin: flags.isPlatformAdmin ?? null,
     new_is_suspended: flags.isSuspended ?? null,
+    new_partner_verified: flags.partnerVerified ?? null,
   })
+  if (error) throw error
+  return data
+}
+
+// Inscriptions via /rejoindre-auteur (lien envoyé par un partenaire comme
+// Bohio Mag) : la source est déclarée par la personne elle-même, à valider
+// manuellement avant d'accorder le badge auteur partenaire.
+export async function listPartnerAuthors() {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .not('author_source', 'is', null)
+    .order('created_at', { ascending: false })
   if (error) throw error
   return data
 }

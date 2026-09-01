@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShieldAlert, Trash2, Upload, Send, Search, ImagePlus, Check } from 'lucide-react'
+import { ShieldAlert, Trash2, Upload, Send, Search, ImagePlus, Check, Handshake, X } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -24,6 +24,7 @@ import {
   listWorkReports,
   resolveWorkReport,
   setWorkFeatured,
+  listPartnerAuthors,
 } from '../api/admin'
 
 const TABS = [
@@ -35,7 +36,72 @@ const TABS = [
   { id: 'editionRequests', label: "Demandes d'édition" },
   { id: 'migrations', label: 'Repêchages' },
   { id: 'reports', label: 'Signalements' },
+  { id: 'partners', label: 'Auteurs partenaires' },
 ]
+
+const PARTNER_SOURCE_LABEL = { bohio_mag: 'Bohio Mag', hypercube: 'Hypercube Obsidian' }
+
+function PartnersTab() {
+  const [profiles, setProfiles] = useState(null)
+
+  function reload() {
+    listPartnerAuthors().then(setProfiles)
+  }
+  useEffect(() => {
+    reload()
+  }, [])
+
+  async function handleVerify(p, verified) {
+    await setProfileFlags(p.id, { partnerVerified: verified })
+    reload()
+  }
+
+  return (
+    <div className="space-y-2">
+      {profiles?.length === 0 && (
+        <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-zinc-500">
+          Aucune inscription partenaire pour le moment.
+        </p>
+      )}
+      {profiles?.map((p) => (
+        <div key={p.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-surface-1 p-3">
+          <div>
+            <p className="text-sm font-semibold text-zinc-100">
+              {p.display_name} <span className="font-normal text-zinc-500">@{p.username}</span>
+            </p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-zinc-500">
+              <Handshake size={12} /> {PARTNER_SOURCE_LABEL[p.author_source] ?? p.author_source}
+              {p.partner_verified_at ? (
+                <span className="ml-1 rounded-full bg-emerald-500/20 px-2 py-0.5 font-semibold text-emerald-400">Vérifié</span>
+              ) : (
+                <span className="ml-1 rounded-full bg-amber-500/20 px-2 py-0.5 font-semibold text-amber-400">En attente</span>
+              )}
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            {p.partner_verified_at ? (
+              <button
+                type="button"
+                onClick={() => handleVerify(p, false)}
+                className="flex items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-red-500/20 hover:text-red-400"
+              >
+                <X size={13} /> Retirer
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleVerify(p, true)}
+                className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-ink hover:bg-accent-dark"
+              >
+                <Check size={13} /> Valider
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function FlagToggle({ active, onClick, label, activeClass }) {
   return (
@@ -569,6 +635,7 @@ export default function Admin() {
           {tab === 'editionRequests' && <EditionRequestsTab currentUserId={user.id} />}
           {tab === 'migrations' && <MigrationsTab />}
           {tab === 'reports' && <ReportsTab />}
+          {tab === 'partners' && <PartnersTab />}
         </div>
       </div>
     </Layout>

@@ -20,6 +20,7 @@ const ConditionsUtilisation = lazy(() => import('./pages/ConditionsUtilisation')
 const EditProfile = lazy(() => import('./pages/EditProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
+const SignupPartner = lazy(() => import('./pages/SignupPartner'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Signup />} />
+          <Route path="/rejoindre-auteur" element={<SignupPartner />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
           <Route path="/admin" element={<Admin />} />

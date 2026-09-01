@@ -60,11 +60,11 @@ export function AuthProvider({ children }) {
     setProfile(data)
   }
 
-  async function signUp({ email, password, username, displayName }) {
+  async function signUp({ email, password, username, displayName, authorSource }) {
     return supabase.auth.signUp({
       email,
       password,
-      options: { data: { username, display_name: displayName } },
+      options: { data: { username, display_name: displayName, author_source: authorSource ?? null } },
     })
   }
 
