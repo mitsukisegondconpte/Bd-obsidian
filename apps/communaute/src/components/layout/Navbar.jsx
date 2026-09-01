@@ -52,7 +52,8 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex min-w-0 items-center overflow-x-auto no-scrollbar">
+        <div className="flex shrink-0 items-center gap-1.5">
           <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
@@ -120,6 +121,7 @@ export default function Navbar() {
               {t('auth.login')}
             </Link>
           )}
+        </div>
         </div>
       </div>
     </header>

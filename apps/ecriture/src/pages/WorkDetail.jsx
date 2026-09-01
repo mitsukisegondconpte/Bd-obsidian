@@ -137,7 +137,7 @@ export default function WorkDetail() {
       <div className="px-4 pt-4 sm:px-6">
         <p className="mt-2 text-sm leading-relaxed text-zinc-300">{work.synopsis}</p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="relative mt-4 flex flex-wrap gap-2">
           {firstChapter && (
             <Link
               to={`/oeuvre/${work.id}/chapitre/${resumeChapterId ?? firstChapter.id}`}
@@ -160,7 +160,7 @@ export default function WorkDetail() {
             {likeCount}
           </button>
           {user && (
-            <div className="relative">
+            <>
               <button
                 type="button"
                 onClick={() => setShowListMenu((v) => !v)}
@@ -175,7 +175,7 @@ export default function WorkDetail() {
               </button>
               {showListMenu && (
                 <div
-                  className="absolute right-0 top-full z-20 mt-2 w-56 rounded-xl border border-white/10 bg-surface-1 p-2 shadow-xl"
+                  className="absolute right-0 top-full z-20 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-xl border border-white/10 bg-surface-1 p-2 shadow-xl"
                   onMouseLeave={() => setShowListMenu(false)}
                 >
                   {lists?.length ? (
@@ -205,7 +205,7 @@ export default function WorkDetail() {
                   </Link>
                 </div>
               )}
-            </div>
+            </>
           )}
           {isOwner && (
             <Link
