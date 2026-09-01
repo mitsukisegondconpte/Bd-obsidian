@@ -16,6 +16,7 @@ import {
   listSeriesReports,
   resolveSeriesReport,
 } from '../api/admin'
+import Loader from '../components/ui/Loader'
 
 const TABS = [
   { id: 'dashboard', label: 'Tableau de bord' },
@@ -44,7 +45,7 @@ function DashboardTab() {
   useEffect(() => {
     getDashboardStats().then(setStats)
   }, [])
-  if (!stats) return <p className="text-sm text-zinc-500">Chargement...</p>
+  if (!stats) return <Loader className="p-6" />
   const cards = [
     { label: 'Utilisateurs', value: stats.totalProfiles },
     { label: 'Séries', value: stats.totalSeries },
@@ -310,7 +311,7 @@ export default function Admin() {
   if (!user || !profile) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

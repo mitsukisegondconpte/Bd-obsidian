@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout'
 import SeriesCard from '../components/ui/SeriesCard'
 import { useAuth } from '../context/AuthContext'
 import { listSeriesByAuthor } from '../api/series'
+import Loader from '../components/ui/Loader'
 
 export default function MySeries() {
   const { user } = useAuth()
@@ -40,7 +41,7 @@ export default function MySeries() {
         </div>
 
         {series === null ? (
-          <p className="mt-8 text-sm text-zinc-500">Chargement...</p>
+          <Loader className="mt-8" />
         ) : series.length === 0 ? (
           <div className="mt-10 flex flex-col items-center gap-2 text-center">
             <p className="text-zinc-500">Tu n'as pas encore publié de série.</p>

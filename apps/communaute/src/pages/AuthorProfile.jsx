@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder } from '../utils/placeholders'
 import { countFollowers, getCrossPlatformWorks, getProfileByUsername } from '../api/profiles'
 import { listMyChannels } from '../api/channels'
+import Loader from '../components/ui/Loader'
 
 const LECTURE_URL = 'https://bd-obsidian-lecture.vercel.app'
 const ECRITURE_URL = 'https://bd-obsidian-ecriture.vercel.app'
@@ -43,7 +44,7 @@ export default function AuthorProfile() {
   if (!profile) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

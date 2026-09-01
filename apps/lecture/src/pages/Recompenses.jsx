@@ -3,6 +3,7 @@ import { Award, BookOpen, Flame, Gift, Lock, PenLine, Sparkles, Trophy } from 'l
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { getAllBadges, getBadgeStats, getUserBadges, getUserCounters } from '../api/streaks'
+import Loader from '../components/ui/Loader'
 
 const BADGE_ICONS = { BookOpen, Flame, Trophy, PenLine, Sparkles, Award }
 
@@ -42,7 +43,7 @@ export default function Recompenses() {
   if (!allBadges) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

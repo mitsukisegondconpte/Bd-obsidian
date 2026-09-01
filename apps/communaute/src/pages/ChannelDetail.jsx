@@ -24,6 +24,7 @@ import {
 } from '../api/channels'
 import { createCommunityPost, listMyCommunities } from '../api/communities'
 import { recordStreakActivity } from '../api/streaks'
+import Loader from '../components/ui/Loader'
 
 export default function ChannelDetail() {
   const { channelId } = useParams()
@@ -170,7 +171,7 @@ export default function ChannelDetail() {
   if (!channel) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

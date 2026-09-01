@@ -40,6 +40,7 @@ import {
   uploadCommunityMedia,
 } from '../api/communities'
 import { recordStreakActivity } from '../api/streaks'
+import Loader from '../components/ui/Loader'
 
 export default function CommunityDetail() {
   const { communityId } = useParams()
@@ -239,7 +240,7 @@ export default function CommunityDetail() {
   if (!community) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

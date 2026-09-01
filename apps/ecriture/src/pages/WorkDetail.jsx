@@ -9,6 +9,7 @@ import { getReadingProgress, getWork, listWorkChapters, reportWork } from '../ap
 import { addWorkToList, listMyReadingLists, removeWorkFromList } from '../api/readingLists'
 import { countWorkLikes, hasLikedWork, likeWork, unlikeWork } from '../api/likes'
 import { useAuth } from '../context/AuthContext'
+import Loader from '../components/ui/Loader'
 
 export default function WorkDetail() {
   const { workId } = useParams()
@@ -90,7 +91,7 @@ export default function WorkDetail() {
   if (!work) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

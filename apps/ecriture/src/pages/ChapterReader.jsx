@@ -15,6 +15,7 @@ import {
 } from '../api/comments'
 import { incrementUserCounter, recordStreakActivity } from '../api/streaks'
 import { useAuth } from '../context/AuthContext'
+import Loader from '../components/ui/Loader'
 
 export default function ChapterReader() {
   const { workId, chapterId } = useParams()
@@ -100,7 +101,7 @@ export default function ChapterReader() {
   if (!work || !chapter || !chapters) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

@@ -9,6 +9,7 @@ import { avatarPlaceholder, bannerPlaceholder, coverPlaceholder } from '../utils
 import { countSeriesSubscribers, getSeriesBySlug, incrementSeriesViews, listSeriesChapters, reportSeries } from '../api/series'
 import { countSeriesLikes, hasLikedSeries, likeSeries, unlikeSeries } from '../api/likes'
 import { useAuth } from '../context/AuthContext'
+import Loader from '../components/ui/Loader'
 
 const STATUS_LABEL = { ongoing: 'En cours', paused: 'En pause', completed: 'Terminé' }
 
@@ -64,7 +65,7 @@ export default function SeriesDetail() {
   if (!seriesItem || !chapters) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

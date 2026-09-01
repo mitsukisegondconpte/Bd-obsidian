@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { listChannelReports, listChannels, resolveChannelReport } from '../api/channels'
 import { listCommunities, listReports, resolveReport } from '../api/communities'
 import { listAllProfiles, setProfileFlags, deleteCommunityAdmin, deleteChannelAdmin, getDashboardStats } from '../api/admin'
+import Loader from '../components/ui/Loader'
 
 const TABS = [
   { id: 'dashboard', label: 'Tableau de bord' },
@@ -34,7 +35,7 @@ function DashboardTab() {
   useEffect(() => {
     getDashboardStats().then(setStats)
   }, [])
-  if (!stats) return <p className="text-sm text-zinc-500">Chargement...</p>
+  if (!stats) return <Loader className="p-6" />
   const cards = [
     { label: 'Utilisateurs', value: stats.totalProfiles },
     { label: 'Canaux', value: stats.totalChannels },
@@ -288,7 +289,7 @@ export default function Admin() {
   if (!user || !profile) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

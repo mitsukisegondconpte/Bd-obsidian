@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { addSeriesChapter, getSeriesBySlug, listSeriesChapters, uploadChapterPage } from '../api/series'
 import { recordStreakActivity } from '../api/streaks'
+import Loader from '../components/ui/Loader'
 
 export default function AddChapter() {
   const { slug } = useParams()
@@ -56,7 +57,7 @@ export default function AddChapter() {
   if (!seriesItem) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }

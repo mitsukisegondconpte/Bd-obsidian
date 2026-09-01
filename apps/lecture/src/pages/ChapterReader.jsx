@@ -26,6 +26,7 @@ import {
 import { countChapterLikes, hasLikedChapter, likeChapter, unlikeChapter } from '../api/likes'
 import { hasPurchasedChapter, purchaseChapter } from '../api/purchases'
 import { incrementUserCounter, recordStreakActivity } from '../api/streaks'
+import Loader from '../components/ui/Loader'
 
 export default function ChapterReader() {
   const { slug, chapterId } = useParams()
@@ -187,7 +188,7 @@ export default function ChapterReader() {
 
   if (!seriesItem || !chapters || !chapter) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface-0 text-zinc-500">Chargement...</div>
+      <Loader className="min-h-screen" />
     )
   }
 

@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { updateProfile, uploadAvatar } from '../api/profiles'
 import { avatarPlaceholder } from '../utils/placeholders'
+import Loader from '../components/ui/Loader'
 
 export default function EditProfile() {
   const { user, profile, refreshProfile } = useAuth()
@@ -28,7 +29,7 @@ export default function EditProfile() {
   if (!user || !profile) {
     return (
       <Layout>
-        <p className="p-6 text-zinc-500">Chargement...</p>
+        <Loader />
       </Layout>
     )
   }
