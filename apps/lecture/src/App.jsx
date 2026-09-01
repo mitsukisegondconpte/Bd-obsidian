@@ -13,6 +13,7 @@ const CreateSeries = lazy(() => import('./pages/CreateSeries'))
 const AddChapter = lazy(() => import('./pages/AddChapter'))
 const MySeries = lazy(() => import('./pages/MySeries'))
 const Classement = lazy(() => import('./pages/Classement'))
+const Recompenses = lazy(() => import('./pages/Recompenses'))
 const Confidentialite = lazy(() => import('./pages/Confidentialite'))
 const ConditionsUtilisation = lazy(() => import('./pages/ConditionsUtilisation'))
 const AuthorProfile = lazy(() => import('./pages/AuthorProfile'))
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/creer-serie" element={<CreateSeries />} />
           <Route path="/mes-series" element={<MySeries />} />
           <Route path="/classement" element={<Classement />} />
+          <Route path="/recompenses" element={<Recompenses />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           <Route path="/profil/modifier" element={<EditProfile />} />

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Eye, Flag, Star, Users } from 'lucide-react'
+import { ArrowLeft, BookOpen, Eye, Flag, Heart, Star, Users } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import Badge from '../components/ui/Badge'
 import FollowButton from '../components/ui/FollowButton'
 import ChapterListItem from '../components/ui/ChapterListItem'
 import { avatarPlaceholder, bannerPlaceholder, coverPlaceholder } from '../utils/placeholders'
 import { countSeriesSubscribers, getSeriesBySlug, incrementSeriesViews, listSeriesChapters, reportSeries } from '../api/series'
+import { countSeriesLikes, hasLikedSeries, likeSeries, unlikeSeries } from '../api/likes'
 import { useAuth } from '../context/AuthContext'
 
 const STATUS_LABEL = { ongoing: 'En cours', paused: 'En pause', completed: 'Terminé' }
@@ -17,6 +18,8 @@ export default function SeriesDetail() {
   const [seriesItem, setSeriesItem] = useState(null)
   const [chapters, setChapters] = useState(null)
   const [subscribers, setSubscribers] = useState(0)
+  const [likeCount, setLikeCount] = useState(0)
+  const [liked, setLiked] = useState(false)
   const [sortDesc, setSortDesc] = useState(true)
   const [tab, setTab] = useState('chapters')
   const [error, setError] = useState('')
@@ -30,10 +33,25 @@ export default function SeriesDetail() {
         setSeriesItem(s)
         incrementSeriesViews(s.id)
         countSeriesSubscribers(s.id).then(setSubscribers)
+        countSeriesLikes(s.id).then(setLikeCount)
         listSeriesChapters(s.id).then(setChapters)
+        if (user) hasLikedSeries(user.id, s.id).then(setLiked)
       })
       .catch((e) => setError(e.message))
-  }, [slug])
+  }, [slug, user])
+
+  async function toggleLike() {
+    if (!user || !seriesItem) return
+    if (liked) {
+      await unlikeSeries(user.id, seriesItem.id)
+      setLiked(false)
+      setLikeCount((c) => c - 1)
+    } else {
+      await likeSeries(user.id, seriesItem.id)
+      setLiked(true)
+      setLikeCount((c) => c + 1)
+    }
+  }
 
   if (error) {
     return (
@@ -131,6 +149,18 @@ export default function SeriesDetail() {
             </Link>
           )}
           <FollowButton targetType="series" targetId={seriesItem.id} />
+          <button
+            type="button"
+            onClick={toggleLike}
+            disabled={!user}
+            aria-label="Aimer cette série"
+            className={`flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-sm font-bold ${
+              liked ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-zinc-300 hover:border-white/20'
+            }`}
+          >
+            <Heart size={15} className={liked ? 'fill-accent' : ''} />
+            {likeCount}
+          </button>
         </div>
 
         <div className="mt-6 flex gap-5 border-b border-white/5 text-sm font-semibold">

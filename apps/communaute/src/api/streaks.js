@@ -27,6 +27,18 @@ export async function getBadgeStats() {
   return data
 }
 
+export async function getAllBadges() {
+  const { data, error } = await supabase.from('badges').select('*').order('rarity').order('threshold_count')
+  if (error) throw error
+  return data
+}
+
+export async function getUserCounters(userId) {
+  const { data, error } = await supabase.from('user_counters').select('*').eq('user_id', userId)
+  if (error) throw error
+  return data
+}
+
 export async function getPantheon(limit = 20) {
   const { data, error } = await supabase.rpc('pantheon_top_users', { p_limit: limit })
   if (error) throw error

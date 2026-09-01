@@ -77,6 +77,18 @@ export async function listEligibleContent(linkType = 'hypercube_world') {
   return { series, works }
 }
 
+// Pour un canal uniquement : ses propres œuvres sont toujours sélectionnables,
+// même hors Top 5 / mise en avant (cf. le bypass dans check_content_link_eligible).
+export async function listMyOwnContent(userId) {
+  const [series, works] = await Promise.all([
+    supabase.from('series').select('id, title').eq('author_id', userId),
+    supabase.from('works').select('id, title').eq('author_id', userId),
+  ])
+  if (series.error) throw series.error
+  if (works.error) throw works.error
+  return { series: series.data ?? [], works: works.data ?? [] }
+}
+
 export async function uploadCommunityCover({ ownerId, file }) {
   const path = `${ownerId}/${Date.now()}-${file.name}`
   const { error: uploadError } = await supabase.storage.from('community-covers').upload(path, file)

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Bookmark, Flag, Lock } from 'lucide-react'
+import { ArrowLeft, BookOpen, Bookmark, Flag, Heart, Lock } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import Badge from '../components/ui/Badge'
 import FollowButton from '../components/ui/FollowButton'
 import { bookCoverPlaceholder } from '../utils/placeholders'
 import { getReadingProgress, getWork, listWorkChapters, reportWork } from '../api/works'
 import { addWorkToList, listMyReadingLists, removeWorkFromList } from '../api/readingLists'
+import { countWorkLikes, hasLikedWork, likeWork, unlikeWork } from '../api/likes'
 import { useAuth } from '../context/AuthContext'
 
 export default function WorkDetail() {
@@ -15,6 +16,8 @@ export default function WorkDetail() {
   const [work, setWork] = useState(null)
   const [chapters, setChapters] = useState(null)
   const [resumeChapterId, setResumeChapterId] = useState(null)
+  const [likeCount, setLikeCount] = useState(0)
+  const [liked, setLiked] = useState(false)
   const [error, setError] = useState('')
   const [lists, setLists] = useState(null)
   const [showListMenu, setShowListMenu] = useState(false)
@@ -27,12 +30,27 @@ export default function WorkDetail() {
       .then(setWork)
       .catch((e) => setError(e.message))
     listWorkChapters(workId).then(setChapters)
+    countWorkLikes(workId).then(setLikeCount)
   }, [workId])
 
   useEffect(() => {
     if (user) getReadingProgress(user.id, workId).then(setResumeChapterId)
     if (user) listMyReadingLists(user.id).then(setLists)
+    if (user) hasLikedWork(user.id, workId).then(setLiked)
   }, [user, workId])
+
+  async function toggleLike() {
+    if (!user) return
+    if (liked) {
+      await unlikeWork(user.id, workId)
+      setLiked(false)
+      setLikeCount((c) => c - 1)
+    } else {
+      await likeWork(user.id, workId)
+      setLiked(true)
+      setLikeCount((c) => c + 1)
+    }
+  }
 
   async function toggleInList(list) {
     const inList = list.reading_list_items.some((it) => it.work_id === workId)
@@ -128,6 +146,18 @@ export default function WorkDetail() {
             </Link>
           )}
           <FollowButton authorId={work.author_id} />
+          <button
+            type="button"
+            onClick={toggleLike}
+            disabled={!user}
+            aria-label="Aimer cette œuvre"
+            className={`flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-sm font-bold ${
+              liked ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-zinc-300 hover:border-white/20'
+            }`}
+          >
+            <Heart size={15} className={liked ? 'fill-accent' : ''} />
+            {likeCount}
+          </button>
           {user && (
             <div className="relative">
               <button

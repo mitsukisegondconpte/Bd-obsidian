@@ -31,3 +31,15 @@ export async function getBadgeStats() {
   if (error) throw error
   return data
 }
+
+export async function getAllBadges() {
+  const { data, error } = await supabase.from('badges').select('*').order('rarity').order('threshold_count')
+  if (error) throw error
+  return data
+}
+
+export async function getUserCounters(userId) {
+  const { data, error } = await supabase.from('user_counters').select('*').eq('user_id', userId)
+  if (error) throw error
+  return data
+}

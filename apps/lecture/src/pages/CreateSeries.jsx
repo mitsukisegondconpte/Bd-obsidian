@@ -20,7 +20,7 @@ const COVER_TABS = [
 ]
 
 export default function CreateSeries() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const [title, setTitle] = useState('')
@@ -47,6 +47,20 @@ export default function CreateSeries() {
         <div className="flex flex-col items-center gap-3 px-4 py-20 text-center">
           <Lock size={28} className="text-zinc-600" />
           <p className="text-zinc-400">Connecte-toi pour créer une série.</p>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (profile && !profile.is_lecture_author) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center gap-3 px-4 py-20 text-center">
+          <Lock size={28} className="text-zinc-600" />
+          <p className="max-w-xs text-sm text-zinc-400">
+            La publication sur la plateforme lecture est réservée aux auteurs nommés par l'équipe Hypercube.
+            Publie sur Hypercube World (écriture) pour te faire remarquer.
+          </p>
         </div>
       </Layout>
     )

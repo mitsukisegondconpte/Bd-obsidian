@@ -4,7 +4,7 @@ import { Lock } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { createChannel } from '../api/channels'
-import { listEligibleContent } from '../api/communities'
+import { listEligibleContent, listMyOwnContent } from '../api/communities'
 
 export default function CreateChannel() {
   const { user, profile } = useAuth()
@@ -22,7 +22,13 @@ export default function CreateChannel() {
     if (!user) return
     setContentType('')
     setLinkedId('')
-    listEligibleContent(channelType).then(setContent)
+    Promise.all([listEligibleContent(channelType), listMyOwnContent(user.id)]).then(([eligible, mine]) => {
+      const seriesById = new Map(eligible.series.map((s) => [s.id, s]))
+      for (const s of mine.series) seriesById.set(s.id, s)
+      const worksById = new Map(eligible.works.map((w) => [w.id, w]))
+      for (const w of mine.works) worksById.set(w.id, w)
+      setContent({ series: Array.from(seriesById.values()), works: Array.from(worksById.values()) })
+    })
   }, [user, channelType])
 
   if (!user) {
@@ -63,7 +69,7 @@ export default function CreateChannel() {
       })
       navigate(`/canal/${channel.id}`)
     } catch (err) {
-      setError(err.message)
+      setError(err.code === '23505' ? 'Cette œuvre a déjà un canal — un seul canal par œuvre.' : err.message)
     } finally {
       setSubmitting(false)
     }
@@ -78,7 +84,7 @@ export default function CreateChannel() {
         <p className="mt-1 text-sm text-zinc-500">
           Comme une chaîne WhatsApp : tes abonnés reçoivent tes annonces, ils ne peuvent pas te répondre
           publiquement. Réservé aux 5 œuvres les plus populaires du moment, ou aux œuvres officiellement mises
-          en avant HOS/Bohio Mag.
+          en avant HOS/Bohio Mag — sauf pour tes propres œuvres, toujours autorisées. Une seule chaîne par œuvre.
         </p>
 
         <div className="mt-5 flex gap-2">

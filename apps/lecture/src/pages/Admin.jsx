@@ -114,6 +114,12 @@ function UsersTab({ currentUserId }) {
                 activeClass="bg-accent/20 text-accent"
               />
               <FlagToggle
+                active={p.is_lecture_author}
+                onClick={() => toggle(p, 'is_lecture_author', 'isLectureAuthor')}
+                label="Auteur BD (site 1)"
+                activeClass="bg-emerald-500/20 text-emerald-400"
+              />
+              <FlagToggle
                 active={p.is_editor}
                 onClick={() => toggle(p, 'is_editor', 'isEditor')}
                 label="Éditeur"

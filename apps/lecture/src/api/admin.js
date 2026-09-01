@@ -17,6 +17,7 @@ export async function setProfileFlags(targetUserId, flags) {
     new_is_editor: flags.isEditor ?? null,
     new_is_platform_admin: flags.isPlatformAdmin ?? null,
     new_is_suspended: flags.isSuspended ?? null,
+    new_is_lecture_author: flags.isLectureAuthor ?? null,
   })
   if (error) throw error
   return data
