@@ -51,26 +51,30 @@ export async function listCommunityMembers(communityId) {
   return data.map((row) => row.user)
 }
 
-// Contenu pouvant être lié à un nouveau canal/communauté : œuvres/séries
-// actuellement au Top 10 hebdomadaire, ou œuvres mises en avant par
-// HOS/Bohio Mag — cf. le trigger check_content_link_eligible côté base,
-// qui est la véritable source de vérité (ceci n'est qu'un sélecteur).
-export async function listEligibleContent() {
-  const [topSeries, topWorks, featuredWorks] = await Promise.all([
-    supabase.rpc('top_series_weekly', { p_limit: 10 }),
-    supabase.rpc('top_works_weekly', { p_limit: 10 }),
-    supabase.from('works').select('id, title').eq('is_featured', true),
+// Contenu pouvant être lié à un nouveau canal/communauté, selon le type
+// choisi — cf. le trigger check_content_link_eligible côté base, qui est
+// la véritable source de vérité (ceci n'est qu'un sélecteur) :
+// - "hypercube_world" : les 5 séries/œuvres les plus populaires (Top 5
+//   hebdomadaire), tous supports.
+// - "officiel" : œuvres du site 2 mises en avant HOS/Bohio Mag uniquement
+//   (pas de séries BD dans ce type).
+export async function listEligibleContent(linkType = 'hypercube_world') {
+  if (linkType === 'officiel') {
+    const { data, error } = await supabase.from('works').select('id, title').eq('is_featured', true)
+    if (error) throw error
+    return { series: [], works: data ?? [] }
+  }
+
+  const [topSeries, topWorks] = await Promise.all([
+    supabase.rpc('top_series_weekly', { p_limit: 5 }),
+    supabase.rpc('top_works_weekly', { p_limit: 5 }),
   ])
   if (topSeries.error) throw topSeries.error
   if (topWorks.error) throw topWorks.error
-  if (featuredWorks.error) throw featuredWorks.error
 
   const series = (topSeries.data ?? []).map((s) => ({ id: s.series_id, title: s.title }))
-  const worksById = new Map()
-  for (const w of topWorks.data ?? []) worksById.set(w.work_id, { id: w.work_id, title: w.title })
-  for (const w of featuredWorks.data ?? []) worksById.set(w.id, { id: w.id, title: w.title })
-
-  return { series, works: Array.from(worksById.values()) }
+  const works = (topWorks.data ?? []).map((w) => ({ id: w.work_id, title: w.title }))
+  return { series, works }
 }
 
 export async function uploadCommunityCover({ ownerId, file }) {
@@ -86,10 +90,17 @@ export async function updateCommunityCover(communityId, coverUrl) {
   if (error) throw error
 }
 
-export async function createCommunity({ creatorId, name, description, relatedSeriesId, relatedWorkId }) {
+export async function createCommunity({ creatorId, name, description, linkType, relatedSeriesId, relatedWorkId }) {
   const { data, error } = await supabase
     .from('communities')
-    .insert({ creator_id: creatorId, name, description, related_series_id: relatedSeriesId, related_work_id: relatedWorkId })
+    .insert({
+      creator_id: creatorId,
+      name,
+      description,
+      link_type: linkType,
+      related_series_id: relatedSeriesId,
+      related_work_id: relatedWorkId,
+    })
     .select()
     .single()
   if (error) throw error

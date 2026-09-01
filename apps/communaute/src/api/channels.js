@@ -29,13 +29,14 @@ export async function listChannelPosts(channelId) {
   return data
 }
 
-export async function createChannel({ ownerId, name, description, relatedSeriesId, relatedWorkId }) {
+export async function createChannel({ ownerId, name, description, linkType, relatedSeriesId, relatedWorkId }) {
   const { data, error } = await supabase
     .from('channels')
     .insert({
       owner_id: ownerId,
       name,
       description,
+      link_type: linkType,
       related_series_id: relatedSeriesId ?? null,
       related_work_id: relatedWorkId ?? null,
     })

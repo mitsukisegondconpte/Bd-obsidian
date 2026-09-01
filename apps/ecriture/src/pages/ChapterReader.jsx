@@ -13,7 +13,7 @@ import {
   listComments,
   unlikeComment,
 } from '../api/comments'
-import { recordStreakActivity } from '../api/streaks'
+import { incrementUserCounter, recordStreakActivity } from '../api/streaks'
 import { useAuth } from '../context/AuthContext'
 
 export default function ChapterReader() {
@@ -41,6 +41,7 @@ export default function ChapterReader() {
     if (user) {
       saveReadingProgress({ userId: user.id, workId, chapterId })
       recordStreakActivity('reading').catch(() => {})
+      incrementUserCounter('chapters_read').catch(() => {})
     }
   }, [chapterId, workId, user])
 

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { incrementUserCounter } from './streaks'
 
 export async function listComments(targetId) {
   const { data, error } = await supabase
@@ -18,6 +19,7 @@ export async function createComment({ userId, targetId, body, parentCommentId })
     .select('*, user:profiles(username, display_name, avatar_url)')
     .single()
   if (error) throw error
+  incrementUserCounter('comments_posted').catch(() => {})
   return data
 }
 

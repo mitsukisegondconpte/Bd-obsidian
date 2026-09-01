@@ -14,9 +14,21 @@ export async function getUserStreaks(userId) {
 export async function getUserBadges(userId) {
   const { data, error } = await supabase
     .from('user_badges')
-    .select('earned_at, badge:badges(code, label, description, icon)')
+    .select('earned_at, badge:badges(id, code, label, description, icon, rarity)')
     .eq('user_id', userId)
     .order('earned_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function getBadgeStats() {
+  const { data, error } = await supabase.rpc('badge_stats')
+  if (error) throw error
+  return data
+}
+
+export async function getPantheon(limit = 20) {
+  const { data, error } = await supabase.rpc('pantheon_top_users', { p_limit: limit })
   if (error) throw error
   return data
 }
