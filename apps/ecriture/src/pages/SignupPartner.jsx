@@ -5,7 +5,6 @@ import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 
 const SOURCES = [
-  { id: 'bohio_mag', label: 'Bohio Mag' },
   { id: 'hypercube', label: 'Hypercube Obsidian' },
 ]
 
@@ -13,7 +12,7 @@ export default function SignupPartner() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', username: '', displayName: '' })
-  const [authorSource, setAuthorSource] = useState('bohio_mag')
+  const [authorSource, setAuthorSource] = useState('hypercube')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
