@@ -10,6 +10,7 @@ const Library = lazy(() => import('./pages/Library'))
 const SeriesDetail = lazy(() => import('./pages/SeriesDetail'))
 const ChapterReader = lazy(() => import('./pages/ChapterReader'))
 const CreateSeries = lazy(() => import('./pages/CreateSeries'))
+const EditSeries = lazy(() => import('./pages/EditSeries'))
 const AddChapter = lazy(() => import('./pages/AddChapter'))
 const MySeries = lazy(() => import('./pages/MySeries'))
 const Classement = lazy(() => import('./pages/Classement'))
@@ -23,6 +24,7 @@ const Signup = lazy(() => import('./pages/Signup'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const Settings = lazy(() => import('./pages/Settings'))
 const Admin = lazy(() => import('./pages/Admin'))
 
 function ScrollToTop() {
@@ -49,6 +51,8 @@ export default function App() {
           <Route path="/abonnements" element={<Library />} />
           <Route path="/serie/:slug" element={<SeriesDetail />} />
           <Route path="/serie/:slug/chapitre/:chapterId" element={<ChapterReader />} />
+          <Route path="/serie/:slug/modifier" element={<EditSeries />} />
+          <Route path="/serie/:slug/ajouter-chapitre/:chapterId" element={<AddChapter />} />
           <Route path="/serie/:slug/ajouter-chapitre" element={<AddChapter />} />
           <Route path="/creer-serie" element={<CreateSeries />} />
           <Route path="/mes-series" element={<MySeries />} />
@@ -57,6 +61,7 @@ export default function App() {
           <Route path="/confidentialite" element={<Confidentialite />} />
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
           <Route path="/connexion" element={<Login />} />
           <Route path="/inscription" element={<Signup />} />

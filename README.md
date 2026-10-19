@@ -205,10 +205,9 @@ calculés depuis les vraies vues/dates de publication (pas des drapeaux
 figés), compteur de vues incrémenté à chaque visite, hero d'accueil en
 carrousel (les séries les plus vues défilent automatiquement, swipe manuel
 possible) avec une transition "hexagone qui se déforme" reprenant le
-langage visuel du logo, panel auteur complet (n'importe quel compte
-connecté peut créer une série et publier des chapitres — le flip
-`is_author` est automatique via trigger Postgres, aucune validation manuelle
-requise).
+langage visuel du logo, studio auteur réservé aux comptes explicitement
+nommés par l'équipe Hypercube via `profiles.is_lecture_author`. Les brouillons
+sont privés jusqu'à leur publication.
 
 Aucune donnée de démonstration n'est seedée en base — la plateforme
 démarre vide et affiche un état vide propre tant qu'aucun auteur n'a publié.
