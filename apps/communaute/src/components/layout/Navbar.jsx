@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Crown, Gift, LogOut, Search, ShieldAlert, Trophy } from 'lucide-react'
+import { Crown, Gift, LogOut, Settings as SettingsIcon, Search, ShieldAlert, Trophy } from 'lucide-react'
 import hypercubeLogo from '../../assets/hypercube-obsidian-logo.png'
 import { useAuth } from '../../context/AuthContext'
 import { useLanguage } from '../../context/LanguageContext'
@@ -10,9 +10,10 @@ import LanguageToggle from '../ui/LanguageToggle'
 
 export default function Navbar() {
   const { user, profile, signOut } = useAuth()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [logoutError, setLogoutError] = useState('')
 
   const links = [
     { to: '/', label: t('nav.home') },
@@ -25,6 +26,16 @@ export default function Navbar() {
     e.preventDefault()
     const q = query.trim()
     navigate(q ? `/explorer?q=${encodeURIComponent(q)}` : '/explorer')
+  }
+
+  async function handleSignOut() {
+    setLogoutError('')
+    try {
+      await signOut()
+      navigate('/')
+    } catch {
+      setLogoutError(lang === 'ht' ? 'Dekoneksyon an echwe. Eseye ankò.' : 'La déconnexion a échoué. Réessaie.')
+    }
   }
 
   return (
@@ -83,6 +94,9 @@ export default function Navbar() {
           </Link>
           <LanguageToggle />
           <PlatformSwitcher />
+          <Link to="/settings" aria-label={lang === 'ht' ? 'Paramèt' : 'Paramètres'} title={lang === 'ht' ? 'Paramèt' : 'Paramètres'} className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100">
+            <SettingsIcon size={17} />
+          </Link>
 
           {user ? (
             <>
@@ -98,7 +112,7 @@ export default function Navbar() {
               <NotificationBell />
               <button
                 type="button"
-                onClick={() => signOut().then(() => navigate('/'))}
+                onClick={handleSignOut}
                 aria-label={t('auth.logout')}
                 className="rounded-full p-2 text-zinc-400 hover:bg-surface-2 hover:text-zinc-100"
               >
@@ -124,6 +138,7 @@ export default function Navbar() {
         </div>
         </div>
       </div>
+      {logoutError && <div role="alert" aria-live="polite" className="mx-auto max-w-6xl px-4 pb-2 text-xs text-red-500">{logoutError}</div>}
     </header>
   )
 }

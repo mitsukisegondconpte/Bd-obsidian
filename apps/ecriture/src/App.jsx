@@ -25,6 +25,7 @@ const SignupPartner = lazy(() => import('./pages/SignupPartner'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const Settings = lazy(() => import('./pages/Settings'))
 const Admin = lazy(() => import('./pages/Admin'))
 
 function ScrollToTop() {
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/mes-listes" element={<ReadingLists />} />
           <Route path="/edition" element={<EditionServices />} />
           <Route path="/profil/modifier" element={<EditProfile />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/profil/:username" element={<AuthorProfile />} />
           <Route path="/classement" element={<Classement />} />
           <Route path="/recompenses" element={<Recompenses />} />

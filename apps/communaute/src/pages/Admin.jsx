@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import { listChannelReports, listChannels, resolveChannelReport } from '../api/channels'
 import { listCommunities, listReports, resolveReport } from '../api/communities'
+import { listSupportReports, resolveSupportReport } from '../api/support'
 import { listAllProfiles, setProfileFlags, deleteCommunityAdmin, deleteChannelAdmin, getDashboardStats } from '../api/admin'
 import Loader from '../components/ui/Loader'
 
@@ -14,6 +15,7 @@ const TABS = [
   { id: 'communities', label: 'Communautés' },
   { id: 'channels', label: 'Canaux' },
   { id: 'reports', label: 'Signalements' },
+  { id: 'support', label: 'Support' },
 ]
 
 function FlagToggle({ active, onClick, label, activeClass }) {
@@ -282,6 +284,48 @@ function ReportsTab() {
   )
 }
 
+function SupportTab() {
+  const [reports, setReports] = useState(null)
+  const [error, setError] = useState('')
+  async function reload() {
+    try {
+      setReports(await listSupportReports())
+      setError('')
+    } catch (err) {
+      setError(err.message || 'Impossible de charger les demandes.')
+    }
+  }
+  useEffect(() => { reload() }, [])
+  async function handleResolve(id) {
+    try {
+      await resolveSupportReport(id)
+      setReports((previous) => (previous || []).filter((report) => report.id !== id))
+    } catch (err) {
+      setError(err.message || 'Impossible de mettre à jour la demande.')
+    }
+  }
+  const categoryLabels = { technical: 'Problème technique', inappropriate: 'Contenu inapproprié', copyright: 'Droit d’auteur', account: 'Problème de compte', security: 'Sécurité', other: 'Autre' }
+  if (!reports && !error) return <Loader className="p-6" />
+  return (
+    <div className="space-y-3">
+      {error && <p role="alert" className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-500">{error}</p>}
+      {reports?.length === 0 && <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-zinc-500">Aucune demande en attente.</p>}
+      {reports?.map((report) => (
+        <article key={report.id} className="rounded-lg border border-white/5 bg-surface-1 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-zinc-100">{categoryLabels[report.category] || report.category}</p>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">{report.description}</p>
+              <p className="mt-2 text-xs text-zinc-500">{report.reporter?.display_name || report.reporter?.username || 'Utilisateur'} · {new Date(report.created_at).toLocaleDateString('fr-FR')}</p>
+            </div>
+            <button type="button" onClick={() => handleResolve(report.id)} aria-label="Marquer la demande comme résolue" className="flex shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-accent hover:text-accent-ink"><Check size={14} />Résolu</button>
+          </div>
+        </article>
+      ))}
+    </div>
+  )
+}
+
 export default function Admin() {
   const { user, profile } = useAuth()
   const [tab, setTab] = useState('dashboard')
@@ -333,6 +377,7 @@ export default function Admin() {
           {tab === 'communities' && <CommunitiesTab />}
           {tab === 'channels' && <ChannelsTab />}
           {tab === 'reports' && <ReportsTab />}
+          {tab === 'support' && <SupportTab />}
         </div>
       </div>
     </Layout>

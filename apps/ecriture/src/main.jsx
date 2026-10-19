@@ -6,6 +6,9 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { LanguageProvider } from './context/LanguageContext.jsx'
 import { isSupabaseConfigured } from './lib/supabaseClient.js'
+import { initializeTheme } from './lib/theme.js'
+
+initializeTheme()
 
 function MissingConfigScreen() {
   return (
