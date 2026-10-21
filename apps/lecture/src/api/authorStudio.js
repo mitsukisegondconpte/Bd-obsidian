@@ -17,13 +17,27 @@ function objectPathFromPublicUrl(url, bucket) {
   return offset < 0 ? null : decodeURIComponent(url.slice(offset + marker.length))
 }
 
-export async function createSeriesDraft(authorId) {
-  const pendingKey = `series:${authorId}`
-  if (pendingSeriesDraftCreates.has(pendingKey)) {
-    return pendingSeriesDraftCreates.get(pendingKey)
-  }
+function createPendingDraftGuard(map, keyFactory) {
+  return async function runWithPendingGuard(key, operation) {
+    const key = keyFactory(key)
+    const existing = map.get(key)
+    if (existing) return existing
 
-  const promise = (async () => {
+    const promise = Promise.resolve().then(operation)
+    map.set(key, promise)
+    try {
+      return await promise
+    } finally {
+      map.delete(key)
+    }
+  }
+}
+
+const withPendingSeriesDraft = createPendingDraftGuard(pendingSeriesDraftCreates, (key) => `series:${key}`)
+const withPendingChapterDraft = createPendingDraftGuard(pendingChapterDraftCreates, (key) => `chapter:${key}`)
+
+export async function createSeriesDraft(authorId) {
+  return withPendingSeriesDraft(authorId, async () => {
     const slug = 'brouillon-' + authorId.slice(0, 8) + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6)
     const { data, error } = await supabase
       .from('series')
@@ -32,14 +46,7 @@ export async function createSeriesDraft(authorId) {
       .single()
     if (error) throw error
     return data
-  })()
-
-  pendingSeriesDraftCreates.set(pendingKey, promise)
-  try {
-    return await promise
-  } finally {
-    pendingSeriesDraftCreates.delete(pendingKey)
-  }
+  })
 }
 
 export async function getAuthorSeriesDraft(seriesId, authorId) {
@@ -137,12 +144,7 @@ export async function publishSeriesDraft({ seriesId, authorId }) {
 }
 
 export async function createChapterDraft({ seriesId, number }) {
-  const pendingKey = `chapter:${seriesId}:${number}`
-  if (pendingChapterDraftCreates.has(pendingKey)) {
-    return pendingChapterDraftCreates.get(pendingKey)
-  }
-
-  const promise = (async () => {
+  return withPendingChapterDraft(`${seriesId}:${number}`, async () => {
     const { data, error } = await supabase
       .from('chapters')
       .insert({ series_id: seriesId, number, title: 'Brouillon sans titre', is_free: true, price_cents: 0, page_count: 0, published_at: null })
@@ -150,14 +152,7 @@ export async function createChapterDraft({ seriesId, number }) {
       .single()
     if (error) throw error
     return data
-  })()
-
-  pendingChapterDraftCreates.set(pendingKey, promise)
-  try {
-    return await promise
-  } finally {
-    pendingChapterDraftCreates.delete(pendingKey)
-  }
+  })
 }
 
 export async function updateAuthorChapter({ chapterId, title, isFree, priceCents }) {
