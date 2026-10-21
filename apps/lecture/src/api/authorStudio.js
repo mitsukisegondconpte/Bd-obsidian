@@ -1,5 +1,8 @@
 import { supabase } from '../lib/supabaseClient'
 
+const pendingSeriesDraftCreates = new Map()
+const pendingChapterDraftCreates = new Map()
+
 function safeName(name) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_')
 }
@@ -15,14 +18,28 @@ function objectPathFromPublicUrl(url, bucket) {
 }
 
 export async function createSeriesDraft(authorId) {
-  const slug = 'brouillon-' + authorId.slice(0, 8) + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6)
-  const { data, error } = await supabase
-    .from('series')
-    .insert({ author_id: authorId, title: 'Brouillon sans titre', summary: '', slug, status: 'ongoing', is_published: false })
-    .select('*, series_genres(genre:genres(name))')
-    .single()
-  if (error) throw error
-  return data
+  const pendingKey = `series:${authorId}`
+  if (pendingSeriesDraftCreates.has(pendingKey)) {
+    return pendingSeriesDraftCreates.get(pendingKey)
+  }
+
+  const promise = (async () => {
+    const slug = 'brouillon-' + authorId.slice(0, 8) + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6)
+    const { data, error } = await supabase
+      .from('series')
+      .insert({ author_id: authorId, title: 'Brouillon sans titre', summary: '', slug, status: 'ongoing', is_published: false })
+      .select('*, series_genres(genre:genres(name))')
+      .single()
+    if (error) throw error
+    return data
+  })()
+
+  pendingSeriesDraftCreates.set(pendingKey, promise)
+  try {
+    return await promise
+  } finally {
+    pendingSeriesDraftCreates.delete(pendingKey)
+  }
 }
 
 export async function getAuthorSeriesDraft(seriesId, authorId) {
@@ -120,13 +137,27 @@ export async function publishSeriesDraft({ seriesId, authorId }) {
 }
 
 export async function createChapterDraft({ seriesId, number }) {
-  const { data, error } = await supabase
-    .from('chapters')
-    .insert({ series_id: seriesId, number, title: 'Brouillon sans titre', is_free: true, price_cents: 0, page_count: 0, published_at: null })
-    .select('*')
-    .single()
-  if (error) throw error
-  return data
+  const pendingKey = `chapter:${seriesId}:${number}`
+  if (pendingChapterDraftCreates.has(pendingKey)) {
+    return pendingChapterDraftCreates.get(pendingKey)
+  }
+
+  const promise = (async () => {
+    const { data, error } = await supabase
+      .from('chapters')
+      .insert({ series_id: seriesId, number, title: 'Brouillon sans titre', is_free: true, price_cents: 0, page_count: 0, published_at: null })
+      .select('*')
+      .single()
+    if (error) throw error
+    return data
+  })()
+
+  pendingChapterDraftCreates.set(pendingKey, promise)
+  try {
+    return await promise
+  } finally {
+    pendingChapterDraftCreates.delete(pendingKey)
+  }
 }
 
 export async function updateAuthorChapter({ chapterId, title, isFree, priceCents }) {
@@ -234,7 +265,6 @@ export async function deleteAuthorChapter(chapterId) {
   const { error } = await supabase.from('chapters').delete().eq('id', chapterId).select('id').single()
   if (error) throw error
 }
-
 
 export async function updatePublishedSeries({ seriesId, authorId, title, summary, status, updateDay, coverUrl, genreNames }) {
   const { error } = await supabase
