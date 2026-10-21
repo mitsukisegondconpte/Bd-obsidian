@@ -18,8 +18,8 @@ function objectPathFromPublicUrl(url, bucket) {
 }
 
 function createPendingDraftGuard(map, keyFactory) {
-  return async function runWithPendingGuard(key, operation) {
-    const key = keyFactory(key)
+  return async function runWithPendingGuard(pendingKey, operation) {
+    const key = keyFactory(pendingKey)
     const existing = map.get(key)
     if (existing) return existing
 
