@@ -285,6 +285,7 @@ create trigger activate_pending_lecture_author_after_confirmation
 
 -- Les colonnes de rôle restent gérées par les RPC existantes; l'accès invité
 -- n'est accordé que par le trigger de création ci-dessus.
+drop policy if exists "guests cannot create comments" on public.comments;
 create policy "guests cannot create comments"
   on public.comments as restrictive for insert to authenticated
   with check (not exists (
@@ -292,6 +293,7 @@ create policy "guests cannot create comments"
     where p.id = (select auth.uid()) and p.is_guest
   ));
 
+drop policy if exists "guests cannot create likes" on public.likes;
 create policy "guests cannot create likes"
   on public.likes as restrictive for insert to authenticated
   with check (not exists (
@@ -299,6 +301,7 @@ create policy "guests cannot create likes"
     where p.id = (select auth.uid()) and p.is_guest
   ));
 
+drop policy if exists "guests cannot create reading lists" on public.reading_lists;
 create policy "guests cannot create reading lists"
   on public.reading_lists as restrictive for insert to authenticated
   with check (not exists (
@@ -306,6 +309,7 @@ create policy "guests cannot create reading lists"
     where p.id = (select auth.uid()) and p.is_guest
   ));
 
+drop policy if exists "guests cannot add reading list items" on public.reading_list_items;
 create policy "guests cannot add reading list items"
   on public.reading_list_items as restrictive for insert to authenticated
   with check (not exists (
@@ -313,6 +317,7 @@ create policy "guests cannot add reading list items"
     where p.id = (select auth.uid()) and p.is_guest
   ));
 
+drop policy if exists "guests cannot publish works" on public.works;
 create policy "guests cannot publish works"
   on public.works as restrictive for all to authenticated
   using (not exists (
@@ -324,6 +329,7 @@ create policy "guests cannot publish works"
     where p.id = (select auth.uid()) and p.is_guest
   ));
 
+drop policy if exists "guests cannot publish work chapters" on public.work_chapters;
 create policy "guests cannot publish work chapters"
   on public.work_chapters as restrictive for all to authenticated
   using (not exists (
@@ -335,6 +341,7 @@ create policy "guests cannot publish work chapters"
     where p.id = (select auth.uid()) and p.is_guest
   ));
 
+drop policy if exists "guests cannot react to community posts" on public.community_post_reactions;
 create policy "guests cannot react to community posts"
   on public.community_post_reactions as restrictive for insert to authenticated
   with check (not exists (
@@ -344,6 +351,7 @@ create policy "guests cannot react to community posts"
 
 -- Les invités ne peuvent suivre un auteur; les abonnements à une série ou
 -- à un canal ne sont pas modifiés par cette règle.
+drop policy if exists "guests cannot follow authors" on public.follows;
 create policy "guests cannot follow authors"
   on public.follows as restrictive for insert to authenticated
   with check (
