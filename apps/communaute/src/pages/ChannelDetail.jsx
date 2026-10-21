@@ -28,7 +28,7 @@ import Loader from '../components/ui/Loader'
 
 export default function ChannelDetail() {
   const { channelId } = useParams()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   const [channel, setChannel] = useState(null)
   const [posts, setPosts] = useState([])
@@ -262,7 +262,7 @@ export default function ChannelDetail() {
               author={channel.owner}
               likeCount={likeState[p.id]?.count ?? 0}
               liked={likeState[p.id]?.liked ?? false}
-              onToggleLike={user ? () => toggleLike(p.id) : undefined}
+              onToggleLike={user && !profile?.is_guest ? () => toggleLike(p.id) : undefined}
               onShare={() => setShareTarget(p)}
             />
           ))}

@@ -7,7 +7,7 @@ import { recordStreakActivity } from '../api/streaks'
 
 export default function AddChapter() {
   const { workId } = useParams()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const [work, setWork] = useState(null)
@@ -16,6 +16,14 @@ export default function AddChapter() {
   const [content, setContent] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  if (profile?.is_guest) {
+    return (
+      <Layout>
+        <p className="p-6 text-zinc-400">La publication de chapitres est désactivée pour un compte invité.</p>
+      </Layout>
+    )
+  }
 
   useEffect(() => {
     getWork(workId).then(setWork)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { BookOpen, ExternalLink, Hash, Users } from 'lucide-react'
+import { BadgeCheck, BookOpen, ExternalLink, Hash, Users } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import WorkCard from '../components/ui/WorkCard'
 import FollowButton from '../components/ui/FollowButton'
@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder } from '../utils/placeholders'
 import { countFollowers, getCrossPlatformContent, getProfileByUsername } from '../api/profiles'
 import { listWorksByAuthor } from '../api/works'
+import hypercubeLogo from '../assets/hypercube-obsidian-logo.png'
 import Loader from '../components/ui/Loader'
 
 const LECTURE_URL = 'https://bd-obsidian-lecture.vercel.app'
@@ -69,7 +70,20 @@ export default function AuthorProfile() {
           )}
         </div>
 
-        <h1 className="mt-3 text-xl font-extrabold text-zinc-50 sm:text-2xl">{profile.display_name}</h1>
+        <div className="mt-3 flex items-center gap-1.5">
+          <img src={hypercubeLogo} alt="Hypercube Obsidian" className="h-6 w-6 shrink-0 object-cover object-left" />
+          <h1 className="text-xl font-extrabold text-zinc-50 sm:text-2xl">{profile.display_name}</h1>
+          {profile.is_platform_admin && (
+            <BadgeCheck
+              size={20}
+              aria-label="Administrateur"
+              title="Administrateur"
+              className="text-hypercube-500"
+              fill="currentColor"
+              stroke="#0b0b0e"
+            />
+          )}
+        </div>
         <p className="text-sm text-zinc-500">@{profile.username}</p>
 
         <div className="mt-3 flex gap-5 text-sm">

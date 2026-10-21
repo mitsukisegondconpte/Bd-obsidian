@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder, bannerPlaceholder } from '../utils/placeholders'
 import { countFollowers, getCrossPlatformContent, getProfileByUsername } from '../api/profiles'
 import { listSeriesByAuthor } from '../api/series'
+import hypercubeLogo from '../assets/hypercube-obsidian-logo.png'
 import Loader from '../components/ui/Loader'
 
 const ECRITURE_URL = 'https://bd-obsidian-ecriture.vercel.app'
@@ -86,6 +87,7 @@ export default function AuthorProfile() {
         </div>
 
         <div className="mt-3 flex items-center gap-1.5">
+          <img src={hypercubeLogo} alt="Hypercube Obsidian" className="h-6 w-6 shrink-0 object-cover object-left" />
           <h1 className="text-xl font-extrabold text-zinc-50 sm:text-2xl">{author.display_name}</h1>
           {author.is_platform_admin && (
             <BadgeCheck size={20} className="text-hypercube-500" fill="currentColor" stroke="#0b0b0e" />

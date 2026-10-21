@@ -10,7 +10,7 @@ const HANDLERS = {
 }
 
 export default function FollowButton({ targetType, targetId, className = '' }) {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [following, setFollowing] = useState(false)
   const [busy, setBusy] = useState(false)
   const handlers = HANDLERS[targetType]
@@ -22,6 +22,9 @@ export default function FollowButton({ targetType, targetId, className = '' }) {
   }, [user, targetId, targetType])
 
   if (!user || (targetType === 'author' && user.id === targetId)) return null
+  if (profile?.is_guest && targetType === 'author') {
+    return <span className={`text-xs text-zinc-500 ${className}`}>Le suivi d’auteurs est indisponible pour un compte invité.</span>
+  }
 
   async function toggle() {
     setBusy(true)

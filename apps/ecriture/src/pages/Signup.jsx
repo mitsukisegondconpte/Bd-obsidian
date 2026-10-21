@@ -10,6 +10,7 @@ export default function Signup() {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', username: '', displayName: '' })
+  const [guestInvitationCode, setGuestInvitationCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -23,7 +24,7 @@ export default function Signup() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: err } = await signUp(form)
+    const { error: err } = await signUp({ ...form, guestInvitationCode })
     setLoading(false)
     if (err) {
       setError(err.message)
@@ -34,6 +35,10 @@ export default function Signup() {
 
   async function handleGoogle() {
     setError('')
+    if (guestInvitationCode.trim()) {
+      setError("Le code invité s'utilise uniquement avec l'inscription par e-mail.")
+      return
+    }
     setGoogleLoading(true)
     const { error: err } = await signInWithGoogle()
     if (err) {
@@ -108,6 +113,21 @@ export default function Signup() {
             onChange={update('password')}
             className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
           />
+          <div>
+            <input
+              type="text"
+              autoComplete="off"
+              autoCapitalize="none"
+              placeholder="Code d'invitation invité (facultatif)"
+              value={guestInvitationCode}
+              onChange={(e) => setGuestInvitationCode(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+            />
+            <p className="mt-1.5 text-xs text-zinc-500">
+              Un code valide crée un compte invité : lecture publique uniquement, sans likes, commentaires, favoris,
+              suivi d'auteurs ni publication. Les lectures invitées ne comptent pas dans les statistiques.
+            </p>
+          </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <button
             type="submit"

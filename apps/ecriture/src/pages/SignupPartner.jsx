@@ -13,6 +13,7 @@ export default function SignupPartner() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', username: '', displayName: '' })
   const [authorSource, setAuthorSource] = useState('hypercube')
+  const [authorCode, setAuthorCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -25,7 +26,7 @@ export default function SignupPartner() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: err } = await signUp({ ...form, authorSource })
+    const { error: err } = await signUp({ ...form, authorSource, authorCode })
     setLoading(false)
     if (err) {
       setError(err.message)
@@ -41,8 +42,8 @@ export default function SignupPartner() {
           <Handshake className="mx-auto mb-3 text-accent" size={32} />
           <h1 className="text-xl font-extrabold text-zinc-50">Compte créé !</h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Vérifie ton email pour confirmer ton compte. Ton statut d'auteur partenaire sera validé par notre équipe
-            sous peu.
+            Ton accès Auteur BD (site 1) sera activé après confirmation de ton email. La vérification du statut
+            partenaire reste séparée et sera faite par notre équipe.
           </p>
           <button
             type="button"
@@ -62,8 +63,8 @@ export default function SignupPartner() {
         <Handshake className="text-accent" size={28} />
         <h1 className="mt-3 text-2xl font-extrabold text-zinc-50">Inscription auteur partenaire</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Crée ton compte Hypercube World. Ton statut d'auteur partenaire sera vérifié par notre équipe avant
-          d'être activé.
+          Le code valide l'accès Auteur BD (site 1) après confirmation de l'email. Le statut d'auteur partenaire reste
+          soumis à une vérification distincte.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-3">
@@ -116,6 +117,16 @@ export default function SignupPartner() {
             placeholder="Mot de passe (6 caractères min.)"
             value={form.password}
             onChange={update('password')}
+            className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
+          />
+          <input
+            type="text"
+            required
+            autoComplete="off"
+            autoCapitalize="none"
+            placeholder="Code auteur BD (site 1)"
+            value={authorCode}
+            onChange={(e) => setAuthorCode(e.target.value)}
             className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none"
           />
           {error && <p className="text-sm text-red-400">{error}</p>}

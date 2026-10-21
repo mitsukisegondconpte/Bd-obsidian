@@ -60,11 +60,14 @@ export function AuthProvider({ children }) {
     setProfile(data)
   }
 
-  async function signUp({ email, password, username, displayName }) {
+  async function signUp({ email, password, username, displayName, authorSource, guestInvitationCode, authorCode }) {
+    const metadata = { username, display_name: displayName, author_source: authorSource ?? null }
+    if (guestInvitationCode?.trim()) metadata.guest_invitation_code = guestInvitationCode.trim()
+    if (authorCode?.trim()) metadata.lecture_author_code = authorCode.trim()
     return supabase.auth.signUp({
       email,
       password,
-      options: { data: { username, display_name: displayName } },
+      options: { data: metadata },
     })
   }
 
