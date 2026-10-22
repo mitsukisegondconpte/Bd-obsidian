@@ -4,11 +4,11 @@ const pendingSeriesDraftCreates = new Map()
 const pendingChapterDraftCreates = new Map()
 
 function safeName(name) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  return String(name ?? '').replace(/[^a-zA-Z0-9._-]/g, '_')
 }
 
 function isPublicUrl(value) {
-  return value.startsWith('http://') || value.startsWith('https://')
+  return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))
 }
 
 function objectPathFromPublicUrl(url, bucket) {
@@ -36,14 +36,22 @@ function createPendingDraftGuard(map, keyFactory) {
 const withPendingSeriesDraft = createPendingDraftGuard(pendingSeriesDraftCreates, (key) => `series:${key}`)
 const withPendingChapterDraft = createPendingDraftGuard(pendingChapterDraftCreates, (key) => `chapter:${key}`)
 
-export async function createSeriesDraft(authorId) {
-  return withPendingSeriesDraft(authorId, async () => {
-    const slug = 'brouillon-' + authorId.slice(0, 8) + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6)
-    const { data, error } = await supabase
-      .from('series')
-      .insert({ author_id: authorId, title: 'Brouillon sans titre', summary: '', slug, status: 'ongoing', is_published: false })
-      .select('*, series_genres(genre:genres(name))')
-      .single()
+function createUuidV4() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (letter) => {
+    const random = Math.random() * 16 | 0
+    const value = letter === 'x' ? random : (random & 0x3) | 0x8
+    return value.toString(16)
+  })
+}
+
+export async function createSeriesDraft(authorId, creationKey = null) {
+  const key = creationKey || createUuidV4()
+  return withPendingSeriesDraft(`${authorId}:${key}`, async () => {
+    const { data, error } = await supabase.rpc('create_series_draft', {
+      p_author_id: authorId,
+      p_creation_key: key,
+    })
     if (error) throw error
     return data
   })
@@ -80,9 +88,9 @@ export async function updateSeriesDraft({ seriesId, authorId, title, summary, st
 
   let genres = []
   if (genreNames?.length) {
-    const { data, error: genreError } = await supabase.from('genres').select('id, name').in('name', genreNames)
+    const { data: genreRows, error: genreError } = await supabase.from('genres').select('id, name').in('name', genreNames)
     if (genreError) throw genreError
-    genres = data
+    genres = genreRows
   }
   const { error: removeError } = await supabase.from('series_genres').delete().eq('series_id', seriesId)
   if (removeError) throw removeError
@@ -273,9 +281,9 @@ export async function updatePublishedSeries({ seriesId, authorId, title, summary
   if (error) throw error
   let genres = []
   if (genreNames?.length) {
-    const { data, error: genreError } = await supabase.from('genres').select('id, name').in('name', genreNames)
+    const { data: genreRows, error: genreError } = await supabase.from('genres').select('id, name').in('name', genreNames)
     if (genreError) throw genreError
-    genres = data
+    genres = genreRows
   }
   const { error: removeError } = await supabase.from('series_genres').delete().eq('series_id', seriesId)
   if (removeError) throw removeError
