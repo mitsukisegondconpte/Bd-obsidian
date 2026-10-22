@@ -33,8 +33,16 @@ function readOrCreateStableCreationKey() {
   return next
 }
 
+function rotateStableCreationKey(expectedKey = null) {
+  if (typeof window === 'undefined') return
+  const stored = window.sessionStorage.getItem(DRAFT_CREATION_KEY_STORAGE_KEY)
+  if (!stored || (expectedKey && stored !== expectedKey)) return
+  window.sessionStorage.setItem(DRAFT_CREATION_KEY_STORAGE_KEY, createUuidV4())
+}
+
 export default function CreateSeries() {
   const { user, profile } = useAuth()
+  const userId = user?.id
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const creationKeyRef = useRef(null)
@@ -56,8 +64,7 @@ export default function CreateSeries() {
   const [publishing, setPublishing] = useState(false)
 
   useEffect(() => {
-    if (!user || !profile?.is_lecture_author) return
-    if (!creationKeyRef.current) creationKeyRef.current = readOrCreateStableCreationKey()
+    if (!userId || !profile?.is_lecture_author) return
 
     const draftFromUrl = searchParams.get('draft')
     let active = true
@@ -66,17 +73,26 @@ export default function CreateSeries() {
       setLoading(true)
       setError('')
       try {
+        if (!draftFromUrl && !creationKeyRef.current) {
+          creationKeyRef.current = readOrCreateStableCreationKey()
+        }
+
         let draft
         if (draftFromUrl) {
-          draft = await getAuthorSeriesDraft(draftFromUrl, user.id)
+          draft = await getAuthorSeriesDraft(draftFromUrl, userId)
         } else {
-          draft = await createSeriesDraft(user.id, creationKeyRef.current)
+          draft = await createSeriesDraft(userId, creationKeyRef.current)
           const nextParams = new URLSearchParams(searchParams)
           nextParams.set('draft', draft.id)
           setSearchParams(nextParams, { replace: true })
         }
 
         if (!active) return
+
+        if (draftFromUrl) {
+          rotateStableCreationKey(creationKeyRef.current)
+          creationKeyRef.current = null
+        }
 
         const genreList = await listGenres().catch(() => [])
         if (!active) return
@@ -98,7 +114,7 @@ export default function CreateSeries() {
 
     initialize()
     return () => { active = false }
-  }, [user?.id, profile?.is_lecture_author, searchParams])
+  }, [userId, profile?.is_lecture_author, searchParams, setSearchParams])
 
   useEffect(() => {
     let active = true

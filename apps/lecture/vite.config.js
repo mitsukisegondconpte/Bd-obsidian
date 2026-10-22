@@ -9,6 +9,9 @@ export default defineConfig({
   // (mêmes clés Supabase = même base = comptes partagés entre les apps).
   envDir: '../../',
   server: {
-    host: true,
+    host: '0.0.0.0',
+    port: 5000,
+    strictPort: true,
+    allowedHosts: true,
   },
 })

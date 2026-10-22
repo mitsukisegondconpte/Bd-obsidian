@@ -61,8 +61,9 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="ml-auto flex min-w-0 items-center overflow-x-auto no-scrollbar">
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex min-w-0 flex-1 items-center gap-2 sm:flex-initial">
+          <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar sm:flex-none">
+        <div className="flex w-max items-center gap-2">
           <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
@@ -137,6 +138,15 @@ export default function Navbar() {
             </Link>
           )}
         </div>
+          </div>
+          {user && (
+            <Link
+              to="/mes-series"
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:border-accent/40 hover:text-accent sm:hidden"
+            >
+              <PenLine size={15} /> <span className="whitespace-nowrap">{t('nav.write')}</span>
+            </Link>
+          )}
         </div>
       </div>
       {logoutError && <div role="alert" aria-live="polite" className="mx-auto max-w-6xl px-4 pb-2 text-xs text-red-500">{logoutError}</div>}
