@@ -13,12 +13,31 @@ const STATUSES = [
   { id: 'completed', label: 'Terminée' },
 ]
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+const DRAFT_CREATION_KEY_STORAGE_KEY = 'lecture:create-series:creation-key'
+
+function createUuidV4() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (letter) => {
+    const random = Math.random() * 16 | 0
+    const value = letter === 'x' ? random : (random & 0x3) | 0x8
+    return value.toString(16)
+  })
+}
+
+function readOrCreateStableCreationKey() {
+  if (typeof window === 'undefined') return createUuidV4()
+  const stored = window.sessionStorage.getItem(DRAFT_CREATION_KEY_STORAGE_KEY)
+  if (stored) return stored
+  const next = createUuidV4()
+  window.sessionStorage.setItem(DRAFT_CREATION_KEY_STORAGE_KEY, next)
+  return next
+}
 
 export default function CreateSeries() {
   const { user, profile } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const requestedDraft = useRef(searchParams.get('draft'))
+  const creationKeyRef = useRef(null)
   const saveQueue = useRef(Promise.resolve())
   const saveVersion = useRef(0)
   const [draftId, setDraftId] = useState('')
@@ -38,17 +57,32 @@ export default function CreateSeries() {
 
   useEffect(() => {
     if (!user || !profile?.is_lecture_author) return
+    if (!creationKeyRef.current) creationKeyRef.current = readOrCreateStableCreationKey()
+
+    const draftFromUrl = searchParams.get('draft')
     let active = true
+
     async function initialize() {
       setLoading(true)
       setError('')
       try {
-        const draft = requestedDraft.current ? await getAuthorSeriesDraft(requestedDraft.current, user.id) : await createSeriesDraft(user.id)
+        let draft
+        if (draftFromUrl) {
+          draft = await getAuthorSeriesDraft(draftFromUrl, user.id)
+        } else {
+          draft = await createSeriesDraft(user.id, creationKeyRef.current)
+          const nextParams = new URLSearchParams(searchParams)
+          nextParams.set('draft', draft.id)
+          setSearchParams(nextParams, { replace: true })
+        }
+
+        if (!active) return
+
         const genreList = await listGenres().catch(() => [])
         if (!active) return
+
         setGenres(genreList)
         setDraftId(draft.id)
-        if (!requestedDraft.current) setSearchParams({ draft: draft.id }, { replace: true })
         setTitle(draft.title === 'Brouillon sans titre' ? '' : draft.title)
         setSummary(draft.summary || '')
         setStatus(draft.status || 'ongoing')
@@ -61,14 +95,20 @@ export default function CreateSeries() {
         if (active) setLoading(false)
       }
     }
+
     initialize()
     return () => { active = false }
-  }, [user?.id, profile?.is_lecture_author, setSearchParams])
+  }, [user?.id, profile?.is_lecture_author, searchParams])
 
   useEffect(() => {
     let active = true
-    if (!coverUrl) { setCoverPreview(''); return () => { active = false } }
-    getDraftAssetUrl(coverUrl).then((url) => { if (active) setCoverPreview(url) }).catch(() => { if (active) setCoverPreview('') })
+    if (!coverUrl) {
+      setCoverPreview('')
+      return () => { active = false }
+    }
+    getDraftAssetUrl(coverUrl)
+      .then((url) => { if (active) setCoverPreview(url) })
+      .catch(() => { if (active) setCoverPreview('') })
     return () => { active = false }
   }, [coverUrl])
 
@@ -149,30 +189,31 @@ export default function CreateSeries() {
 
   if (!user) return <Layout><div className="px-4 py-16 text-center text-zinc-400">Connecte-toi pour accéder au studio auteur.</div></Layout>
   if (!profile) return <Layout><Loader className="py-16" /></Layout>
-  if (!profile.is_lecture_author) return <Layout><div className="mx-auto flex max-w-md flex-col items-center gap-3 px-4 py-16 text-center"><Lock size={28} className="text-zinc-500" /><p className="text-sm text-zinc-400">La publication sur Lecture est réservée aux auteurs nommés par l’équipe Hypercube.</p></div></Layout>
+  if (!profile.is_lecture_author) return <Layout><div className="mx-auto flex max-w-md flex-col items-center gap-3 px-4 py-16 text-center"><Lock size={28} className="text-zinc-500" /><p className="text-sm text-zinc-400">Le studio Lecture est réservé aux auteurs autorisés.</p></div></Layout>
   if (loading) return <Layout><Loader className="py-16" /></Layout>
 
   return (
     <Layout>
       <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div><h1 className="text-xl font-extrabold text-zinc-50">Brouillon de série</h1><p className="mt-1 text-sm text-zinc-500">Les modifications sont enregistrées automatiquement sur le serveur.</p></div>
+          <div><h1 className="text-xl font-extrabold text-zinc-50">Brouillon de série</h1><p className="mt-1 text-sm text-zinc-500">Les modifications sont enregistrées automatiquement sur le brouillon.</p></div>
           <Link to="/mes-series" className="rounded-full border border-white/10 bg-surface-2 px-3 py-2 text-xs font-semibold text-zinc-300">Mes séries</Link>
         </div>
-        <p role="status" aria-live="polite" className="mt-3 text-xs text-zinc-500">{saveState === 'saving' || uploadingCover ? 'Enregistrement…' : saveState === 'failed' ? 'Échec de la sauvegarde' : 'Brouillon enregistré'}</p>
+        <p role="status" aria-live="polite" className="mt-3 text-xs text-zinc-500">{saveState === 'saving' || uploadingCover ? 'Enregistrement…' : saveState === 'failed' ? 'Échec de la sauvegarde' : 'Sauvegardé'}</p>
         {error && <p role="alert" className="mt-3 rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-500">{error}</p>}
         {saveState === 'failed' && <button type="button" onClick={retrySave} className="mt-2 text-sm font-semibold text-accent underline">Réessayer la sauvegarde</button>}
 
         <div className="mt-5 space-y-5 rounded-2xl border border-white/10 bg-surface-1 p-4 sm:p-6">
-          <div><label htmlFor="series-title" className="mb-1.5 block text-sm font-semibold text-zinc-200">Titre</label><input id="series-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={160} placeholder="Titre de la série" className="w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none" /></div>
-          <div><label htmlFor="series-summary" className="mb-1.5 block text-sm font-semibold text-zinc-200">Résumé</label><textarea id="series-summary" value={summary} onChange={(event) => setSummary(event.target.value)} rows={5} maxLength={5000} placeholder="Présente ton histoire" className="w-full resize-y rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none" /></div>
-          <fieldset><legend className="mb-2 text-sm font-semibold text-zinc-200">Statut de la série</legend><div className="flex flex-wrap gap-2">{STATUSES.map((item) => <button key={item.id} type="button" onClick={() => setStatus(item.id)} className={status === item.id ? 'rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-accent-ink' : 'rounded-full border border-white/10 bg-surface-2 px-4 py-1.5 text-sm font-semibold text-zinc-300'}>{item.label}</button>)}</div></fieldset>
-          <fieldset><legend className="mb-2 text-sm font-semibold text-zinc-200">Jour de mise à jour (optionnel)</legend><div className="flex flex-wrap gap-1.5">{DAYS.map((day) => <button key={day} type="button" onClick={() => setUpdateDay((value) => value === day ? '' : day)} className={updateDay === day ? 'rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-ink' : 'rounded-full border border-white/10 bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300'}>{day}</button>)}</div></fieldset>
-          {genres.length > 0 && <fieldset><legend className="mb-2 text-sm font-semibold text-zinc-200">Genres</legend><div className="flex flex-wrap gap-1.5">{genres.map((genre) => <button key={genre} type="button" aria-pressed={selectedGenres.includes(genre)} onClick={() => toggleGenre(genre)} className={selectedGenres.includes(genre) ? 'rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-ink' : 'rounded-full border border-white/10 bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300'}>{genre}</button>)}</div></fieldset>}
-          <div><label htmlFor="series-cover" className="mb-2 block text-sm font-semibold text-zinc-200">Couverture</label><div className="flex flex-col gap-3 sm:flex-row sm:items-start"><label htmlFor="series-cover" className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-surface-2 px-4 py-2 text-sm font-semibold text-zinc-200"><ImagePlus size={16} aria-hidden="true" />{uploadingCover ? 'Envoi…' : 'Choisir une image'}</label><input id="series-cover" type="file" accept="image/*" onChange={handleCover} className="sr-only" />{coverPreview && <img src={coverPreview} alt="Aperçu de la couverture" className="h-36 w-28 rounded-lg border border-white/10 object-cover" />}</div><label htmlFor="series-cover-url" className="sr-only">Lien de couverture</label><input id="series-cover-url" type="url" value={coverUrl.startsWith('http') ? coverUrl : ''} onChange={(event) => setCoverUrl(event.target.value)} placeholder="Ou coller une URL d’image" className="mt-3 w-full rounded-lg border border-white/10 bg-surface-2 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent/50 focus:outline-none" /><p className="mt-1 text-xs text-zinc-500">Les fichiers importés restent privés jusqu’à publication. Limite : 5 Mo.</p></div>
-          <button type="button" onClick={handlePublish} disabled={publishing || uploadingCover || saveState === 'saving' || !draftId} className="w-full rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-accent-ink disabled:cursor-not-allowed disabled:opacity-50">{publishing ? 'Publication…' : 'Publier la série'}</button>
+          <div><label htmlFor="series-title" className="mb-1.5 block text-sm font-semibold text-zinc-200">Titre</label><input id="series-title" value={title} onChange={(event) => setTitle(event.target.value)} className="w-full rounded-xl border border-white/10 bg-surface-0 px-3 py-2.5 text-sm text-zinc-50 outline-none ring-0 placeholder:text-zinc-500 focus:border-accent" placeholder="Titre de la série" /></div>
+          <div><label htmlFor="series-summary" className="mb-1.5 block text-sm font-semibold text-zinc-200">Résumé</label><textarea id="series-summary" value={summary} onChange={(event) => setSummary(event.target.value)} className="min-h-28 w-full rounded-xl border border-white/10 bg-surface-0 px-3 py-2.5 text-sm text-zinc-50 outline-none placeholder:text-zinc-500 focus:border-accent" placeholder="Décris ton univers, ton rythme et ce que les lecteurs trouveront." /></div>
+          <fieldset><legend className="mb-2 text-sm font-semibold text-zinc-200">Statut de la série</legend><div className="flex flex-wrap gap-2">{STATUSES.map((item) => <button key={item.id} type="button" aria-pressed={status === item.id} onClick={() => setStatus(item.id)} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${status === item.id ? 'border-accent bg-accent/10 text-accent' : 'border-white/10 bg-transparent text-zinc-400'}`}>{item.label}</button>)}</div></fieldset>
+          <fieldset><legend className="mb-2 text-sm font-semibold text-zinc-200">Jour de mise à jour (optionnel)</legend><div className="flex flex-wrap gap-1.5">{DAYS.map((day) => <button key={day} type="button" aria-pressed={updateDay === day} onClick={() => setUpdateDay((previous) => previous === day ? '' : day)} className={`rounded-full border px-2.5 py-1.5 text-xs font-medium ${updateDay === day ? 'border-accent bg-accent/10 text-accent' : 'border-white/10 bg-transparent text-zinc-400'}`}>{day}</button>)}</div></fieldset>
+          {genres.length > 0 && <fieldset><legend className="mb-2 text-sm font-semibold text-zinc-200">Genres</legend><div className="flex flex-wrap gap-1.5">{genres.map((genre) => <button key={genre.id || genre.name} type="button" aria-pressed={selectedGenres.includes(genre.name)} onClick={() => toggleGenre(genre.name)} className={`rounded-full border px-2.5 py-1.5 text-xs font-medium ${selectedGenres.includes(genre.name) ? 'border-accent bg-accent/10 text-accent' : 'border-white/10 bg-transparent text-zinc-400'}`}>{genre.name}</button>)}</div></fieldset>}
+          <div><label htmlFor="series-cover" className="mb-2 block text-sm font-semibold text-zinc-200">Couverture</label><div className="flex flex-col gap-3 sm:flex-row sm:items-start"><label htmlFor="series-cover" className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-surface-2 px-3 py-2 text-sm font-semibold text-zinc-300"><ImagePlus size={16} />{uploadingCover ? 'Chargement…' : 'Choisir une image'}</label><input id="series-cover" type="file" accept="image/*" className="hidden" onChange={handleCover} /><div className="min-h-16 flex-1 rounded-xl border border-dashed border-white/10 bg-surface-0 p-2 text-xs text-zinc-500">{coverPreview ? <img src={coverPreview} alt="Aperçu de la couverture" className="h-24 w-full rounded-lg object-cover" /> : 'Aucune couverture pour ce brouillon.'}</div></div></div>
+          <button type="button" onClick={handlePublish} disabled={publishing || uploadingCover || saveState === 'saving' || !draftId} className="w-full rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-accent-ink disabled:cursor-not-allowed disabled:opacity-60">{publishing ? 'Publication…' : 'Publier la série'}</button>
         </div>
       </main>
     </Layout>
   )
 }
+

@@ -48,12 +48,16 @@ function createUuidV4() {
 export async function createSeriesDraft(authorId, creationKey = null) {
   const key = creationKey || createUuidV4()
   return withPendingSeriesDraft(`${authorId}:${key}`, async () => {
-    const { data, error } = await supabase.rpc('create_series_draft', {
-      p_author_id: authorId,
-      p_creation_key: key,
-    })
+    const { data, error } = await supabase.rpc('create_series_draft', { p_creation_key: key })
     if (error) throw error
-    return data
+
+    const draftId = Array.isArray(data) ? data[0] : data
+    if (!draftId) {
+      throw new Error('Le brouillon n’a pas été créé correctement.')
+    }
+
+    const draft = await getAuthorSeriesDraft(draftId, authorId)
+    return draft
   })
 }
 
@@ -292,3 +296,4 @@ export async function updatePublishedSeries({ seriesId, authorId, title, summary
     if (insertError) throw insertError
   }
 }
+

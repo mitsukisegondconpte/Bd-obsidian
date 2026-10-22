@@ -7,8 +7,6 @@ function flattenGenres(row) {
   return { ...row, genres: row.series_genres?.map((sg) => sg.genre.name) ?? [] }
 }
 
-// isNew / isHot ne sont pas des colonnes : calculés depuis des champs réels
-// (récence de publication, classement par vues) plutôt que stockés en dur.
 function withComputedBadges(rows) {
   const sorted = [...rows].sort((a, b) => b.views - a.views)
   const hotIds = new Set(sorted.slice(0, 3).map((s) => s.id))
@@ -22,37 +20,118 @@ function withComputedBadges(rows) {
 }
 
 export async function listSeries() {
-  const { data, error } = await supabase.from('series').select(SERIES_SELECT).order('created_at', { ascending: false })
+  const { data, error } = await supabase
+    .from('series')
+    .select(SERIES_SELECT)
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
   if (error) throw error
-  return withComputedBadges(data.map(flattenGenres))
+  return withComputedBadges((data ?? []).map(flattenGenres))
 }
 
 export async function getSeriesBySlug(slug) {
-  const { data, error } = await supabase.from('series').select(SERIES_SELECT).eq('slug', slug).single()
+  const { data, error } = await supabase
+    .from('series')
+    .select(SERIES_SELECT)
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single()
   if (error) throw error
   return flattenGenres(data)
 }
 
 export async function listSeriesByAuthor(authorId) {
-  const { data, error } = await supabase.from('series').select(SERIES_SELECT).eq('author_id', authorId)
+  const { data, error } = await supabase
+    .from('series')
+    .select(SERIES_SELECT)
+    .eq('author_id', authorId)
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
   if (error) throw error
-  return withComputedBadges(data.map(flattenGenres))
+  return withComputedBadges((data ?? []).map(flattenGenres))
+}
+
+export async function listAuthorSeries(authorId) {
+  const { data, error } = await supabase
+    .from('series')
+    .select(SERIES_SELECT)
+    .eq('author_id', authorId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return withComputedBadges((data ?? []).map(flattenGenres))
+}
+
+export async function getAuthorSeriesBySlug(authorId, slug) {
+  const { data, error } = await supabase
+    .from('series')
+    .select(SERIES_SELECT)
+    .eq('author_id', authorId)
+    .eq('slug', slug)
+    .single()
+  if (error) throw error
+  return flattenGenres(data)
 }
 
 export async function listSeriesChapters(seriesId) {
+  const { data, error } = await supabase
+    .from('chapters')
+    .select('*, series:series!chapters_series_id_fkey(id, is_published)')
+    .eq('series_id', seriesId)
+    .not('published_at', 'is', null)
+    .order('number', { ascending: true })
+  if (error) throw error
+  return (data ?? []).filter((chapter) => chapter.series?.is_published === true)
+}
+
+export async function listAuthorSeriesChapters(seriesId) {
   const { data, error } = await supabase
     .from('chapters')
     .select('*')
     .eq('series_id', seriesId)
     .order('number', { ascending: true })
   if (error) throw error
-  return data
+  return data ?? []
 }
 
 export async function getChapter(chapterId) {
-  const { data, error } = await supabase.from('chapters').select('*').eq('id', chapterId).single()
+  const { data, error } = await supabase
+    .from('chapters')
+    .select('*, series:series!chapters_series_id_fkey(id, is_published)')
+    .eq('id', chapterId)
+    .not('published_at', 'is', null)
+    .single()
   if (error) throw error
+  if (data.series?.is_published !== true) throw new Error('Chapitre introuvable.')
   return data
+}
+
+export async function listChapterPages(chapterId) {
+  const { data: chapter, error: chapterError } = await supabase
+    .from('chapters')
+    .select('*, series:series!chapters_series_id_fkey(id, is_published)')
+    .eq('id', chapterId)
+    .not('published_at', 'is', null)
+    .maybeSingle()
+  if (chapterError) throw chapterError
+  if (!chapter || chapter.series?.is_published !== true) return []
+
+  const { data, error } = await supabase
+    .from('chapter_pages')
+    .select('*')
+    .eq('chapter_id', chapterId)
+    .order('page_number', { ascending: true })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function listAuthorChapterPages(chapterId) {
+  const { data, error } = await supabase
+    .from('chapter_pages')
+    .select('*')
+    .eq('chapter_id', chapterId)
+    .order('page_number', { ascending: true })
+  if (error) throw error
+  return data ?? []
 }
 
 export async function incrementSeriesViews(seriesId) {
@@ -109,12 +188,3 @@ export async function uploadSeriesCover({ ownerId, file }) {
   return data.publicUrl
 }
 
-export async function listChapterPages(chapterId) {
-  const { data, error } = await supabase
-    .from('chapter_pages')
-    .select('*')
-    .eq('chapter_id', chapterId)
-    .order('page_number', { ascending: true })
-  if (error) throw error
-  return data
-}
