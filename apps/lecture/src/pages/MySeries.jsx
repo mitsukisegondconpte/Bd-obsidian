@@ -82,11 +82,9 @@ export default function MySeries() {
                     <Link to={item.is_published ? '/serie/' + item.slug : '/creer-serie?draft=' + item.id} className="rounded-full border border-white/10 bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-200">
                       {item.is_published ? 'Voir' : 'Continuer'}
                     </Link>
-                    {!item.is_published && (
-                      <Link to={'/serie/' + item.slug + '/ajouter-chapitre'} className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-ink">
-                        Nouveau chapitre
-                      </Link>
-                    )}
+                    <Link to={'/serie/' + item.slug + '/ajouter-chapitre'} className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-ink">
+                      Nouveau chapitre
+                    </Link>
                   </div>
                 </div>
                 <div className="mt-4"><SeriesCard item={item} /></div>
