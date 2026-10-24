@@ -26,12 +26,14 @@ const TABS = [
   { id: 'reports', label: 'Signalements' },
 ]
 
-function FlagToggle({ active, onClick, label, activeClass }) {
+function FlagToggle({ active, onClick, label, activeClass, disabled = false }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition ${
+      disabled={disabled}
+      aria-pressed={active}
+      className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition disabled:cursor-wait disabled:opacity-50 ${
         active ? activeClass : 'bg-surface-3 text-zinc-500 hover:text-zinc-300'
       }`}
     >
@@ -69,23 +71,39 @@ function DashboardTab() {
 function UsersTab({ currentUserId }) {
   const [profiles, setProfiles] = useState(null)
   const [search, setSearch] = useState('')
+  const [savingId, setSavingId] = useState(null)
+  const [message, setMessage] = useState(null)
 
   function reload() {
-    listAllProfiles({ search }).then(setProfiles)
+    return listAllProfiles({ search }).then(setProfiles)
   }
 
   useEffect(() => {
-    reload()
+    reload().catch((error) => setMessage({ error: true, text: error.message }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search])
 
   async function toggle(p, field, key) {
-    await setProfileFlags(p.id, { [key]: !p[field] })
-    reload()
+    setSavingId(p.id)
+    setMessage(null)
+    try {
+      await setProfileFlags(p.id, { [key]: !p[field] })
+      await reload()
+      setMessage({ error: false, text: 'Modification enregistrée.' })
+    } catch (error) {
+      setMessage({ error: true, text: error.message || "La modification n'a pas été enregistrée." })
+    } finally {
+      setSavingId(null)
+    }
   }
 
   return (
     <div>
+      {message && (
+        <p role="status" aria-live="polite" className={`mb-3 text-sm ${message.error ? 'text-red-400' : 'text-emerald-400'}`}>
+          {message.text}
+        </p>
+      )}
       <div className="relative">
         <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
         <input
@@ -109,30 +127,35 @@ function UsersTab({ currentUserId }) {
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <FlagToggle
+                disabled={savingId === p.id}
                 active={p.is_author}
                 onClick={() => toggle(p, 'is_author', 'isAuthor')}
                 label="Auteur"
                 activeClass="bg-accent/20 text-accent"
               />
               <FlagToggle
+                disabled={savingId === p.id}
                 active={p.is_lecture_author}
                 onClick={() => toggle(p, 'is_lecture_author', 'isLectureAuthor')}
                 label="Auteur BD (site 1)"
                 activeClass="bg-emerald-500/20 text-emerald-400"
               />
               <FlagToggle
+                disabled={savingId === p.id}
                 active={p.is_editor}
                 onClick={() => toggle(p, 'is_editor', 'isEditor')}
                 label="Éditeur"
                 activeClass="bg-orange-500/20 text-orange-400"
               />
               <FlagToggle
+                disabled={savingId === p.id}
                 active={p.is_platform_admin}
                 onClick={() => toggle(p, 'is_platform_admin', 'isPlatformAdmin')}
                 label="Admin"
                 activeClass="bg-hypercube-500/30 text-hypercube-400"
               />
               <FlagToggle
+                disabled={savingId === p.id}
                 active={p.is_suspended}
                 onClick={() => toggle(p, 'is_suspended', 'isSuspended')}
                 label="Suspendu"

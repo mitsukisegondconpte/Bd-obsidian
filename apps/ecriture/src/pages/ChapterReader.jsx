@@ -41,10 +41,12 @@ export default function ChapterReader() {
     getWorkChapter(chapterId).then(setChapter)
     if (user) {
       saveReadingProgress({ userId: user.id, workId, chapterId })
-      recordStreakActivity('reading').catch(() => {})
-      incrementUserCounter('chapters_read').catch(() => {})
+      if (!profile?.is_guest) {
+        recordStreakActivity('reading').catch(() => {})
+        incrementUserCounter('chapters_read').catch(() => {})
+      }
     }
-  }, [chapterId, workId, user])
+  }, [chapterId, workId, user, profile?.is_guest])
 
   useEffect(() => {
     let cancelled = false
@@ -67,7 +69,7 @@ export default function ChapterReader() {
 
   async function handleComment(e) {
     e.preventDefault()
-    if (!newComment.trim() || !user) return
+    if (!newComment.trim() || !user || profile?.is_guest) return
     const created = await createComment({
       userId: user.id,
       targetId: chapterId,
@@ -88,6 +90,7 @@ export default function ChapterReader() {
 
   async function toggleCommentLike(commentId) {
     if (!user) return navigate('/connexion')
+    if (profile?.is_guest) return
     const current = commentLikes[commentId] ?? { count: 0, liked: false }
     if (current.liked) {
       await unlikeComment(user.id, commentId)
@@ -160,7 +163,9 @@ export default function ChapterReader() {
 
       <section className="mx-auto max-w-2xl border-t border-white/5 px-5 pb-24 pt-4 sm:px-0 sm:pb-10">
         <h2 className="text-sm font-bold text-zinc-100">Commentaires ({comments.length})</h2>
-        {user ? (
+        {profile?.is_guest ? (
+          <p className="mt-3 text-sm text-zinc-500">Les commentaires sont désactivés pour un compte invité.</p>
+        ) : user ? (
           <form onSubmit={handleComment} className="mt-3">
             {replyTarget && (
               <div className="mb-2 flex items-center justify-between text-xs text-zinc-500">
@@ -203,9 +208,9 @@ export default function ChapterReader() {
                 comment={c}
                 liked={commentLikes[c.id]?.liked}
                 likeCount={commentLikes[c.id]?.count ?? 0}
-                onToggleLike={() => toggleCommentLike(c.id)}
+                onToggleLike={profile?.is_guest ? undefined : () => toggleCommentLike(c.id)}
                 onReply={
-                  user ? () => setReplyTarget({ id: c.id, name: c.user?.display_name ?? 'Lecteur' }) : undefined
+                  user && !profile?.is_guest ? () => setReplyTarget({ id: c.id, name: c.user?.display_name ?? 'Lecteur' }) : undefined
                 }
                 onDelete={
                   user && (user.id === c.user_id || profile?.is_platform_admin)
@@ -223,7 +228,7 @@ export default function ChapterReader() {
                     isReply
                     liked={commentLikes[r.id]?.liked}
                     likeCount={commentLikes[r.id]?.count ?? 0}
-                    onToggleLike={() => toggleCommentLike(r.id)}
+                    onToggleLike={profile?.is_guest ? undefined : () => toggleCommentLike(r.id)}
                     onDelete={
                       user && (user.id === r.user_id || profile?.is_platform_admin)
                         ? () => handleDeleteComment(r.id)

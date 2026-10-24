@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShieldAlert, Trash2, Upload, Send, Search, ImagePlus, Check, Handshake, X } from 'lucide-react'
+import { ShieldAlert, Trash2, Upload, Send, Search, ImagePlus, Check, Handshake, X, Copy } from 'lucide-react'
 import Layout from '../components/layout/Layout'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -25,6 +25,9 @@ import {
   resolveWorkReport,
   setWorkFeatured,
   listPartnerAuthors,
+  issueSignupAccessCode,
+  listSignupAccessCodes,
+  revokeSignupAccessCode,
 } from '../api/admin'
 import Loader from '../components/ui/Loader'
 
@@ -38,27 +41,44 @@ const TABS = [
   { id: 'migrations', label: 'Repêchages' },
   { id: 'reports', label: 'Signalements' },
   { id: 'partners', label: 'Auteurs partenaires' },
+  { id: 'accessCodes', label: "Codes d'accès" },
 ]
 
 const PARTNER_SOURCE_LABEL = { bohio_mag: 'Bohio Mag', hypercube: 'Hypercube Obsidian' }
 
 function PartnersTab() {
   const [profiles, setProfiles] = useState(null)
+  const [savingId, setSavingId] = useState(null)
+  const [message, setMessage] = useState(null)
 
   function reload() {
-    listPartnerAuthors().then(setProfiles)
+    return listPartnerAuthors().then(setProfiles)
   }
   useEffect(() => {
-    reload()
+    reload().catch((error) => setMessage({ error: true, text: error.message }))
   }, [])
 
   async function handleVerify(p, verified) {
-    await setProfileFlags(p.id, { partnerVerified: verified })
-    reload()
+    setSavingId(p.id)
+    setMessage(null)
+    try {
+      await setProfileFlags(p.id, { partnerVerified: verified })
+      await reload()
+      setMessage({ error: false, text: 'Vérification enregistrée.' })
+    } catch (error) {
+      setMessage({ error: true, text: error.message || "La modification n'a pas été enregistrée." })
+    } finally {
+      setSavingId(null)
+    }
   }
 
   return (
     <div className="space-y-2">
+      {message && (
+        <p role="status" aria-live="polite" className={`text-sm ${message.error ? 'text-red-400' : 'text-emerald-400'}`}>
+          {message.text}
+        </p>
+      )}
       {profiles?.length === 0 && (
         <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-zinc-500">
           Aucune inscription partenaire pour le moment.
@@ -84,6 +104,7 @@ function PartnersTab() {
               <button
                 type="button"
                 onClick={() => handleVerify(p, false)}
+                disabled={savingId === p.id}
                 className="flex items-center gap-1 rounded-full bg-surface-2 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-red-500/20 hover:text-red-400"
               >
                 <X size={13} /> Retirer
@@ -92,6 +113,7 @@ function PartnersTab() {
               <button
                 type="button"
                 onClick={() => handleVerify(p, true)}
+                disabled={savingId === p.id}
                 className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-ink hover:bg-accent-dark"
               >
                 <Check size={13} /> Valider
@@ -104,12 +126,14 @@ function PartnersTab() {
   )
 }
 
-function FlagToggle({ active, onClick, label, activeClass }) {
+function FlagToggle({ active, onClick, label, activeClass, disabled = false }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition ${
+      disabled={disabled}
+      aria-pressed={active}
+      className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition disabled:cursor-wait disabled:opacity-50 ${
         active ? activeClass : 'bg-surface-3 text-zinc-500 hover:text-zinc-300'
       }`}
     >
@@ -147,22 +171,38 @@ function DashboardTab() {
 function UsersTab({ currentUserId }) {
   const [profiles, setProfiles] = useState(null)
   const [search, setSearch] = useState('')
+  const [savingId, setSavingId] = useState(null)
+  const [message, setMessage] = useState(null)
 
   function reload() {
-    listAllProfiles({ search }).then(setProfiles)
+    return listAllProfiles({ search }).then(setProfiles)
   }
   useEffect(() => {
-    reload()
+    reload().catch((error) => setMessage({ error: true, text: error.message }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search])
 
   async function toggle(p, field, key) {
-    await setProfileFlags(p.id, { [key]: !p[field] })
-    reload()
+    setSavingId(p.id)
+    setMessage(null)
+    try {
+      await setProfileFlags(p.id, { [key]: !p[field] })
+      await reload()
+      setMessage({ error: false, text: 'Modification enregistrée.' })
+    } catch (error) {
+      setMessage({ error: true, text: error.message || "La modification n'a pas été enregistrée." })
+    } finally {
+      setSavingId(null)
+    }
   }
 
   return (
     <div>
+      {message && (
+        <p role="status" aria-live="polite" className={`mb-3 text-sm ${message.error ? 'text-red-400' : 'text-emerald-400'}`}>
+          {message.text}
+        </p>
+      )}
       <div className="relative">
         <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
         <input
@@ -180,15 +220,176 @@ function UsersTab({ currentUserId }) {
               {p.id === currentUserId && <span className="text-xs text-accent">(toi)</span>}
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <FlagToggle active={p.is_author} onClick={() => toggle(p, 'is_author', 'isAuthor')} label="Auteur" activeClass="bg-accent/20 text-accent" />
-              <FlagToggle active={p.is_editor} onClick={() => toggle(p, 'is_editor', 'isEditor')} label="Éditeur" activeClass="bg-orange-500/20 text-orange-400" />
-              <FlagToggle active={p.is_platform_admin} onClick={() => toggle(p, 'is_platform_admin', 'isPlatformAdmin')} label="Admin" activeClass="bg-hypercube-500/30 text-hypercube-400" />
-              <FlagToggle active={p.is_suspended} onClick={() => toggle(p, 'is_suspended', 'isSuspended')} label="Suspendu" activeClass="bg-red-500/20 text-red-400" />
+              <FlagToggle disabled={savingId === p.id} active={p.is_author} onClick={() => toggle(p, 'is_author', 'isAuthor')} label="Auteur" activeClass="bg-accent/20 text-accent" />
+              <FlagToggle disabled={savingId === p.id} active={p.is_lecture_author} onClick={() => toggle(p, 'is_lecture_author', 'isLectureAuthor')} label="Auteur BD (site 1)" activeClass="bg-emerald-500/20 text-emerald-400" />
+              <FlagToggle disabled={savingId === p.id} active={p.is_editor} onClick={() => toggle(p, 'is_editor', 'isEditor')} label="Éditeur" activeClass="bg-orange-500/20 text-orange-400" />
+              <FlagToggle disabled={savingId === p.id} active={p.is_platform_admin} onClick={() => toggle(p, 'is_platform_admin', 'isPlatformAdmin')} label="Admin" activeClass="bg-hypercube-500/30 text-hypercube-400" />
+              <FlagToggle disabled={savingId === p.id} active={p.is_suspended} onClick={() => toggle(p, 'is_suspended', 'isSuspended')} label="Suspendu" activeClass="bg-red-500/20 text-red-400" />
             </div>
           </div>
         ))}
         {profiles?.length === 0 && <p className="py-6 text-center text-sm text-zinc-500">Aucun résultat.</p>}
       </div>
+    </div>
+  )
+}
+
+function AccessCodesTab() {
+  const [codeType, setCodeType] = useState('guest')
+  const [validDays, setValidDays] = useState(7)
+  const [issued, setIssued] = useState(null)
+  const [codes, setCodes] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [revokingId, setRevokingId] = useState(null)
+  const [message, setMessage] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  function reloadCodes() {
+    return listSignupAccessCodes().then(setCodes)
+  }
+
+  useEffect(() => {
+    reloadCodes().catch((error) => setMessage(error.message || 'Impossible de charger la liste des codes.'))
+  }, [])
+
+  async function handleIssue(e) {
+    e.preventDefault()
+    setBusy(true)
+    setIssued(null)
+    setCopied(false)
+    setMessage('')
+    try {
+      setIssued(await issueSignupAccessCode({ codeType, validDays }))
+      setMessage('Code créé. Copie-le avant de quitter cette page.')
+      reloadCodes().catch(() => setMessage("Code créé, mais la liste n'a pas pu être actualisée."))
+    } catch (error) {
+      setMessage(error.message || "Le code n'a pas pu être créé.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(issued.access_code)
+      setCopied(true)
+      setMessage('Code copié.')
+    } catch {
+      setMessage('Copie automatique indisponible; sélectionne le code affiché.')
+    }
+  }
+
+  async function handleRevoke(codeId) {
+    setRevokingId(codeId)
+    setMessage('')
+    try {
+      const revoked = await revokeSignupAccessCode(codeId)
+      await reloadCodes()
+      setMessage(revoked ? 'Code invalidé immédiatement.' : 'Ce code est déjà utilisé ou invalidé.')
+    } catch (error) {
+      setMessage(error.message || "Le code n'a pas pu être invalidé.")
+    } finally {
+      setRevokingId(null)
+    }
+  }
+
+  function codeStatus(code) {
+    if (code.revoked_at) return 'Invalidé'
+    if (code.consumed_at) return 'Utilisé'
+    if (new Date(code.expires_at).getTime() <= Date.now()) return 'Expiré'
+    return 'Actif'
+  }
+
+  return (
+    <div className="max-w-xl space-y-4">
+      <p className="text-sm text-zinc-400">
+        Chaque code est utilisable une seule fois et n'est affiché qu'à sa création. Le serveur conserve uniquement son
+        empreinte.
+      </p>
+      <form onSubmit={handleIssue} className="flex flex-wrap items-end gap-3 rounded-xl border border-white/5 bg-surface-1 p-4">
+        <label className="min-w-44 flex-1 text-xs font-semibold text-zinc-400">
+          Type de code
+          <select
+            value={codeType}
+            onChange={(e) => setCodeType(e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-white/10 bg-surface-2 px-3 py-2 text-sm text-zinc-100"
+          >
+            <option value="guest">Compte invité</option>
+            <option value="lecture_author">Auteur BD (site 1)</option>
+          </select>
+        </label>
+        <label className="w-32 text-xs font-semibold text-zinc-400">
+          Expiration
+          <select
+            value={validDays}
+            onChange={(e) => setValidDays(Number(e.target.value))}
+            className="mt-1 block w-full rounded-lg border border-white/10 bg-surface-2 px-3 py-2 text-sm text-zinc-100"
+          >
+            {[1, 7, 30, 90].map((days) => (
+              <option key={days} value={days}>{days} jour{days > 1 ? 's' : ''}</option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="submit"
+          disabled={busy}
+          className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-ink disabled:opacity-60"
+        >
+          {busy ? 'Création...' : 'Créer un code'}
+        </button>
+      </form>
+      {issued && (
+        <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+          <p className="text-xs text-zinc-400">
+            Expire le {new Date(issued.expires_at).toLocaleString('fr-FR')}
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <code className="min-w-0 flex-1 break-all rounded-lg bg-surface-2 px-3 py-2 font-mono text-sm text-zinc-100">
+              {issued.access_code}
+            </code>
+            <button
+              type="button"
+              onClick={copyCode}
+              aria-label="Copier le code"
+              className="shrink-0 rounded-full border border-white/10 p-2 text-zinc-300 hover:text-accent"
+            >
+              <Copy size={16} />
+            </button>
+          </div>
+          {copied && <p className="mt-2 text-xs text-emerald-400">Code copié.</p>}
+        </div>
+      )}
+      {message && <p role="status" aria-live="polite" className="text-sm text-zinc-300">{message}</p>}
+      <section className="space-y-2">
+        <h2 className="text-sm font-bold text-zinc-200">Codes récents</h2>
+        {codes?.map((code) => {
+          const active = codeStatus(code) === 'Actif'
+          return (
+            <div key={code.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/5 bg-surface-1 p-3">
+              <div>
+                <p className="text-sm font-semibold text-zinc-200">
+                  {code.code_type === 'guest' ? 'Compte invité' : 'Auteur BD (site 1)'}
+                  <span className="ml-2 text-xs font-normal text-zinc-500">{codeStatus(code)}</span>
+                </p>
+                <p className="text-xs text-zinc-500">
+                  Créé le {new Date(code.created_at).toLocaleString('fr-FR')} · expire le {new Date(code.expires_at).toLocaleString('fr-FR')}
+                </p>
+              </div>
+              {active && (
+                <button
+                  type="button"
+                  onClick={() => handleRevoke(code.id)}
+                  disabled={revokingId === code.id}
+                  className="rounded-full border border-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+                >
+                  {revokingId === code.id ? 'Invalidation...' : 'Invalider'}
+                </button>
+              )}
+            </div>
+          )
+        })}
+        {codes?.length === 0 && <p className="text-sm text-zinc-500">Aucun code généré.</p>}
+      </section>
     </div>
   )
 }
@@ -637,6 +838,7 @@ export default function Admin() {
           {tab === 'migrations' && <MigrationsTab />}
           {tab === 'reports' && <ReportsTab />}
           {tab === 'partners' && <PartnersTab />}
+          {tab === 'accessCodes' && <AccessCodesTab />}
         </div>
       </div>
     </Layout>

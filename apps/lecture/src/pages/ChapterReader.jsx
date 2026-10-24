@@ -90,10 +90,12 @@ export default function ChapterReader() {
   useEffect(() => {
     if (!user || !chapter) return
     if (!chapter.is_free) hasPurchasedChapter(user.id, chapter.id).then(setPurchased)
-    hasLikedChapter(user.id, chapter.id).then(setLiked)
-    recordStreakActivity('reading').catch(() => {})
-    incrementUserCounter('chapters_read').catch(() => {})
-  }, [user, chapter])
+    if (!profile?.is_guest) {
+      hasLikedChapter(user.id, chapter.id).then(setLiked)
+      recordStreakActivity('reading').catch(() => {})
+      incrementUserCounter('chapters_read').catch(() => {})
+    }
+  }, [user, chapter, profile?.is_guest])
 
   useEffect(() => {
     let lastY = window.scrollY
@@ -119,6 +121,7 @@ export default function ChapterReader() {
 
   async function toggleLike() {
     if (!user) return navigate('/connexion')
+    if (profile?.is_guest) return
     if (liked) {
       await unlikeChapter(user.id, chapter.id)
       setLiked(false)
@@ -144,6 +147,7 @@ export default function ChapterReader() {
   async function handleComment(e) {
     e.preventDefault()
     if (!user) return navigate('/connexion')
+    if (profile?.is_guest) return
     if (!newComment.trim()) return
     const created = await createComment({
       userId: user.id,
@@ -165,6 +169,7 @@ export default function ChapterReader() {
 
   async function toggleCommentLike(commentId) {
     if (!user) return navigate('/connexion')
+    if (profile?.is_guest) return
     const current = commentLikes[commentId] ?? { count: 0, liked: false }
     if (current.liked) {
       await unlikeComment(user.id, commentId)
@@ -262,7 +267,9 @@ export default function ChapterReader() {
               <button
                 type="button"
                 onClick={toggleLike}
+                disabled={!user || profile?.is_guest}
                 aria-label={liked ? 'Retirer le like' : 'Aimer ce chapitre'}
+                title={profile?.is_guest ? 'Les likes sont désactivés pour un compte invité.' : undefined}
                 className={`flex flex-col items-center gap-1 text-xs font-semibold ${
                   liked ? 'text-pink-400' : 'text-zinc-400'
                 }`}
@@ -294,7 +301,11 @@ export default function ChapterReader() {
             <h2 className="border-t border-white/5 pt-4 text-sm font-bold text-zinc-100">
               Commentaires ({comments.length})
             </h2>
-            {user ? (
+            {profile?.is_guest ? (
+              <p className="mt-2 border-b border-white/5 pb-4 text-sm text-zinc-500">
+                Les commentaires sont désactivés pour un compte invité.
+              </p>
+            ) : user ? (
               <form onSubmit={handleComment} className="mt-1 border-b border-white/5 pb-4">
                 {replyTarget && (
                   <div className="mb-2 flex items-center justify-between text-xs text-zinc-500">
@@ -338,9 +349,9 @@ export default function ChapterReader() {
                     comment={c}
                     liked={commentLikes[c.id]?.liked}
                     likeCount={commentLikes[c.id]?.count ?? 0}
-                    onToggleLike={() => toggleCommentLike(c.id)}
+                    onToggleLike={profile?.is_guest ? undefined : () => toggleCommentLike(c.id)}
                     onReply={
-                      user
+                      user && !profile?.is_guest
                         ? () => setReplyTarget({ id: c.id, name: c.user?.display_name ?? 'Lecteur' })
                         : undefined
                     }
@@ -360,7 +371,7 @@ export default function ChapterReader() {
                         isReply
                         liked={commentLikes[r.id]?.liked}
                         likeCount={commentLikes[r.id]?.count ?? 0}
-                        onToggleLike={() => toggleCommentLike(r.id)}
+                        onToggleLike={profile?.is_guest ? undefined : () => toggleCommentLike(r.id)}
                         onDelete={
                           user && (user.id === r.user_id || profile?.is_platform_admin)
                             ? () => handleDeleteComment(r.id)

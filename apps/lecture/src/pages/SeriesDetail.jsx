@@ -15,7 +15,7 @@ const STATUS_LABEL = { ongoing: 'En cours', paused: 'En pause', completed: 'Term
 
 export default function SeriesDetail() {
   const { slug } = useParams()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [seriesItem, setSeriesItem] = useState(null)
   const [chapters, setChapters] = useState(null)
   const [subscribers, setSubscribers] = useState(0)
@@ -36,13 +36,13 @@ export default function SeriesDetail() {
         countSeriesSubscribers(s.id).then(setSubscribers)
         countSeriesLikes(s.id).then(setLikeCount)
         listSeriesChapters(s.id).then(setChapters)
-        if (user) hasLikedSeries(user.id, s.id).then(setLiked)
+        if (user && !profile?.is_guest) hasLikedSeries(user.id, s.id).then(setLiked)
       })
       .catch((e) => setError(e.message))
-  }, [slug, user])
+  }, [slug, user, profile?.is_guest])
 
   async function toggleLike() {
-    if (!user || !seriesItem) return
+    if (!user || !seriesItem || profile?.is_guest) return
     if (liked) {
       await unlikeSeries(user.id, seriesItem.id)
       setLiked(false)
@@ -153,8 +153,9 @@ export default function SeriesDetail() {
           <button
             type="button"
             onClick={toggleLike}
-            disabled={!user}
+            disabled={!user || profile?.is_guest}
             aria-label="Aimer cette série"
+            title={profile?.is_guest ? 'Les likes sont désactivés pour un compte invité.' : undefined}
             className={`flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-sm font-bold ${
               liked ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-zinc-300 hover:border-white/20'
             }`}

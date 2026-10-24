@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { avatarPlaceholder } from '../utils/placeholders'
 import { countFollowers, getCrossPlatformWorks, getProfileByUsername } from '../api/profiles'
 import { listMyChannels } from '../api/channels'
+import hypercubeLogo from '../assets/hypercube-obsidian-logo.png'
 import Loader from '../components/ui/Loader'
 
 const LECTURE_URL = 'https://bd-obsidian-lecture.vercel.app'
@@ -69,8 +70,19 @@ export default function AuthorProfile() {
         </div>
 
         <div className="mt-3 flex items-center gap-1.5">
+          <img src={hypercubeLogo} alt="Hypercube Obsidian" className="h-6 w-6 shrink-0 object-cover object-left" />
           <h1 className="text-xl font-extrabold text-zinc-50 sm:text-2xl">{profile.display_name}</h1>
           {profile.is_author && <BadgeCheck size={19} className="text-accent" fill="currentColor" stroke="#0c0709" />}
+          {profile.is_platform_admin && (
+            <BadgeCheck
+              size={20}
+              aria-label="Administrateur"
+              title="Administrateur"
+              className="text-hypercube-500"
+              fill="currentColor"
+              stroke="#0b0b0e"
+            />
+          )}
         </div>
         <p className="text-sm text-zinc-500">@{profile.username}</p>
 

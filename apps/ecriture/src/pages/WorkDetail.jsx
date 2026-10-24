@@ -13,7 +13,7 @@ import Loader from '../components/ui/Loader'
 
 export default function WorkDetail() {
   const { workId } = useParams()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [work, setWork] = useState(null)
   const [chapters, setChapters] = useState(null)
   const [resumeChapterId, setResumeChapterId] = useState(null)
@@ -36,12 +36,12 @@ export default function WorkDetail() {
 
   useEffect(() => {
     if (user) getReadingProgress(user.id, workId).then(setResumeChapterId)
-    if (user) listMyReadingLists(user.id).then(setLists)
-    if (user) hasLikedWork(user.id, workId).then(setLiked)
-  }, [user, workId])
+    if (user && !profile?.is_guest) listMyReadingLists(user.id).then(setLists)
+    if (user && !profile?.is_guest) hasLikedWork(user.id, workId).then(setLiked)
+  }, [user, workId, profile?.is_guest])
 
   async function toggleLike() {
-    if (!user) return
+    if (!user || profile?.is_guest) return
     if (liked) {
       await unlikeWork(user.id, workId)
       setLiked(false)
@@ -54,6 +54,7 @@ export default function WorkDetail() {
   }
 
   async function toggleInList(list) {
+    if (profile?.is_guest) return
     const inList = list.reading_list_items.some((it) => it.work_id === workId)
     if (inList) {
       await removeWorkFromList({ listId: list.id, workId })
@@ -150,8 +151,9 @@ export default function WorkDetail() {
           <button
             type="button"
             onClick={toggleLike}
-            disabled={!user}
+            disabled={!user || profile?.is_guest}
             aria-label="Aimer cette œuvre"
+            title={profile?.is_guest ? 'Les likes sont désactivés pour un compte invité.' : undefined}
             className={`flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-sm font-bold ${
               liked ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/10 text-zinc-300 hover:border-white/20'
             }`}
@@ -159,7 +161,7 @@ export default function WorkDetail() {
             <Heart size={15} className={liked ? 'fill-accent' : ''} />
             {likeCount}
           </button>
-          {user && (
+          {user && !profile?.is_guest && (
             <>
               <button
                 type="button"

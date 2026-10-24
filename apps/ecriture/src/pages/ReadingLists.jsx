@@ -6,20 +6,28 @@ import { useAuth } from '../context/AuthContext'
 import { createReadingList, deleteReadingList, listMyReadingLists, removeWorkFromList } from '../api/readingLists'
 
 export default function ReadingLists() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [lists, setLists] = useState(null)
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
-    if (!user) return
+    if (!user || profile?.is_guest) return
     listMyReadingLists(user.id).then(setLists)
-  }, [user])
+  }, [user, profile?.is_guest])
 
   if (!user) {
     return (
       <Layout>
         <p className="p-6 text-zinc-400">Connecte-toi pour voir tes listes de lecture.</p>
+      </Layout>
+    )
+  }
+
+  if (profile?.is_guest) {
+    return (
+      <Layout>
+        <p className="p-6 text-sm text-zinc-400">Les favoris et listes de lecture sont indisponibles pour un compte invité.</p>
       </Layout>
     )
   }

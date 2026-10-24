@@ -15,7 +15,7 @@ const COVER_TABS = [
 ]
 
 export default function CreateWork() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const [title, setTitle] = useState('')
@@ -44,6 +44,17 @@ export default function CreateWork() {
         <div className="flex flex-col items-center gap-3 px-4 py-20 text-center">
           <Lock size={28} className="text-zinc-600" />
           <p className="text-zinc-400">Connecte-toi pour créer une œuvre.</p>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (profile?.is_guest) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center gap-3 px-4 py-20 text-center">
+          <Lock size={28} className="text-zinc-600" />
+          <p className="text-zinc-400">La publication d’œuvres est désactivée pour un compte invité.</p>
         </div>
       </Layout>
     )

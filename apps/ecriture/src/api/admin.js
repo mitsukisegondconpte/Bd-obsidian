@@ -17,10 +17,36 @@ export async function setProfileFlags(targetUserId, flags) {
     new_is_editor: flags.isEditor ?? null,
     new_is_platform_admin: flags.isPlatformAdmin ?? null,
     new_is_suspended: flags.isSuspended ?? null,
+    new_is_lecture_author: flags.isLectureAuthor ?? null,
     new_partner_verified: flags.partnerVerified ?? null,
   })
   if (error) throw error
   return data
+}
+
+export async function issueSignupAccessCode({ codeType, validDays = 7 }) {
+  const { data, error } = await supabase.rpc('issue_signup_access_code', {
+    p_code_type: codeType,
+    p_valid_days: validDays,
+  })
+  if (error) throw error
+  const result = Array.isArray(data) ? data[0] : data
+  if (!result?.access_code || !result?.expires_at) {
+    throw new Error("Le code n'a pas été retourné par le serveur.")
+  }
+  return result
+}
+
+export async function listSignupAccessCodes() {
+  const { data, error } = await supabase.rpc('list_signup_access_codes')
+  if (error) throw error
+  return data ?? []
+}
+
+export async function revokeSignupAccessCode(codeId) {
+  const { data, error } = await supabase.rpc('revoke_signup_access_code', { p_code_id: codeId })
+  if (error) throw error
+  return Boolean(data)
 }
 
 // Inscriptions via /rejoindre-auteur (lien envoyé par un partenaire comme

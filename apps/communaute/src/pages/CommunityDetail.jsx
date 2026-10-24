@@ -193,7 +193,7 @@ export default function CommunityDetail() {
   }
 
   async function handleReact(post, emoji) {
-    if (!user) return
+    if (!user || profile?.is_guest) return
     const prevReactions = post.reactions ?? []
     const nextReactions = prevReactions.filter((r) => r.user_id !== user.id)
     if (emoji) nextReactions.push({ user_id: user.id, emoji })
@@ -390,7 +390,7 @@ export default function CommunityDetail() {
                   }}
                   reactions={p.reactions ?? []}
                   currentUserId={user?.id}
-                  onReact={user ? (emoji) => handleReact(p, emoji) : undefined}
+                   onReact={user && !profile?.is_guest ? (emoji) => handleReact(p, emoji) : undefined}
                   canEdit={p.author_id === user?.id}
                   onEdit={(body) => handleEditPost(p, body)}
                   canDelete={p.author_id === user?.id || profile?.is_platform_admin}
