@@ -48,6 +48,9 @@ export default function CreateSeries() {
   const creationKeyRef = useRef(null)
   const saveQueue = useRef(Promise.resolve())
   const saveVersion = useRef(0)
+  const saveTimer = useRef(null)
+  const pendingCover = useRef(null)
+  const coverBusy = useRef(false)
   const [draftId, setDraftId] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -133,12 +136,12 @@ export default function CreateSeries() {
     const version = ++saveVersion.current
     const snapshot = { seriesId: draftId, authorId: user.id, title, summary, status, updateDay, coverUrl, genreNames: selectedGenres }
     setSaveState('saving')
-    const timer = window.setTimeout(() => {
+    saveTimer.current = window.setTimeout(() => {
       saveQueue.current = saveQueue.current.catch(() => {}).then(() => updateSeriesDraft(snapshot))
-        .then(() => { if (saveVersion.current === version) setSaveState('saved') })
+        .then(() => { if (saveVersion.current === version) setSaveState(pendingCover.current ? 'failed' : 'saved') })
         .catch((err) => { if (saveVersion.current === version) { setSaveState('failed'); setError(err.message || 'La sauvegarde a échoué.') } })
     }, 700)
-    return () => window.clearTimeout(timer)
+    return () => window.clearTimeout(saveTimer.current)
   }, [draftId, loading, profile?.is_lecture_author, user?.id, title, summary, status, updateDay, coverUrl, selectedGenres])
 
   useEffect(() => {
@@ -154,17 +157,10 @@ export default function CreateSeries() {
     if (!file) return
     if (!file.type.startsWith('image/')) { setError('Choisis un fichier image.'); return }
     if (file.size > 5 * 1024 * 1024) { setError('La couverture doit faire 5 Mo ou moins.'); return }
-    if (!draftId) return
-    setError('')
-    setUploadingCover(true)
-    try {
-      const path = await uploadDraftCover({ ownerId: user.id, seriesId: draftId, file })
-      setCoverUrl(path)
-    } catch (err) {
-      setError(err.message || 'L’envoi de la couverture a échoué.')
-    } finally {
-      setUploadingCover(false)
-    }
+    if (!draftId || coverBusy.current) return
+    if (pendingCover.current) { setError('Réessaie d’abord la sauvegarde de la couverture en attente.'); return }
+    pendingCover.current = { file, uploadId: createUuidV4() }
+    await retrySave()
   }
 
   function toggleGenre(name) {
@@ -172,19 +168,34 @@ export default function CreateSeries() {
   }
 
   async function retrySave() {
-    if (!draftId) return
+    if (!draftId || coverBusy.current) return
+    coverBusy.current = true
+    window.clearTimeout(saveTimer.current)
+    saveVersion.current += 1
     setSaveState('saving')
+    setUploadingCover(true)
     setError('')
     try {
-      await updateSeriesDraft({ seriesId: draftId, authorId: user.id, title, summary, status, updateDay, coverUrl, genreNames: selectedGenres })
+      await saveQueue.current
+      let savedCoverUrl = coverUrl
+      if (pendingCover.current) {
+        savedCoverUrl = await uploadDraftCover({ ownerId: user.id, seriesId: draftId, ...pendingCover.current })
+      }
+      await updateSeriesDraft({ seriesId: draftId, authorId: user.id, title, summary, status, updateDay, coverUrl: savedCoverUrl, genreNames: selectedGenres })
+      pendingCover.current = null
+      setCoverUrl(savedCoverUrl)
       setSaveState('saved')
     } catch (err) {
       setSaveState('failed')
       setError(err.message || 'La sauvegarde a échoué.')
+    } finally {
+      coverBusy.current = false
+      setUploadingCover(false)
     }
   }
 
   async function handlePublish() {
+    if (pendingCover.current || coverBusy.current) { setError('Réessaie la sauvegarde de la couverture avant de publier.'); return }
     if (!title.trim() || !summary.trim()) { setError('Ajoute un titre et un résumé avant de publier.'); return }
     if (uploadingCover || saveState === 'saving') { setError('Attends la fin de la sauvegarde avant de publier.'); return }
     setPublishing(true)
