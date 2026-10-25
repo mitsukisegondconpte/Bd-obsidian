@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { chapterPageUploadDestination } from '../utils/chapterPageUploadDestination'
 
 const pendingSeriesDraftCreates = new Map()
 const pendingChapterDraftCreates = new Map()
@@ -105,10 +106,15 @@ export async function updateSeriesDraft({ seriesId, authorId, title, summary, st
   return data
 }
 
-export async function uploadDraftCover({ ownerId, seriesId, file }) {
-  const path = ownerId + '/series/' + seriesId + '/cover-' + Date.now() + '-' + safeName(file.name)
-  const { error } = await supabase.storage.from('author-drafts').upload(path, file)
-  if (error) throw error
+async function uploadOnce(bucket, path, file) {
+  const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false })
+  // A retry uses the same operation-specific path, including after a lost response.
+  if (error && String(error.statusCode) !== '409') throw error
+}
+
+export async function uploadDraftCover({ ownerId, seriesId, file, uploadId = createUuidV4() }) {
+  const path = ownerId + '/series/' + seriesId + '/cover-' + uploadId + '-' + safeName(file.name)
+  await uploadOnce('author-drafts', path, file)
   return path
 }
 
@@ -134,9 +140,8 @@ export async function publishSeriesDraft({ seriesId, authorId }) {
   if (coverUrl && !isPublicUrl(coverUrl)) {
     const { data: file, error: downloadError } = await supabase.storage.from('author-drafts').download(coverUrl)
     if (downloadError) throw downloadError
-    const publicPath = authorId + '/' + Date.now() + '-' + safeName(coverUrl.split('/').pop() || 'cover')
-    const { error: uploadError } = await supabase.storage.from('series-covers').upload(publicPath, file, { upsert: false })
-    if (uploadError) throw uploadError
+    const publicPath = authorId + '/' + seriesId + '-' + safeName(coverUrl.split('/').pop() || 'cover')
+    await uploadOnce('series-covers', publicPath, file)
     coverUrl = supabase.storage.from('series-covers').getPublicUrl(publicPath).data.publicUrl
     const { error: coverError } = await supabase.from('series').update({ cover_url: coverUrl }).eq('id', seriesId).eq('author_id', authorId)
     if (coverError) throw coverError
@@ -178,21 +183,26 @@ export async function updateAuthorChapter({ chapterId, title, isFree, priceCents
   return data
 }
 
-export async function uploadAuthorChapterPage({ chapterId, ownerId, file, pageNumber, isPublished }) {
-  const bucket = isPublished ? 'chapter-pages' : 'author-drafts'
-  const folder = isPublished ? ownerId + '/' : ownerId + '/chapters/' + chapterId + '/'
-  const path = folder + Date.now() + '-' + pageNumber + '-' + safeName(file.name)
-  const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file)
-  if (uploadError) throw uploadError
-  const imageUrl = isPublished ? supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl : path
-  const { data, error } = await supabase
-    .from('chapter_pages')
-    .insert({ chapter_id: chapterId, page_number: pageNumber, image_url: imageUrl })
-    .select('*')
-    .single()
-  if (error) {
-    await supabase.storage.from(bucket).remove([path])
-    throw error
+export async function uploadAuthorChapterPage({ chapterId, ownerId, file, pageNumber, isPublished, pageId = createUuidV4() }) {
+  const { bucket, path } = chapterPageUploadDestination({ chapterId, ownerId, pageId, fileName: file.name, isPublished })
+  const findPage = () => supabase.from('chapter_pages').select('*').eq('id', pageId).eq('chapter_id', chapterId).maybeSingle()
+  let { data, error } = await findPage()
+  if (error) throw error
+  if (!data) {
+    await uploadOnce(bucket, path, file)
+    const imageUrl = isPublished ? supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl : path
+    const result = await supabase
+      .from('chapter_pages')
+      .insert({ id: pageId, chapter_id: chapterId, page_number: pageNumber, image_url: imageUrl })
+      .select('*')
+      .single()
+    data = result.data
+    if (result.error) {
+      // The insert may have committed even if its response was lost.
+      const recovered = await findPage()
+      if (recovered.error || !recovered.data) throw result.error
+      data = recovered.data
+    }
   }
   const { count, error: countError } = await supabase.from('chapter_pages').select('id', { count: 'exact', head: true }).eq('chapter_id', chapterId)
   if (countError) throw countError
@@ -244,9 +254,8 @@ export async function publishAuthorChapter({ chapterId, ownerId }) {
     if (isPublicUrl(page.image_url)) continue
     const { data: file, error: downloadError } = await supabase.storage.from('author-drafts').download(page.image_url)
     if (downloadError) throw downloadError
-    const publicPath = ownerId + '/' + Date.now() + '-' + page.page_number + '-' + safeName(page.image_url.split('/').pop() || 'page')
-    const { error: uploadError } = await supabase.storage.from('chapter-pages').upload(publicPath, file, { upsert: false })
-    if (uploadError) throw uploadError
+    const publicPath = ownerId + '/' + chapterId + '-' + page.id + '-' + safeName(page.image_url.split('/').pop() || 'page')
+    await uploadOnce('chapter-pages', publicPath, file)
     const publicUrl = supabase.storage.from('chapter-pages').getPublicUrl(publicPath).data.publicUrl
     const { error: updateError } = await supabase.from('chapter_pages').update({ image_url: publicUrl }).eq('id', page.id)
     if (updateError) throw updateError

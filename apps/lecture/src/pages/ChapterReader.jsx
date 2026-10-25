@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -11,7 +11,6 @@ import {
   Share2,
 } from 'lucide-react'
 import CommentItem from '../components/ui/CommentItem'
-import { pagePlaceholder } from '../utils/placeholders'
 import { useAuth } from '../context/AuthContext'
 import { getChapter, getSeriesBySlug, listChapterPages, listSeriesChapters } from '../api/series'
 import {
@@ -27,6 +26,7 @@ import { countChapterLikes, hasLikedChapter, likeChapter, unlikeChapter } from '
 import { hasPurchasedChapter, purchaseChapter } from '../api/purchases'
 import { incrementUserCounter, recordStreakActivity } from '../api/streaks'
 import Loader from '../components/ui/Loader'
+import { chapterPagesForReader } from '../utils/chapterPages'
 
 export default function ChapterReader() {
   const { slug, chapterId } = useParams()
@@ -49,24 +49,48 @@ export default function ChapterReader() {
   const [showChapterList, setShowChapterList] = useState(false)
   const [chromeVisible, setChromeVisible] = useState(true)
   const [error, setError] = useState('')
+  const [pagesError, setPagesError] = useState('')
 
   useEffect(() => {
+    let active = true
+    setSeriesItem(null)
+    setChapters(null)
+    setError('')
     getSeriesBySlug(slug)
-      .then((s) => {
-        setSeriesItem(s)
-        listSeriesChapters(s.id).then(setChapters)
+      .then(async (s) => {
+        const rows = await listSeriesChapters(s.id)
+        if (active) { setSeriesItem(s); setChapters(rows) }
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => { if (active) setError(e.message) })
+    return () => { active = false }
   }, [slug])
 
   useEffect(() => {
+    let active = true
     window.scrollTo({ top: 0 })
+    setChapter(null)
+    setChapterPages(null)
+    setPurchased(false)
+    setLiked(false)
+    setLikeCount(0)
+    setError('')
     getChapter(chapterId)
-      .then(setChapter)
-      .catch((e) => setError(e.message))
-    listChapterPages(chapterId).then(setChapterPages)
-    countChapterLikes(chapterId).then(setLikeCount)
-  }, [chapterId])
+      .then((value) => { if (active) setChapter(value) })
+      .catch((e) => { if (active) setError(e.message) })
+    countChapterLikes(chapterId).then((value) => { if (active) setLikeCount(value) }).catch(() => {})
+    return () => { active = false }
+  }, [chapterId, user?.id])
+
+  useEffect(() => {
+    let active = true
+    setChapterPages(null)
+    setPagesError('')
+    if (!chapter || chapter.id !== chapterId || (!chapter.is_free && !purchased)) return
+    listChapterPages(chapterId)
+      .then((rows) => { if (active) setChapterPages(rows) })
+      .catch((err) => { if (active) setPagesError(err.message || 'Impossible de charger les pages.') })
+    return () => { active = false }
+  }, [chapter, chapterId, purchased])
 
   useEffect(() => {
     let cancelled = false
@@ -88,12 +112,14 @@ export default function ChapterReader() {
   }, [chapterId, user])
 
   useEffect(() => {
-    if (!user || !chapter) return
-    if (!chapter.is_free) hasPurchasedChapter(user.id, chapter.id).then(setPurchased)
-    hasLikedChapter(user.id, chapter.id).then(setLiked)
+    let active = true
+    if (!user || !chapter || chapter.id !== chapterId) return
+    if (!chapter.is_free) hasPurchasedChapter(user.id, chapter.id).then((value) => { if (active) setPurchased(value) }).catch((err) => { if (active) setError(err.message) })
+    hasLikedChapter(user.id, chapter.id).then((value) => { if (active) setLiked(value) }).catch(() => {})
     recordStreakActivity('reading').catch(() => {})
     incrementUserCounter('chapters_read').catch(() => {})
-  }, [user, chapter])
+    return () => { active = false }
+  }, [user, chapter, chapterId])
 
   useEffect(() => {
     let lastY = window.scrollY
@@ -106,16 +132,7 @@ export default function ChapterReader() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const pages = useMemo(() => {
-    if (!chapter) return []
-    if (chapterPages?.length) {
-      return chapterPages.map((p) => ({ id: p.id, url: p.image_url }))
-    }
-    return Array.from({ length: chapter.page_count }, (_, i) => ({
-      id: `${chapter.id}-p${i + 1}`,
-      url: pagePlaceholder({ seed: chapter.id, page: i + 1, total: chapter.page_count }),
-    }))
-  }, [chapter, chapterPages])
+  const pages = chapterPagesForReader(chapterId, chapterPages)
 
   async function toggleLike() {
     if (!user) return navigate('/connexion')
@@ -186,10 +203,14 @@ export default function ChapterReader() {
     )
   }
 
-  if (!seriesItem || !chapters || !chapter) {
+  if (!seriesItem || !chapters || !chapter || chapter.id !== chapterId) {
     return (
       <Loader className="min-h-screen" />
     )
+  }
+
+  if (chapter.series_id !== seriesItem.id) {
+    return <p role="alert" className="p-6 text-red-400">Ce chapitre n’appartient pas à cette série.</p>
   }
 
   const topLevelComments = comments.filter((c) => !c.parent_comment_id)
@@ -242,6 +263,9 @@ export default function ChapterReader() {
           <PaywallGate chapter={chapter} onUnlock={handleUnlock} unlocking={unlocking} loggedIn={Boolean(user)} />
         ) : (
           <div className="flex flex-col">
+            {pagesError ? <p role="alert" className="p-6 text-red-400">{pagesError}</p>
+              : chapterPages === null ? <Loader className="py-16" />
+              : !pages.length ? <p role="status" className="p-6 text-zinc-400">Aucune page accessible pour ce chapitre. Signale ce problème à l’auteur.</p> : null}
             {pages.map((page, i) => (
               <img
                 key={page.id}
